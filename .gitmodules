@@ -1,0 +1,3 @@
+[submodule "record"]
+	path = record
+	url = https://github.com/DynaJS/vue-request-record.git
