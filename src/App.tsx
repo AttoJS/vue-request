@@ -5,5 +5,5 @@ export default defineComponent({
   name: 'App',
   setup() {
     return () => <div></div>;
-  }
+  },
 });
