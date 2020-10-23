@@ -16,27 +16,30 @@ function useRequest(service: any, options: Config) {
 
   let promiseService: () => Promise<any>;
   switch (typeof service) {
-    case 'string':
+    case 'string': {
       promiseService = () => requestMethod(service);
       break;
-    case 'object':
+    }
+    case 'object': {
       const { url, ...rest } = service;
       promiseService = () => requestMethod(url, rest);
       break;
-
+    }
     case 'function':
       promiseService = (...args: any[]) =>
         new Promise((resolve, reject) => {
-          const _service = service(...args);
+          let _service = service(...args);
           if (!_service.then) {
             switch (_service) {
-              case 'string':
-                _service = requestMethod(_service);
+              case 'string': {
+                _service = () => requestMethod(_service);
                 break;
-              case 'object':
+              }
+              case 'object': {
                 const { url, ...rest } = _service;
-                promiseService = () => requestMethod(url, rest);
+                _service = () => requestMethod(url, rest);
                 break;
+              }
             }
           }
           _service.then(resolve).catch(reject);

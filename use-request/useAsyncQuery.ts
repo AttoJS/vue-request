@@ -1,4 +1,4 @@
-import { reactive, toRefs, Ref } from 'vue';
+import { reactive, toRefs, Ref, ToRefs } from 'vue';
 import { Config } from './config';
 import Query, { Request, QueryState } from './query';
 
@@ -9,10 +9,18 @@ export type BaseResult<P extends unknown[], R> = QueryState<P, R>;
 function useAsyncQuery<P extends unknown[], R>(
   queryMethod: Request<P, R>,
   options: Config,
-): Ref<BaseResult<P, R>> {
-  const queriesList = reactive({});
-  queriesList[QUERY_DEFAULT_KEY] = new Query(queryMethod, options);
-  return toRefs(queriesList[QUERY_DEFAULT_KEY]);
+): BaseResult<P, R> {
+  // const queriesList = reactive<Record<string, QueryState<P, R>>>({});
+  const query = reactive(new Query(queryMethod, options));
+  console.log(query);
+
+  // queriesList[QUERY_DEFAULT_KEY] = ;
+  // console.log(queriesList);
+  const run = (...args: P) => {
+    query.run(...args);
+  };
+  // @ts-ignore
+  return reactive({ ...query.state });
 }
 
 export default useAsyncQuery;

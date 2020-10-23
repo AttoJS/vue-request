@@ -4,7 +4,7 @@ export type Request<P extends unknown[], R> = (...args: P) => Promise<R>;
 export type Mutate<R> = (newData: R) => void | ((arg: (oldData: R) => R) => void);
 export type QueryState<P extends unknown[], R> = {
   loading: boolean;
-  data: R;
+  data: R | undefined;
   error: Error | undefined;
   params: P;
   run: (...arg: P) => Promise<R>;
@@ -23,23 +23,33 @@ export default class Query<P extends unknown[], R> {
 
   config: Config;
 
+  that = this;
+
   state: QueryState<P, R> = {
     loading: false,
     data: undefined,
     error: undefined,
     params: [] as any,
-    run: this.run,
-    cancel: this.cancel,
-    refresh: this.refresh,
-    mutate: this.mutate,
+    run: this.run.bind(this.that),
+    cancel: this.cancel.bind(this.that),
+    refresh: this.refresh.bind(this.that),
+    mutate: this.mutate.bind(this.that),
   };
 
   _run(...args: P) {
+    this.state.loading = true;
     return this.request(...args)
       .then(res => {
+        this.state.data = res;
+        this.state.loading = false;
+        this.state.error = undefined;
         return res;
       })
       .catch(error => {
+        this.state.data = undefined;
+        this.state.loading = false;
+        this.state.error = error;
+
         console.log(error);
         return Promise.reject('已处理的错误');
       })
@@ -48,7 +58,7 @@ export default class Query<P extends unknown[], R> {
       });
   }
 
-  run(...args: P) {
+  run(this: any, ...args: P) {
     console.log(args);
     return this._run(...args);
   }
@@ -61,7 +71,7 @@ export default class Query<P extends unknown[], R> {
     return this.run(...this.state.params);
   }
 
-  mutate(mutate: R | ((x: R) => R)) {
+  mutate(mutate: any | ((x: any) => any)) {
     if (typeof mutate === 'function') {
       this.state.data = mutate(this.state.data);
     } else {
