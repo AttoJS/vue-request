@@ -1,9 +1,24 @@
-import { defineComponent } from 'vue';
-import './index.scss';
+import useRequest from '../use-request';
+import { defineComponent, watchEffect } from 'vue';
+
+function testService(): Promise<string> {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve('test');
+    }, 1000);
+  });
+}
 
 export default defineComponent({
   name: 'App',
   setup() {
-    return () => <div></div>;
+    const {run, data, loading} = useRequest(testService, {});
+    watchEffect(()=>{
+      console.log(data);
+    })
+    return () => <div>
+      <button onClick={()=>run()}>aa</button>
+      {data}
+    </div>;
   },
 });
