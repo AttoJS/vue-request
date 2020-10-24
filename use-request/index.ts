@@ -1,4 +1,4 @@
-import { toRefs } from 'vue';
+import { toRefs, watchEffect } from 'vue';
 import { Config } from './config';
 import useAsyncQuery from './useAsyncQuery';
 
@@ -12,7 +12,7 @@ function requestProxy(...args: any[]) {
   });
 }
 
-function useRequest(service: any, options: Config) {
+function useRequest<P extends unknown[], R>(service: any, options: Config<P>) {
   const requestMethod = requestProxy;
 
   let promiseService: () => Promise<any>;
@@ -49,8 +49,10 @@ function useRequest(service: any, options: Config) {
     default:
       throw Error('未知service类型');
   }
-  const data = useAsyncQuery(promiseService, options);
-
+  const data = useAsyncQuery<P, R>(promiseService, options);
+  watchEffect(() => {
+    console.log(data);
+  });
   return toRefs(data);
 }
 
