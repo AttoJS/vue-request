@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
-
 import { reactive } from 'vue';
 import { Config } from './config';
 // P mean params, R mean Response
@@ -17,6 +15,12 @@ export type QueryState<P extends unknown[], R> = {
 };
 
 export const createQuery = <P extends unknown[], R>(request: Request<P, R>, config: Config) => {
+  let state: Partial<QueryState<P, R>> = {
+    loading: false,
+    data: undefined,
+    error: undefined,
+    params: ([] as unknown) as P,
+  };
   const _run = (...args: P) => {
     state.loading = true;
     return request(...args)
@@ -49,11 +53,10 @@ export const createQuery = <P extends unknown[], R>(request: Request<P, R>, conf
   };
 
   const refresh = () => {
-    // @ts-ignore
-    return run(...state.params);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return run(...state.params!);
   };
 
-  // @ts-ignore
   const mutate = (mutate: any | ((x: any) => any)) => {
     if (typeof mutate === 'function') {
       state.data = mutate(state.data);
@@ -62,16 +65,13 @@ export const createQuery = <P extends unknown[], R>(request: Request<P, R>, conf
     }
   };
 
-  const state: QueryState<P, R> = reactive({
-    loading: false,
-    data: undefined,
-    error: undefined,
-    params: [] as any,
+  state = reactive({
+    ...state,
     run,
     cancel,
     refresh,
     mutate,
-  });
+  }) as QueryState<P, R>;
 
   return state;
 };
