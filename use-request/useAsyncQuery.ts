@@ -1,5 +1,5 @@
 import { Config } from './config';
-import { createQuery, QueryState, Request } from './query';
+import { createQuery, QueryState, Request } from './createQuery';
 
 const QUERY_DEFAULT_KEY = 'QUERY_DEFAULT_KEY';
 
