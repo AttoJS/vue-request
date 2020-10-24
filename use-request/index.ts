@@ -49,7 +49,6 @@ function useRequest(service: any, options: Config) {
     default:
       throw Error('未知service类型');
   }
-
   const data = useAsyncQuery(promiseService, options);
 
   return toRefs(data);
