@@ -12,13 +12,16 @@ function testService(): Promise<string> {
 export default defineComponent({
   name: 'App',
   setup() {
-    const {run, data, loading} = useRequest(testService, {});
-    watchEffect(()=>{
-      console.log(data);
-    })
-    return () => <div>
-      <button onClick={()=>run()}>aa</button>
-      {data}
-    </div>;
+    // @ts-ignore
+    const {  data , state} = useRequest(testService, {});
+    watchEffect(() => {
+      console.log('watch data', data.text);
+    });
+    return () => (
+      <div>
+        <button onClick={() => state.run()}>aa</button>
+        {state.loading ? '加载中...' : data.text}
+      </div>
+    );
   },
 });

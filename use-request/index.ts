@@ -1,3 +1,4 @@
+import { reactive, toRefs, watchEffect } from 'vue';
 import { Config } from './config';
 import useAsyncQuery from './useAsyncQuery';
 
@@ -48,8 +49,13 @@ function useRequest(service: any, options: Config) {
     default:
       throw Error('未知service类型');
   }
+  const data = useAsyncQuery(promiseService, options);
+  console.log(data);
 
-  return useAsyncQuery(promiseService, options);
+  watchEffect(() => {
+    console.log('watch', data.data);
+  });
+  return data;
 }
 
 export default useRequest;
