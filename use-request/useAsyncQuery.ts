@@ -1,4 +1,3 @@
-import { reactive } from 'vue';
 import { Config } from './config';
 import { createQuery, QueryState, Request } from './query';
 
@@ -11,9 +10,7 @@ function useAsyncQuery<P extends unknown[], R>(
   options: Config,
 ): BaseResult<P, R> {
   // const queriesList = reactive<Record<string, QueryState<P, R>>>({});
-  const newQuery = createQuery(queryMethod, options);
-  console.log('newQuery', newQuery);
-  const query = reactive(newQuery);
+  const query = createQuery(queryMethod, options);
   console.log(query);
 
   // queriesList[QUERY_DEFAULT_KEY] = ;

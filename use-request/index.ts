@@ -1,4 +1,4 @@
-import { toRefs, watchEffect } from 'vue';
+import { toRefs } from 'vue';
 import { Config } from './config';
 import useAsyncQuery from './useAsyncQuery';
 
@@ -51,10 +51,6 @@ function useRequest(service: any, options: Config) {
   }
 
   const data = useAsyncQuery(promiseService, options);
-
-  watchEffect(() => {
-    console.log('useAsyncQuery data', data.data);
-  });
 
   return toRefs(data);
 }
