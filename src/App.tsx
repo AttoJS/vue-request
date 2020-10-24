@@ -1,5 +1,5 @@
-import useRequest from '../use-request';
 import { defineComponent, watchEffect } from 'vue';
+import useRequest from '../use-request';
 
 function testService(): Promise<string> {
   return new Promise(resolve => {
@@ -12,15 +12,17 @@ function testService(): Promise<string> {
 export default defineComponent({
   name: 'App',
   setup() {
-    // @ts-ignore
-    const {  data , state} = useRequest(testService, {});
+    const { run, data, loading } = useRequest(testService, {});
+    // console.log('setup -> run', run);
+    // console.log('setup -> data', data);
+
     watchEffect(() => {
-      console.log('watch data', data.text);
+      console.log('data', data);
     });
     return () => (
       <div>
-        <button onClick={() => state.run()}>aa</button>
-        {state.loading ? '加载中...' : data.text}
+        <button onClick={() => run.value()}>aa</button>
+        {data.value}
       </div>
     );
   },
