@@ -2,10 +2,10 @@ import { reactive, toRefs } from 'vue';
 import { Config } from './config';
 // P mean params, R mean Response
 export type Request<P extends any[], R> = (...args: P) => Promise<R>;
-export interface Mutate<R> {
-  (newData: R): void;
-  (arg: (oldData: R) => R): void;
-}
+type MutateData<R> = (newData: R) => void;
+type MutateFunction<R> = (arg: (oldData: R) => R) => void;
+export interface Mutate<R> extends MutateData<R>, MutateFunction<R> {}
+
 export type QueryState<P extends any[], R> = {
   loading: boolean;
   data: R | undefined;
@@ -30,6 +30,7 @@ const createQuery = <P extends any[], R>(
 
   const _run = (...args: P) => {
     state.loading = true;
+    state.params = args;
     return request(...args)
       .then(res => {
         state.data = res;
@@ -63,7 +64,9 @@ const createQuery = <P extends any[], R>(
     return run(...state.params!);
   };
 
-  const mutate: Mutate<R> = (x: R | ((y: R) => R)) => {
+  const mutate: Mutate<R> = (
+    x: Parameters<MutateData<R>>[0] | Parameters<MutateFunction<R>>[0],
+  ) => {
     if (x instanceof Function) {
       state.data = x(state.data!);
     } else {
