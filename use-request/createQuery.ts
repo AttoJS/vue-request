@@ -1,4 +1,4 @@
-import { reactive, toRefs } from 'vue';
+import { nextTick, reactive, toRefs } from 'vue';
 import { Config } from './config';
 // P mean params, R mean Response
 export type Request<P extends any[], R> = (...args: P) => Promise<R>;
@@ -28,21 +28,37 @@ const createQuery = <P extends any[], R>(
     params: ([] as unknown) as P,
   }) as Partial<QueryState<P, R>>;
 
+  const setState = (newState: typeof state, cb?: () => void) => {
+    Object.keys(newState).forEach(key => {
+      // @ts-ignore
+      state[key] = newState[key];
+    });
+    nextTick(() => {
+      cb?.();
+    });
+  };
+
   const _run = (...args: P) => {
     state.loading = true;
-    state.params = args;
+    setState({
+      loading: true,
+      params: args,
+    });
     return request(...args)
       .then(res => {
-        state.data = res;
-        state.loading = false;
-        state.error = undefined;
+        setState({
+          data: res,
+          loading: false,
+          error: undefined,
+        });
         return res;
       })
       .catch(error => {
-        state.data = undefined;
-        state.loading = false;
-        state.error = error;
-
+        setState({
+          data: undefined,
+          loading: false,
+          error: error,
+        });
         console.log(error);
         return Promise.reject('已处理的错误');
       })
@@ -52,7 +68,6 @@ const createQuery = <P extends any[], R>(
   };
 
   const run = (...args: P) => {
-    console.log(args);
     return _run(...args);
   };
 
