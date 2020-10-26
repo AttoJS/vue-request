@@ -30,7 +30,7 @@ const setStateBind = <T>(oldState: T) => {
 
 const createQuery = <P extends any[], R>(
   request: Request<P, R>,
-  config: Config<P>,
+  config: Config<P, R>,
 ): QueryState<P, R> => {
   const state = reactive({
     loading: false,

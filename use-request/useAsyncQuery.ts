@@ -7,7 +7,7 @@ export type BaseResult<P extends any[], R> = QueryState<P, R>;
 
 function useAsyncQuery<P extends any[], R>(
   queryMethod: Request<P, R>,
-  options: Config<P>,
+  options: Config<P, R>,
 ): BaseResult<P, R> {
   const mergeConfig = { ...DefaultConfig, ...options };
   const query = createQuery(queryMethod, options);
