@@ -12,7 +12,7 @@ function requestProxy(...args: any[]) {
   });
 }
 
-function useRequest<P extends unknown[], R>(service: any, options: Config<P>) {
+function useRequest<P extends unknown[], R>(service: any, options: Config<P> = {}) {
   const requestMethod = requestProxy;
 
   let promiseService: () => Promise<any>;

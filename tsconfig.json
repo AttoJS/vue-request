@@ -13,7 +13,8 @@
     "baseUrl": ".",
     "types": [
       "webpack-env",
-      "jest"
+      "jest",
+      "@vue/test-utils"
     ],
     "paths": {
       "@/*": [
@@ -31,8 +32,7 @@
     "src/**/*.ts",
     "src/**/*.tsx",
     "src/**/*.vue",
-    "tests/**/*.ts",
-    "tests/**/*.tsx"
+    "**/__tests__/**/*"
   ],
   "exclude": [
     "node_modules"
