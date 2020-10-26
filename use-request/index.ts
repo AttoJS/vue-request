@@ -30,6 +30,7 @@ function useRequest<P extends unknown[], R>(service: any, options: Config<P, R> 
       promiseService = (...args: any[]) =>
         new Promise((resolve, reject) => {
           let _service = service(...args);
+          // 是否为普通请求
           if (!_service.then) {
             switch (_service) {
               case 'string': {

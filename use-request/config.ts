@@ -2,15 +2,14 @@ export type Config<P extends any[], R> = {
   defaultParams?: P;
   manual?: boolean;
   ready?: boolean;
+  throwOnError?: boolean;
   onSuccess?: (data: R, params: P) => void;
   onError?: (error: Error, params: P) => void;
 };
 
-const DefaultConfig: Required<Config<any, any>> = {
-  defaultParams: [],
+const DefaultConfig: Config<any, any> = {
   manual: false,
   ready: true,
-  onSuccess: () => {},
-  onError: () => {},
+  throwOnError: false,
 };
 export default DefaultConfig;

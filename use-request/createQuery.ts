@@ -32,6 +32,8 @@ const createQuery = <P extends any[], R>(
   request: Request<P, R>,
   config: Config<P, R>,
 ): QueryState<P, R> => {
+  const { throwOnError, onSuccess, onError } = config;
+
   const state = reactive({
     loading: false,
     data: undefined,
@@ -54,6 +56,11 @@ const createQuery = <P extends any[], R>(
           loading: false,
           error: undefined,
         });
+
+        if (onSuccess) {
+          onSuccess(res, args);
+        }
+
         return res;
       })
       .catch(error => {
@@ -62,7 +69,14 @@ const createQuery = <P extends any[], R>(
           loading: false,
           error: error,
         });
-        console.log(error);
+        if (onError) {
+          onError(error, args);
+        }
+
+        if (throwOnError) {
+          throw error;
+        }
+        console.error(error);
         return Promise.reject('已处理的错误');
       })
       .finally(() => {
