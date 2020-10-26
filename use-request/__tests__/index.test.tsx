@@ -8,10 +8,10 @@ describe('useRequest', () => {
     jest.useFakeTimers();
   });
 
-  const request = () =>
+  const request = (...args: any[]) =>
     new Promise<string>(resolve => {
       setTimeout(() => {
-        resolve('success');
+        resolve(args.join(',') || 'success');
       }, 1000);
     });
 
@@ -25,39 +25,90 @@ describe('useRequest', () => {
         setup() {
           const { data } = useRequest(request);
 
-          return () => <div>{data.value}</div>;
+          return () => <button>{`data, ${data.value}`}</button>;
         },
       }),
     );
     await waitForAll();
-    expect(wrapper.vm.$el.textContent).toBe('success');
+    expect(wrapper.vm.$el.textContent).toBe(`data, success`);
   });
 
-  test('should mutate work', async () => {
+  test('can be manually triggered', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { data, run } = useRequest(request, { manual: true });
+
+          return () => <button onClick={() => run.value()}>{`data, ${data.value}`}</button>;
+        },
+      }),
+    );
+    expect(wrapper.vm.$el.textContent).toBe(`data, undefined`);
+    await wrapper.find('button').trigger('click');
+    await waitForAll();
+    expect(wrapper.vm.$el.textContent).toBe(`data, success`);
+  });
+
+  test('defaultParams should work', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { data } = useRequest(request, {
+            defaultParams: ['hello', 'world'],
+          });
+
+          return () => <button>{`data, ${data.value}`}</button>;
+        },
+      }),
+    );
+    await waitForAll();
+    expect(wrapper.vm.$el.textContent).toBe(`data, hello,world`);
+  });
+
+  test('run can be accept params', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { data, run } = useRequest(request);
+
+          return () => (
+            <button onClick={() => run.value('hello', 'world')}>{`data, ${data.value}`}</button>
+          );
+        },
+      }),
+    );
+    await wrapper.find('button').trigger('click');
+    await waitForAll();
+    expect(wrapper.vm.$el.textContent).toBe(`data, hello,world`);
+  });
+
+  test('mutate should work', async () => {
     const wrapper = shallowMount(
       defineComponent({
         setup() {
           const { data, mutate } = useRequest(request);
 
-          return () => <div onClick={() => mutate.value('ok')}>{data.value}</div>;
+          return () => <button onClick={() => mutate.value('ok')}>{`data, ${data.value}`}</button>;
         },
       }),
     );
-    await wrapper.find('div').trigger('click');
-    expect(wrapper.vm.$el.textContent).toBe('ok');
+    await wrapper.find('button').trigger('click');
+    expect(wrapper.vm.$el.textContent).toBe(`data, ok`);
   });
 
-  test('should refresh work', async () => {
+  test('refresh should work', async () => {
     const wrapper = shallowMount(
       defineComponent({
         setup() {
           const { refresh, loading } = useRequest(request);
 
-          return () => <div onClick={() => refresh.value()}>{`loading, ${loading.value}`}</div>;
+          return () => (
+            <button onClick={() => refresh.value()}>{`loading, ${loading.value}`}</button>
+          );
         },
       }),
     );
-    await wrapper.find('div').trigger('click');
+    await wrapper.find('button').trigger('click');
     expect(wrapper.vm.$el.textContent).toBe('loading, true');
     await waitForAll();
     expect(wrapper.vm.$el.textContent).toBe('loading, false');
