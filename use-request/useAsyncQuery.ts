@@ -12,7 +12,10 @@ function useAsyncQuery<P extends any[], R>(
 ): BaseResult<P, R> {
   const mergeConfig = { ...DefaultConfig, ...options };
   const query = createQuery(queryMethod, options);
-  query.run(...mergeConfig.defaultParams);
+
+  if (!mergeConfig.manual) {
+    query.run(...mergeConfig.defaultParams);
+  }
 
   return query;
 }
