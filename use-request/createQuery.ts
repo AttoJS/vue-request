@@ -17,15 +17,15 @@ export type QueryState<P extends any[], R> = {
   mutate: Mutate<R>;
 };
 
-const setState = <T extends Record<string, any>>(oldState: T, newState: T, cb?: () => void) => {
-  for (const key in newState) {
-    if (Object.prototype.hasOwnProperty.call(newState, key)) {
+const setStateBind = <T>(oldState: T) => {
+  return (newState: T, cb?: () => void) => {
+    Object.keys(newState).forEach(key => {
       oldState[key] = newState[key];
-    }
-  }
-  nextTick(() => {
-    cb?.();
-  });
+    });
+    nextTick(() => {
+      cb?.();
+    });
+  };
 };
 
 const createQuery = <P extends any[], R>(
@@ -39,15 +39,17 @@ const createQuery = <P extends any[], R>(
     params: ([] as unknown) as P,
   }) as Partial<QueryState<P, R>>;
 
+  const setState = setStateBind(state);
+
   const _run = (...args: P) => {
     state.loading = true;
-    setState(state, {
+    setState({
       loading: true,
       params: args,
     });
     return request(...args)
       .then(res => {
-        setState(state, {
+        setState({
           data: res,
           loading: false,
           error: undefined,
@@ -55,7 +57,7 @@ const createQuery = <P extends any[], R>(
         return res;
       })
       .catch(error => {
-        setState(state, {
+        setState({
           data: undefined,
           loading: false,
           error: error,
