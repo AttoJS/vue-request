@@ -1,10 +1,9 @@
 import DefaultConfig, { Config } from './config';
-import createQuery, { QueryState } from './createQuery';
+import createQuery, { QueryState, Request } from './createQuery';
 
 const QUERY_DEFAULT_KEY = 'QUERY_DEFAULT_KEY';
 
 export type BaseResult<P extends any[], R> = QueryState<P, R>;
-export type Request<P extends any[], R> = (...args: P) => Promise<R>;
 
 function useAsyncQuery<P extends any[], R>(
   queryMethod: Request<P, R>,
