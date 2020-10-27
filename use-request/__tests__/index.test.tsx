@@ -59,6 +59,7 @@ describe('useRequest', () => {
         },
       }),
     );
+    await waitForAll();
     expect(wrapper.vm.$el.textContent).toBe('data:undefined');
     await wrapper.find('button').trigger('click');
     await waitForAll();
@@ -93,6 +94,8 @@ describe('useRequest', () => {
         },
       }),
     );
+    await waitForAll();
+    expect(wrapper.vm.$el.textContent).toBe('data:success');
     await wrapper.find('button').trigger('click');
     await waitForAll();
     expect(wrapper.vm.$el.textContent).toBe('data:hello,world');
@@ -108,6 +111,8 @@ describe('useRequest', () => {
         },
       }),
     );
+    await waitForAll();
+    expect(wrapper.vm.$el.textContent).toBe('data:success');
     await wrapper.find('button').trigger('click');
     expect(wrapper.vm.$el.textContent).toBe('data:ok');
   });
@@ -124,6 +129,8 @@ describe('useRequest', () => {
         },
       }),
     );
+    await waitForAll();
+    expect(wrapper.vm.$el.textContent).toBe('data:success');
     await wrapper.find('button').trigger('click');
     expect(wrapper.vm.$el.textContent).toBe('data:ok');
   });
