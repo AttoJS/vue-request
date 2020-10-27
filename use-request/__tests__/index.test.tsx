@@ -8,10 +8,26 @@ describe('useRequest', () => {
     jest.useFakeTimers();
   });
 
+  const originalError = console.error;
+  beforeEach(() => {
+    console.error = jest.fn();
+  });
+
+  afterEach(() => {
+    console.error = originalError;
+  });
+
   const request = (...args: any[]) =>
     new Promise<string>(resolve => {
       setTimeout(() => {
         resolve(args.join(',') || 'success');
+      }, 1000);
+    });
+
+  const failedRequest = () =>
+    new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('fail'));
       }, 1000);
     });
 
@@ -96,6 +112,22 @@ describe('useRequest', () => {
     expect(wrapper.vm.$el.textContent).toBe('data:ok');
   });
 
+  test('mutate callback should work', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { data, mutate } = useRequest(request);
+
+          return () => (
+            <button onClick={() => mutate.value(() => 'ok')}>{`data:${data.value}`}</button>
+          );
+        },
+      }),
+    );
+    await wrapper.find('button').trigger('click');
+    expect(wrapper.vm.$el.textContent).toBe('data:ok');
+  });
+
   test('refresh should work', async () => {
     const wrapper = shallowMount(
       defineComponent({
@@ -112,5 +144,81 @@ describe('useRequest', () => {
     expect(wrapper.vm.$el.textContent).toBe('loading:true');
     await waitForAll();
     expect(wrapper.vm.$el.textContent).toBe('loading:false');
+  });
+
+  test('log request error by default', async () => {
+    console.error = jest.fn();
+
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { run } = useRequest(failedRequest, { manual: true });
+          const handleClick = () => run.value().catch(() => {}); // catch is needed or the node.js will be crash
+          return () => <button onClick={handleClick}></button>;
+        },
+      }),
+    );
+    await wrapper.find('button').trigger('click');
+    await waitForAll();
+    expect(console.error).toHaveBeenCalledWith(new Error('fail'));
+  });
+
+  test('request error can be handle by user', async () => {
+    let errorText = '';
+
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { run } = useRequest(failedRequest, { manual: true, throwOnError: true });
+
+          return () => (
+            <button
+              onClick={() =>
+                run.value().catch((err: Error) => {
+                  errorText = err.message;
+                })
+              }
+            ></button>
+          );
+        },
+      }),
+    );
+    await wrapper.find('button').trigger('click');
+    await waitForAll();
+    expect(errorText).toBe('fail');
+  });
+
+  test('onSuccess should work', async () => {
+    const mockSuccessCallback = jest.fn();
+
+    shallowMount(
+      defineComponent({
+        setup() {
+          useRequest(request, { onSuccess: mockSuccessCallback });
+
+          return () => <button></button>;
+        },
+      }),
+    );
+
+    await waitForAll();
+    expect(mockSuccessCallback).toHaveBeenCalledWith('success', []);
+  });
+
+  test('onError should work', async () => {
+    const mockErrorCallback = jest.fn();
+
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { run } = useRequest(failedRequest, { manual: true, onError: mockErrorCallback });
+          const handleClick = () => run.value().catch(() => {}); // catch is needed or the node.js will be crash
+          return () => <button onClick={handleClick}></button>;
+        },
+      }),
+    );
+    await wrapper.find('button').trigger('click');
+    await waitForAll();
+    expect(mockErrorCallback).toHaveBeenCalledWith(new Error('fail'), []);
   });
 });
