@@ -1,11 +1,11 @@
-import { nextTick } from 'vue';
+import { flushPromises } from '@vue/test-utils';
 
-export const waitFor = async (millisecond: number) => {
+export const waitForTime = async (millisecond: number) => {
   jest.advanceTimersByTime(millisecond);
-  await nextTick();
+  await flushPromises();
 };
 
 export const waitForAll = async () => {
   jest.runAllTimers();
-  await nextTick();
+  await flushPromises();
 };
