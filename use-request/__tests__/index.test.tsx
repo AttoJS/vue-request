@@ -191,15 +191,19 @@ describe('useRequest', () => {
   test('onSuccess should work', async () => {
     const mockSuccessCallback = jest.fn();
 
-    shallowMount(
+    const wrapper = shallowMount(
       defineComponent({
         setup() {
-          useRequest(request, { onSuccess: mockSuccessCallback });
-
-          return () => <button></button>;
+          const { run } = useRequest(request, {
+            manual: true,
+            onSuccess: mockSuccessCallback,
+          });
+          const handleClick = () => run.value().catch(() => {}); // catch is needed or the node.js will be crash
+          return () => <button onClick={handleClick}></button>;
         },
       }),
     );
+    await wrapper.find('button').trigger('click');
 
     await waitForAll();
     expect(mockSuccessCallback).toHaveBeenCalledWith('success', []);
