@@ -8,6 +8,7 @@ export type Config<P extends any[], R> = {
 };
 
 const DefaultConfig: Config<any, any> = {
+  defaultParams: [],
   manual: false,
   ready: true,
   throwOnError: false,
