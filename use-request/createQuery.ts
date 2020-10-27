@@ -32,11 +32,11 @@ const createQuery = <P extends any[], R>(
   request: Request<P, R>,
   config: Config<P, R>,
 ): QueryState<P, R> => {
-  const { throwOnError, onSuccess, onError } = config;
+  const { throwOnError, initialData, ready, onSuccess, onError } = config;
 
   const state = reactive({
     loading: false,
-    data: undefined,
+    data: initialData,
     error: undefined,
     params: ([] as unknown) as P,
   }) as Partial<QueryState<P, R>>;
@@ -85,6 +85,9 @@ const createQuery = <P extends any[], R>(
   };
 
   const run = (...args: P) => {
+    if (!ready) {
+      return;
+    }
     return _run(...args);
   };
 

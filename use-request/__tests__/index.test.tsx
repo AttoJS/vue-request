@@ -232,4 +232,41 @@ describe('useRequest', () => {
     await waitForAll();
     expect(mockErrorCallback).toHaveBeenCalledWith(new Error('fail'), []);
   });
+
+  test('initData should work', async ()=>{
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { data } = useRequest(request, {
+            initialData: 'init'
+          });
+
+          return () => (
+            <button>{`data:${data.value}`}</button>
+          );
+        },
+      }),
+    );
+    expect(wrapper.vm.$el.textContent).toBe('data:init');
+    await waitForAll();
+    expect(wrapper.vm.$el.textContent).toBe('data:success');
+  })
+
+  test('ready should work', async ()=>{
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { data } = useRequest(request, {
+            ready: false
+          });
+
+          return () => (
+            <button>{`data:${data.value}`}</button>
+          );
+        },
+      }),
+    );
+    await waitForAll();
+    expect(wrapper.vm.$el.textContent).toBe('data:undefined');
+  })
 });

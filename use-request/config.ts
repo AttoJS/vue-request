@@ -3,6 +3,7 @@ export type Config<P extends any[], R> = {
   manual?: boolean;
   ready?: boolean;
   throwOnError?: boolean;
+  initialData?: R;
   onSuccess?: (data: R, params: P) => void;
   onError?: (error: Error, params: P) => void;
 };
