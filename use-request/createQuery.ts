@@ -1,4 +1,4 @@
-import { nextTick, reactive, toRefs, watchEffect } from 'vue';
+import { nextTick, reactive, toRefs } from 'vue';
 import { Config } from './config';
 // P mean params, R mean Response
 export type Request<P extends any[], R> = (...args: P) => Promise<R>;
@@ -32,11 +32,7 @@ const createQuery = <P extends any[], R>(
   request: Request<P, R>,
   config: Config<P, R>,
 ): QueryState<P, R> => {
-  const { throwOnError, initialData, ready, onSuccess, onError } = config;
-
-  watchEffect(() => {
-    console.log('createQuery ready', (ready as any).value);
-  });
+  const { throwOnError, initialData, ready, formatResult, onSuccess, onError } = config;
 
   const state = reactive({
     loading: false,
@@ -55,17 +51,19 @@ const createQuery = <P extends any[], R>(
     });
     return request(...args)
       .then(res => {
+        const formattedResult = formatResult ? formatResult(res) : res;
+
         setState({
-          data: res,
+          data: formattedResult,
           loading: false,
           error: undefined,
         });
 
         if (onSuccess) {
-          onSuccess(res, args);
+          onSuccess(formattedResult, args);
         }
 
-        return res;
+        return formattedResult;
       })
       .catch(error => {
         setState({

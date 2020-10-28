@@ -276,4 +276,21 @@ describe('useRequest', () => {
     await waitForAll();
     expect(wrapper.vm.$el.textContent).toBe('data:success');
   });
+
+  test('formatResult should work', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { data } = useRequest(request, {
+            formatResult: () => 'formatted',
+          });
+
+          return () => <button>{`data:${data.value}`}</button>;
+        },
+      }),
+    );
+    expect(wrapper.vm.$el.textContent).toBe('data:undefined');
+    await waitForAll();
+    expect(wrapper.vm.$el.textContent).toBe('data:formatted');
+  });
 });
