@@ -1,6 +1,6 @@
 import { ref, Ref } from 'vue';
 
-export type Config<P extends any[], R> = {
+export type Config<R, P extends any[]> = {
   defaultParams?: P;
   manual?: boolean;
   ready?: Ref<boolean>;

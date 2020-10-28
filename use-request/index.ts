@@ -4,10 +4,10 @@ import { Request } from './createQuery';
 import useAsyncQuery from './useAsyncQuery';
 
 export type ServiceParams = string | Record<string, any>;
-export type IService<P extends any[], R> =
+export type IService<R, P extends any[]> =
   | ServiceParams
   | ((...args: P) => ServiceParams)
-  | Request<P, R>;
+  | Request<R, P>;
 
 function requestProxy(...args: any[]) {
   // @ts-ignore
@@ -19,7 +19,7 @@ function requestProxy(...args: any[]) {
   });
 }
 
-function useRequest<R, P extends unknown[]>(service: IService<P, R>, options: Config<P, R> = {}) {
+function useRequest<R, P extends unknown[]>(service: IService<R, P>, options: Config<R, P> = {}) {
   const requestMethod = requestProxy;
 
   let promiseService: (() => Promise<R>) | ((...args: P) => Promise<any>);
@@ -57,9 +57,8 @@ function useRequest<R, P extends unknown[]>(service: IService<P, R>, options: Co
     default:
       throw Error('未知service类型');
   }
-  const data = useAsyncQuery<P, R>(promiseService, options);
 
-  return toRefs(data);
+  return toRefs(useAsyncQuery<R, P>(promiseService, options));
 }
 
 export default useRequest;

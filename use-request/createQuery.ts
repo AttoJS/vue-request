@@ -1,12 +1,12 @@
 import { nextTick, reactive, toRefs } from 'vue';
 import { Config } from './config';
 // P mean params, R mean Response
-export type Request<P extends any[], R> = (...args: P) => Promise<R>;
+export type Request<R, P extends any[]> = (...args: P) => Promise<R>;
 type MutateData<R> = (newData: R) => void;
 type MutateFunction<R> = (arg: (oldData: R) => R) => void;
 export interface Mutate<R> extends MutateData<R>, MutateFunction<R> {}
 
-export type QueryState<P extends any[], R> = {
+export type QueryState<R, P extends any[]> = {
   loading: boolean;
   data: R | undefined;
   error: Error | undefined;
@@ -17,7 +17,7 @@ export type QueryState<P extends any[], R> = {
   mutate: Mutate<R>;
 };
 
-export type InnerQueryState<P extends any[], R> = Omit<QueryState<P, R>, 'run'> & {
+export type InnerQueryState<R, P extends any[]> = Omit<QueryState<R, P>, 'run'> & {
   run: (args: P, cb?: () => void) => Promise<R>;
 };
 
@@ -34,10 +34,10 @@ const setStateBind = <T>(oldState: T) => {
 
 // export let tempReadyParams: any[] = [];
 
-const createQuery = <P extends any[], R>(
-  request: Request<P, R>,
-  config: Config<P, R>,
-): InnerQueryState<P, R> => {
+const createQuery = <R, P extends any[]>(
+  request: Request<R, P>,
+  config: Config<R, P>,
+): InnerQueryState<R, P> => {
   const {
     throwOnError,
     initialData,
@@ -53,7 +53,7 @@ const createQuery = <P extends any[], R>(
     data: initialData,
     error: undefined,
     params: ([] as unknown) as P,
-  }) as Partial<QueryState<P, R>>;
+  }) as Partial<QueryState<R, P>>;
 
   const setState = setStateBind(state);
 
@@ -148,7 +148,7 @@ const createQuery = <P extends any[], R>(
     cancel,
     refresh,
     mutate,
-  }) as InnerQueryState<P, R>;
+  }) as InnerQueryState<R, P>;
 
   return reactiveState;
 };

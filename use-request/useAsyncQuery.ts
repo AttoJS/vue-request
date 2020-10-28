@@ -4,12 +4,12 @@ import createQuery, { QueryState, Request } from './createQuery';
 
 const QUERY_DEFAULT_KEY = 'QUERY_DEFAULT_KEY';
 
-export type BaseResult<P extends any[], R> = QueryState<P, R>;
+export type BaseResult<R, P extends any[]> = QueryState<R, P>;
 
-function useAsyncQuery<P extends any[], R>(
-  queryMethod: Request<P, R>,
-  options: Config<P, R>,
-): BaseResult<P, R> {
+function useAsyncQuery<R, P extends any[]>(
+  queryMethod: Request<R, P>,
+  options: Config<R, P>,
+): BaseResult<R, P> {
   const mergeConfig = { ...DefaultConfig, ...options };
   const { defaultParams, manual, ready, refreshDeps } = mergeConfig;
   const query = createQuery(queryMethod, mergeConfig);
@@ -33,7 +33,7 @@ function useAsyncQuery<P extends any[], R>(
     run: (...args: P) => {
       return query.run(args);
     },
-  }) as QueryState<P, R>;
+  }) as QueryState<R, P>;
 }
 
 export default useAsyncQuery;
