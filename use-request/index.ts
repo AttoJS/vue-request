@@ -1,6 +1,13 @@
-import { toRefs, watchEffect } from 'vue';
+import { toRefs } from 'vue';
 import { Config } from './config';
+import { Request } from './createQuery';
 import useAsyncQuery from './useAsyncQuery';
+
+export type ServiceParams = string | Record<string, any>;
+export type IService<P extends any[], R> =
+  | ServiceParams
+  | ((...args: P) => ServiceParams)
+  | Request<P, R>;
 
 function requestProxy(...args: any[]) {
   // @ts-ignore
@@ -12,10 +19,10 @@ function requestProxy(...args: any[]) {
   });
 }
 
-function useRequest<P extends unknown[], R>(service: any, options: Config<P, R> = {}) {
+function useRequest<R, P extends unknown[]>(service: IService<P, R>, options: Config<P, R> = {}) {
   const requestMethod = requestProxy;
 
-  let promiseService: () => Promise<any>;
+  let promiseService: (() => Promise<R>) | ((...args: P) => Promise<any>);
   switch (typeof service) {
     case 'string': {
       promiseService = () => requestMethod(service);
@@ -27,10 +34,10 @@ function useRequest<P extends unknown[], R>(service: any, options: Config<P, R> 
       break;
     }
     case 'function':
-      promiseService = (...args: any[]) =>
-        new Promise((resolve, reject) => {
+      promiseService = (...args: P) =>
+        new Promise<R>((resolve, reject) => {
           let _service = service(...args);
-          // 是否为普通请求
+          // 是否为普通异步请求
           if (!_service.then) {
             switch (_service) {
               case 'string': {
@@ -51,9 +58,7 @@ function useRequest<P extends unknown[], R>(service: any, options: Config<P, R> 
       throw Error('未知service类型');
   }
   const data = useAsyncQuery<P, R>(promiseService, options);
-  watchEffect(() => {
-    console.log(data);
-  });
+
   return toRefs(data);
 }
 
