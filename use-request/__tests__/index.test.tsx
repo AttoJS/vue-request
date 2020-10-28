@@ -1,7 +1,7 @@
 import { shallowMount } from '@vue/test-utils';
 import { defineComponent, ref } from 'vue';
 import useRequest from '..';
-import { waitForAll } from './utils';
+import { waitForAll, waitForTime } from './utils';
 
 describe('useRequest', () => {
   beforeAll(() => {
@@ -319,6 +319,26 @@ describe('useRequest', () => {
     await wrapper.find('button').trigger('click');
     expect(wrapper.vm.$el.textContent).toBe('loading:true');
     await waitForAll();
+    expect(wrapper.vm.$el.textContent).toBe('loading:false');
+  });
+
+  test('loadingDelay should work', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { loading } = useRequest(request, {
+            loadingDelay: 800,
+          });
+
+          return () => <button>{`loading:${loading.value}`}</button>;
+        },
+      }),
+    );
+
+    expect(wrapper.vm.$el.textContent).toBe('loading:false');
+    await waitForTime(800);
+    expect(wrapper.vm.$el.textContent).toBe('loading:true');
+    await waitForTime(200);
     expect(wrapper.vm.$el.textContent).toBe('loading:false');
   });
 });

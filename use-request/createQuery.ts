@@ -34,7 +34,15 @@ const createQuery = <P extends any[], R>(
   request: Request<P, R>,
   config: Config<P, R>,
 ): QueryState<P, R> => {
-  const { throwOnError, initialData, ready, formatResult, onSuccess, onError } = config;
+  const {
+    throwOnError,
+    initialData,
+    ready,
+    loadingDelay,
+    formatResult,
+    onSuccess,
+    onError,
+  } = config;
 
   const state = reactive({
     loading: false,
@@ -45,12 +53,28 @@ const createQuery = <P extends any[], R>(
 
   const setState = setStateBind(state);
 
+  const delayLoading = () => {
+    let timerId: number;
+
+    if (loadingDelay) {
+      timerId = setTimeout(() => {
+        setState({
+          loading: true,
+        });
+      }, loadingDelay);
+    }
+
+    return () => timerId && clearTimeout(timerId);
+  };
+
   const _run = (...args: P) => {
-    state.loading = true;
     setState({
-      loading: true,
+      loading: !loadingDelay,
       params: args,
     });
+
+    const cancelDelayLoading = delayLoading();
+
     return request(...args)
       .then(res => {
         const formattedResult = formatResult ? formatResult(res) : res;
@@ -84,6 +108,7 @@ const createQuery = <P extends any[], R>(
         return Promise.reject('已处理的错误');
       })
       .finally(() => {
+        cancelDelayLoading();
         console.log('1');
       });
   };
