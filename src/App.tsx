@@ -1,10 +1,10 @@
-import { defineComponent, watchEffect } from 'vue';
+import { defineComponent, ref, watchEffect } from 'vue';
 import useRequest from '../use-request';
 
 function testService(): Promise<any> {
   return new Promise(resolve => {
     setTimeout(() => {
-      resolve({name: 'John', age: 18});
+      resolve({ name: 'John', age: 18 });
     }, 1000);
   });
 }
@@ -12,26 +12,42 @@ function testService(): Promise<any> {
 export default defineComponent({
   name: 'App',
   setup() {
-    const { run, data, loading, mutate } = useRequest<any, {
-      name: string;
-      age: number
-    }>(testService, {});
-    // console.log('setup -> run', run);
-    // console.log('setup -> data', data);
+    const readyRef = ref(false);
+
+    const options = { ready: readyRef };
+
+    watchEffect(() => {
+      console.log('reaciveOps ready', readyRef.value);
+    });
+
+    const changeReady = () => {
+      options.ready.value = true;
+    };
+
+    const { run, data, loading, mutate } = useRequest<
+      {
+        name: string;
+        age: number;
+      },
+      any
+    >(testService, { ready: readyRef });
 
     watchEffect(() => {
       console.log('data', data.value);
     });
+
     return () => (
       <div>
+        {options.ready.value.toString()}
+        <button onClick={changeReady}>changeReady</button>
         <button onClick={() => run.value()}>run</button>
         <button
           onClick={() =>
             mutate.value(arg => {
               return {
                 name: 'JJ',
-                age: 10
-              }
+                age: 10,
+              };
             })
           }
         >
