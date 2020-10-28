@@ -1,4 +1,4 @@
-import { watch } from 'vue';
+import { reactive, toRefs, watch } from 'vue';
 import DefaultConfig, { Config } from './config';
 import createQuery, { QueryState, Request } from './createQuery';
 
@@ -15,11 +15,11 @@ function useAsyncQuery<P extends any[], R>(
   const query = createQuery(queryMethod, mergeConfig);
 
   if (!manual) {
-    query.run(...defaultParams);
+    query.run(defaultParams);
   }
 
   // @ts-ignore
-  const stopReady = watch(ready!, val => val && query.run(...defaultParams) && stopReady());
+  const stopReady = watch(ready!, val => val && query.run(defaultParams) && stopReady());
 
   // refreshDeps change
   watch(refreshDeps ?? [], () => {
@@ -28,7 +28,12 @@ function useAsyncQuery<P extends any[], R>(
     }
   });
 
-  return query;
+  return reactive({
+    ...toRefs(query),
+    run: (...args: P) => {
+      return query.run(args);
+    },
+  }) as QueryState<P, R>;
 }
 
 export default useAsyncQuery;

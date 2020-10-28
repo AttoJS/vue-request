@@ -17,6 +17,10 @@ export type QueryState<P extends any[], R> = {
   mutate: Mutate<R>;
 };
 
+export type InnerQueryState<P extends any[], R> = Omit<QueryState<P, R>, 'run'> & {
+  run: (args: P, cb?: () => void) => Promise<R>;
+};
+
 const setStateBind = <T>(oldState: T) => {
   return (newState: T, cb?: () => void) => {
     Object.keys(newState).forEach(key => {
@@ -33,7 +37,7 @@ const setStateBind = <T>(oldState: T) => {
 const createQuery = <P extends any[], R>(
   request: Request<P, R>,
   config: Config<P, R>,
-): QueryState<P, R> => {
+): InnerQueryState<P, R> => {
   const {
     throwOnError,
     initialData,
@@ -67,7 +71,7 @@ const createQuery = <P extends any[], R>(
     return () => timerId && clearTimeout(timerId);
   };
 
-  const _run = (...args: P) => {
+  const _run = (args: P, cb?: () => void) => {
     setState({
       loading: !loadingDelay,
       params: args,
@@ -109,15 +113,15 @@ const createQuery = <P extends any[], R>(
       })
       .finally(() => {
         cancelDelayLoading();
-        console.log('1');
+        cb?.();
       });
   };
 
-  const run = (...args: P) => {
+  const run = (args: P, cb?: () => void) => {
     if (!ready?.value) {
       return;
     }
-    return _run(...args);
+    return _run(args, cb);
   };
 
   const cancel = () => {
@@ -125,7 +129,7 @@ const createQuery = <P extends any[], R>(
   };
 
   const refresh = () => {
-    return run(...state.params!);
+    return run(state.params!);
   };
 
   const mutate: Mutate<R> = (
@@ -144,7 +148,7 @@ const createQuery = <P extends any[], R>(
     cancel,
     refresh,
     mutate,
-  }) as QueryState<P, R>;
+  }) as InnerQueryState<P, R>;
 
   return reactiveState;
 };
