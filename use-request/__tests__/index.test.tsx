@@ -1,5 +1,5 @@
 import { shallowMount } from '@vue/test-utils';
-import { defineComponent } from 'vue';
+import { defineComponent, ref } from 'vue';
 import useRequest from '..';
 import { waitForAll } from './utils';
 
@@ -233,40 +233,47 @@ describe('useRequest', () => {
     expect(mockErrorCallback).toHaveBeenCalledWith(new Error('fail'), []);
   });
 
-  test('initData should work', async ()=>{
+  test('initData should work', async () => {
     const wrapper = shallowMount(
       defineComponent({
         setup() {
           const { data } = useRequest(request, {
-            initialData: 'init'
+            initialData: 'init',
           });
 
-          return () => (
-            <button>{`data:${data.value}`}</button>
-          );
+          return () => <button>{`data:${data.value}`}</button>;
         },
       }),
     );
     expect(wrapper.vm.$el.textContent).toBe('data:init');
     await waitForAll();
     expect(wrapper.vm.$el.textContent).toBe('data:success');
-  })
+  });
 
-  test('ready should work', async ()=>{
+  test('ready should work', async () => {
     const wrapper = shallowMount(
       defineComponent({
         setup() {
+          const readyRef = ref(false);
+
           const { data } = useRequest(request, {
-            ready: false
+            ready: readyRef,
           });
 
           return () => (
-            <button>{`data:${data.value}`}</button>
+            <button
+              onClick={() => {
+                readyRef.value = true;
+              }}
+            >{`data:${data.value}`}</button>
           );
         },
       }),
     );
     await waitForAll();
     expect(wrapper.vm.$el.textContent).toBe('data:undefined');
-  })
+    await wrapper.find('button').trigger('click');
+    await waitForAll();
+    expect(wrapper.vm.$el.textContent).toBe('data:success');
+  });
 });
