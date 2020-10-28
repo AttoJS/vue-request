@@ -293,4 +293,32 @@ describe('useRequest', () => {
     await waitForAll();
     expect(wrapper.vm.$el.textContent).toBe('data:formatted');
   });
+
+  test('refreshDeps should work', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const refreshRef = ref(0);
+
+          const { loading } = useRequest(request, {
+            refreshDeps: [refreshRef],
+          });
+
+          return () => (
+            <button
+              onClick={() => {
+                refreshRef.value++;
+              }}
+            >{`loading:${loading.value}`}</button>
+          );
+        },
+      }),
+    );
+    await waitForAll();
+    expect(wrapper.vm.$el.textContent).toBe('loading:false');
+    await wrapper.find('button').trigger('click');
+    expect(wrapper.vm.$el.textContent).toBe('loading:true');
+    await waitForAll();
+    expect(wrapper.vm.$el.textContent).toBe('loading:false');
+  });
 });

@@ -11,7 +11,7 @@ function useAsyncQuery<P extends any[], R>(
   options: Config<P, R>,
 ): BaseResult<P, R> {
   const mergeConfig = { ...DefaultConfig, ...options };
-  const { defaultParams, manual, ready } = mergeConfig;
+  const { defaultParams, manual, ready, refreshDeps } = mergeConfig;
   const query = createQuery(queryMethod, mergeConfig);
 
   if (!manual) {
@@ -20,6 +20,13 @@ function useAsyncQuery<P extends any[], R>(
 
   // @ts-ignore
   const stopReady = watch(ready!, val => val && query.run(...defaultParams) && stopReady());
+
+  // refreshDeps change
+  watch(refreshDeps ?? [], () => {
+    if (!manual) {
+      query.refresh();
+    }
+  });
 
   return query;
 }

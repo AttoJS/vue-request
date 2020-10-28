@@ -28,6 +28,8 @@ const setStateBind = <T>(oldState: T) => {
   };
 };
 
+// export let tempReadyParams: any[] = [];
+
 const createQuery = <P extends any[], R>(
   request: Request<P, R>,
   config: Config<P, R>,
