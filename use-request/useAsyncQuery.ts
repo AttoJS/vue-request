@@ -1,3 +1,4 @@
+import { watch } from 'vue';
 import DefaultConfig, { Config } from './config';
 import createQuery, { QueryState, Request } from './createQuery';
 
@@ -10,12 +11,15 @@ function useAsyncQuery<P extends any[], R>(
   options: Config<P, R>,
 ): BaseResult<P, R> {
   const mergeConfig = { ...DefaultConfig, ...options };
-  const { defaultParams, manual } = mergeConfig;
+  const { defaultParams, manual, ready } = mergeConfig;
   const query = createQuery(queryMethod, mergeConfig);
 
   if (!manual) {
     query.run(...defaultParams);
   }
+
+  // @ts-ignore
+  const stopReady = watch(ready!, val => val && query.run(...defaultParams) && stopReady());
 
   return query;
 }

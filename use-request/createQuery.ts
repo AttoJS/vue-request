@@ -85,7 +85,7 @@ const createQuery = <P extends any[], R>(
   };
 
   const run = (...args: P) => {
-    if (!ready) {
+    if (!ready?.value) {
       return;
     }
     return _run(...args);
