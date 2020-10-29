@@ -1,5 +1,6 @@
 import { nextTick, reactive, toRefs } from 'vue';
 import { Config } from './config';
+import { isFunction } from './utils';
 type MutateData<R> = (newData: R) => void;
 type MutateFunction<R> = (arg: (oldData: R) => R) => void;
 
@@ -123,7 +124,7 @@ const createQuery = <R, P extends unknown[]>(
   const mutate: Mutate<R> = (
     x: Parameters<MutateData<R>>[0] | Parameters<MutateFunction<R>>[0],
   ) => {
-    if (x instanceof Function) {
+    if (isFunction(x)) {
       state.data = x(state.data!);
     } else {
       state.data = x;

@@ -2,6 +2,7 @@ import { toRefs } from 'vue';
 import { BaseOptions } from './config';
 import { Query } from './createQuery';
 import useAsyncQuery from './useAsyncQuery';
+import { isPromise } from './utils';
 
 export type ServiceParams = string | Record<string, any>;
 export type IService<R, P extends unknown[]> =
@@ -25,7 +26,7 @@ function useRequest<R, P extends unknown[]>(
 ) {
   const requestMethod = requestProxy;
 
-  let promiseQuery: (() => Promise<R>) | ((...args: P) => Promise<any>);
+  let promiseQuery: (() => Promise<R>) | ((...args: P) => Promise<R>);
   switch (typeof service) {
     case 'string': {
       promiseQuery = () => requestMethod(service);
@@ -41,7 +42,7 @@ function useRequest<R, P extends unknown[]>(
         new Promise<R>((resolve, reject) => {
           let _service = service(...args);
           // 是否为普通异步请求
-          if (!_service.then) {
+          if (!isPromise(_service)) {
             switch (_service) {
               case 'string': {
                 _service = () => requestMethod(_service);

@@ -1,7 +1,3 @@
-export function someTest(status: boolean) {
-  if (status) {
-    return false;
-  } else {
-    return true;
-  }
-}
+export const isPromise = (fn: any): fn is Promise<any> => fn instanceof Promise;
+
+export const isFunction = (fn: any): fn is Function => fn instanceof Function;
