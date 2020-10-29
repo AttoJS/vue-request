@@ -1,15 +1,15 @@
 import { toRefs } from 'vue';
-import { BaseConfig } from './config';
-import { Request } from './createQuery';
+import { BaseOptions } from './config';
+import { Query } from './createQuery';
 import useAsyncQuery from './useAsyncQuery';
 
 export type ServiceParams = string | Record<string, any>;
-export type IService<R, P extends any[]> =
+export type IService<R, P extends unknown[]> =
   | ServiceParams
   | ((...args: P) => ServiceParams)
-  | Request<R, P>;
+  | Query<R, P>;
 
-function requestProxy(...args: any[]) {
+function requestProxy(...args: unknown[]) {
   // @ts-ignore
   return fetch(...args).then(res => {
     if (res.ok) {
@@ -21,23 +21,23 @@ function requestProxy(...args: any[]) {
 
 function useRequest<R, P extends unknown[]>(
   service: IService<R, P>,
-  options: BaseConfig<R, P> = {},
+  options: BaseOptions<R, P> = {},
 ) {
   const requestMethod = requestProxy;
 
-  let promiseService: (() => Promise<R>) | ((...args: P) => Promise<any>);
+  let promiseQuery: (() => Promise<R>) | ((...args: P) => Promise<any>);
   switch (typeof service) {
     case 'string': {
-      promiseService = () => requestMethod(service);
+      promiseQuery = () => requestMethod(service);
       break;
     }
     case 'object': {
       const { url, ...rest } = service;
-      promiseService = () => requestMethod(url, rest);
+      promiseQuery = () => requestMethod(url, rest);
       break;
     }
     case 'function':
-      promiseService = (...args: P) =>
+      promiseQuery = (...args: P) =>
         new Promise<R>((resolve, reject) => {
           let _service = service(...args);
           // 是否为普通异步请求
@@ -61,7 +61,7 @@ function useRequest<R, P extends unknown[]>(
       throw Error('未知service类型');
   }
 
-  return toRefs(useAsyncQuery<R, P>(promiseService, options));
+  return toRefs(useAsyncQuery<R, P>(promiseQuery, options));
 }
 
 export default useRequest;

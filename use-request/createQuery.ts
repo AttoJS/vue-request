@@ -1,12 +1,13 @@
 import { nextTick, reactive, toRefs } from 'vue';
 import { Config } from './config';
-// P mean params, R mean Response
-export type Request<R, P extends any[]> = (...args: P) => Promise<R>;
 type MutateData<R> = (newData: R) => void;
 type MutateFunction<R> = (arg: (oldData: R) => R) => void;
+
+// P mean params, R mean Response
+export type Query<R, P extends unknown[]> = (...args: P) => Promise<R>;
 export interface Mutate<R> extends MutateData<R>, MutateFunction<R> {}
 
-export type QueryState<R, P extends any[]> = {
+export type QueryState<R, P extends unknown[]> = {
   loading: boolean;
   data: R | undefined;
   error: Error | undefined;
@@ -17,7 +18,7 @@ export type QueryState<R, P extends any[]> = {
   mutate: Mutate<R>;
 };
 
-export type InnerQueryState<R, P extends any[]> = Omit<QueryState<R, P>, 'run'> & {
+export type InnerQueryState<R, P extends unknown[]> = Omit<QueryState<R, P>, 'run'> & {
   run: (args: P, cb?: () => void) => Promise<R>;
 };
 
@@ -32,8 +33,8 @@ const setStateBind = <T>(oldState: T) => {
   };
 };
 
-const createQuery = <R, P extends any[]>(
-  request: Request<R, P>,
+const createQuery = <R, P extends unknown[]>(
+  query: Query<R, P>,
   config: Config<R, P>,
 ): InnerQueryState<R, P> => {
   const { throwOnError, initialData, loadingDelay, formatResult, onSuccess, onError } = config;
@@ -69,7 +70,7 @@ const createQuery = <R, P extends any[]>(
 
     const cancelDelayLoading = delayLoading();
 
-    return request(...args)
+    return query(...args)
       .then(res => {
         const formattedResult = formatResult ? formatResult(res) : res;
 
