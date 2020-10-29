@@ -20,4 +20,4 @@ const DefaultConfig: Config<any, any> = {
   ready: ref(true),
   throwOnError: false,
 };
-export default DefaultConfig;
+export default DefaultConfig as Required<Config<any, any>>;
