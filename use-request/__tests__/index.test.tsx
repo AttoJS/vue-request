@@ -2,12 +2,22 @@ import { shallowMount } from '@vue/test-utils';
 import { defineComponent, ref } from 'vue';
 import useRequest from '..';
 import { waitForAll, waitForTime } from './utils';
+import fetchMock from 'fetch-mock';
 
 describe('useRequest', () => {
   beforeAll(() => {
     jest.useFakeTimers();
   });
 
+  const successApi = 'http://example.com/200';
+  const failApi = 'http://example.com/404';
+  // mock fetch
+  fetchMock.get(successApi, { data: 'success' });
+  fetchMock.get(failApi, 404);
+
+  const serviceWillReturnString = () => successApi;
+  const serviceWillReturnObject = () => ({ url: successApi });
+  const unkonwService = 1;
   const originalError = console.error;
   beforeEach(() => {
     console.error = jest.fn();
@@ -33,6 +43,47 @@ describe('useRequest', () => {
 
   test('should be defined', () => {
     expect(useRequest).toBeDefined();
+  });
+
+  test('should use string service', async () => {
+    const { data } = useRequest(successApi);
+    await waitForAll();
+    expect(data.value).toEqual({ data: 'success' });
+  });
+
+  test('should throw error when service error', async () => {
+    const { error, run } = useRequest(failApi, {
+      manual: true,
+    });
+    run.value().catch(() => {});
+    await waitForAll();
+    expect(error.value?.message).toBe('Not Found');
+  });
+
+  test('should use object service', async () => {
+    const { data } = useRequest({ test: 'value', url: successApi });
+    await waitForAll();
+    expect(data.value).toEqual({ data: 'success' });
+  });
+
+  test('should use function service that will return string', async () => {
+    const { data } = useRequest(serviceWillReturnString);
+    await waitForAll();
+    expect(data.value).toEqual({ data: 'success' });
+  });
+
+  test('should use function service that will return object', async () => {
+    const { data } = useRequest(serviceWillReturnObject);
+    await waitForAll();
+    expect(data.value).toEqual({ data: 'success' });
+  });
+
+  test('should throw error when use unkonw service', async () => {
+    try {
+      useRequest(unkonwService as any);
+    } catch (error) {
+      expect(error.message).toBe('未知service类型');
+    }
   });
 
   test('should auto run', async () => {
@@ -322,10 +373,10 @@ describe('useRequest', () => {
             <button
               onClick={async () => {
                 readyRef.value = !readyRef.value;
-                
+
                 // setTimeout(() => {
-                  count.value += 1;
-                  run.value(count.value);
+                count.value += 1;
+                run.value(count.value);
                 // }, 50);
               }}
             >{`data:${data.value}`}</button>
