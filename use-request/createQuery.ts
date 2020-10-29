@@ -1,5 +1,5 @@
 import { nextTick, reactive, toRefs } from 'vue';
-import { Config } from './config';
+import { BaseConfig } from './config';
 // P mean params, R mean Response
 export type Request<R, P extends any[]> = (...args: P) => Promise<R>;
 type MutateData<R> = (newData: R) => void;
@@ -36,7 +36,7 @@ const setStateBind = <T>(oldState: T) => {
 
 const createQuery = <R, P extends any[]>(
   request: Request<R, P>,
-  config: Config<R, P>,
+  config: BaseConfig<R, P>,
 ): InnerQueryState<R, P> => {
   const {
     throwOnError,

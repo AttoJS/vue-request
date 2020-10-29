@@ -1,5 +1,5 @@
-import { reactive, toRefs, watch } from 'vue';
-import DefaultConfig, { Config } from './config';
+import { reactive, toRefs, watch, ref } from 'vue';
+import DefaultConfig, { BaseConfig } from './config';
 import createQuery, { QueryState, Request } from './createQuery';
 
 const QUERY_DEFAULT_KEY = 'QUERY_DEFAULT_KEY';
@@ -8,7 +8,7 @@ export type BaseResult<R, P extends any[]> = QueryState<R, P>;
 
 function useAsyncQuery<R, P extends any[]>(
   queryMethod: Request<R, P>,
-  options: Config<R, P>,
+  options: BaseConfig<R, P>,
 ): BaseResult<R, P> {
   const mergeConfig = { ...DefaultConfig, ...options };
   const { defaultParams, manual, ready, refreshDeps } = mergeConfig;
@@ -18,15 +18,21 @@ function useAsyncQuery<R, P extends any[]>(
     query.run(defaultParams);
   }
 
-  // @ts-ignore
-  const stopReady = watch(ready!, val => val && query.run(defaultParams) && stopReady());
+  if (!ready.value) {
+    const stopReady = ref();
+    stopReady.value = watch(ready, val => val && query.run(defaultParams) && stopReady.value(), {
+      flush: 'sync',
+    });
+  }
 
   // refreshDeps change
-  watch(refreshDeps ?? [], () => {
-    if (!manual) {
-      query.refresh();
-    }
-  });
+  if (refreshDeps.length) {
+    watch(refreshDeps, () => {
+      if (!manual) {
+        query.refresh();
+      }
+    });
+  }
 
   return reactive({
     ...toRefs(query),

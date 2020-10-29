@@ -1,5 +1,5 @@
 import { toRefs } from 'vue';
-import { Config } from './config';
+import { BaseConfig } from './config';
 import { Request } from './createQuery';
 import useAsyncQuery from './useAsyncQuery';
 
@@ -19,7 +19,10 @@ function requestProxy(...args: any[]) {
   });
 }
 
-function useRequest<R, P extends unknown[]>(service: IService<R, P>, options: Config<R, P> = {}) {
+function useRequest<R, P extends unknown[]>(
+  service: IService<R, P>,
+  options: BaseConfig<R, P> = {},
+) {
   const requestMethod = requestProxy;
 
   let promiseService: (() => Promise<R>) | ((...args: P) => Promise<any>);

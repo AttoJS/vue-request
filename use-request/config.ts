@@ -1,6 +1,6 @@
 import { ref, Ref } from 'vue';
 
-export type Config<R, P extends any[]> = {
+export type BaseConfig<R, P extends any[]> = {
   defaultParams?: P;
   manual?: boolean;
   ready?: Ref<boolean>;
@@ -14,10 +14,12 @@ export type Config<R, P extends any[]> = {
   onError?: (error: Error, params: P) => void;
 };
 
-const DefaultConfig: Config<any, any> = {
+const DefaultConfig: BaseConfig<any, any> = {
   defaultParams: [],
   manual: false,
   ready: ref(true),
   throwOnError: false,
+  refreshDeps: [],
+  loadingDelay: 0,
 };
-export default DefaultConfig as Required<Config<any, any>>;
+export default DefaultConfig as Required<BaseConfig<any, any>>;

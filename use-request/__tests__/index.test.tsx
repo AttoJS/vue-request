@@ -277,6 +277,74 @@ describe('useRequest', () => {
     expect(wrapper.vm.$el.textContent).toBe('data:success');
   });
 
+  test('track ready when ready initial value is false', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const readyRef = ref(true);
+          const count = ref(0);
+          const { data, run } = useRequest(request, {
+            ready: readyRef,
+            defaultParams: [count.value],
+          });
+
+          return () => (
+            <button
+              onClick={() => {
+                readyRef.value = !readyRef.value;
+                count.value += 1;
+                run.value(count.value);
+              }}
+            >{`data:${data.value}`}</button>
+          );
+        },
+      }),
+    );
+    await waitForAll();
+    expect(wrapper.vm.$el.textContent).toBe('data:0');
+    await wrapper.find('button').trigger('click');
+    await waitForAll();
+    expect(wrapper.vm.$el.textContent).toBe('data:1');
+  });
+
+  test('ready should work only once', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const readyRef = ref(false);
+          const count = ref(0);
+          const { data, run } = useRequest(request, {
+            ready: readyRef,
+            defaultParams: [count.value],
+          });
+
+          return () => (
+            <button
+              onClick={async () => {
+                readyRef.value = !readyRef.value;
+                
+                // setTimeout(() => {
+                  count.value += 1;
+                  run.value(count.value);
+                // }, 50);
+              }}
+            >{`data:${data.value}`}</button>
+          );
+        },
+      }),
+    );
+    await waitForAll();
+    expect(wrapper.vm.$el.textContent).toBe('data:undefined');
+    await wrapper.find('button').trigger('click');
+    // first click
+    await waitForAll();
+    expect(wrapper.vm.$el.textContent).toBe('data:1');
+    await wrapper.find('button').trigger('click');
+    // second click
+    await waitForAll();
+    expect(wrapper.vm.$el.textContent).toBe('data:2');
+  });
+
   test('formatResult should work', async () => {
     const wrapper = shallowMount(
       defineComponent({
