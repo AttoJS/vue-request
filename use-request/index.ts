@@ -42,14 +42,14 @@ function useRequest<R, P extends unknown[]>(
           let _service = service(...args);
           // 是否为普通异步请求
           if (!_service.then) {
-            switch (_service) {
+            switch (typeof _service) {
               case 'string': {
-                _service = () => requestMethod(_service);
+                _service = requestMethod(_service);
                 break;
               }
               case 'object': {
                 const { url, ...rest } = _service;
-                _service = () => requestMethod(url, rest);
+                _service = requestMethod(url, rest);
                 break;
               }
             }
