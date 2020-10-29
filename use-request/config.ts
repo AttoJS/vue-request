@@ -14,6 +14,11 @@ export type BaseConfig<R, P extends any[]> = {
   onError?: (error: Error, params: P) => void;
 };
 
+export type Config<R, P extends any[]> = Omit<
+  BaseConfig<R, P>,
+  'defaultParams' | 'manual' | 'ready' | 'refreshDeps'
+> & {};
+
 const DefaultConfig: BaseConfig<any, any> = {
   defaultParams: [],
   manual: false,

@@ -1,5 +1,5 @@
 import { nextTick, reactive, toRefs } from 'vue';
-import { BaseConfig } from './config';
+import { Config } from './config';
 // P mean params, R mean Response
 export type Request<R, P extends any[]> = (...args: P) => Promise<R>;
 type MutateData<R> = (newData: R) => void;
@@ -32,21 +32,11 @@ const setStateBind = <T>(oldState: T) => {
   };
 };
 
-// export let tempReadyParams: any[] = [];
-
 const createQuery = <R, P extends any[]>(
   request: Request<R, P>,
-  config: BaseConfig<R, P>,
+  config: Config<R, P>,
 ): InnerQueryState<R, P> => {
-  const {
-    throwOnError,
-    initialData,
-    ready,
-    loadingDelay,
-    formatResult,
-    onSuccess,
-    onError,
-  } = config;
+  const { throwOnError, initialData, loadingDelay, formatResult, onSuccess, onError } = config;
 
   const state = reactive({
     loading: false,
@@ -118,9 +108,6 @@ const createQuery = <R, P extends any[]>(
   };
 
   const run = (args: P, cb?: () => void) => {
-    if (!ready?.value) {
-      return;
-    }
     return _run(args, cb);
   };
 

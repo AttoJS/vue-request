@@ -1,5 +1,5 @@
 import { reactive, toRefs, watch, ref } from 'vue';
-import DefaultConfig, { BaseConfig } from './config';
+import DefaultConfig, { BaseConfig, Config } from './config';
 import createQuery, { QueryState, Request } from './createQuery';
 
 const QUERY_DEFAULT_KEY = 'QUERY_DEFAULT_KEY';
@@ -11,34 +11,70 @@ function useAsyncQuery<R, P extends any[]>(
   options: BaseConfig<R, P>,
 ): BaseResult<R, P> {
   const mergeConfig = { ...DefaultConfig, ...options };
-  const { defaultParams, manual, ready, refreshDeps } = mergeConfig;
-  const query = createQuery(queryMethod, mergeConfig);
+  const {
+    initialData,
+    defaultParams,
+    manual,
+    ready,
+    refreshDeps,
+    onSuccess,
+    onError,
+    throwOnError,
+    loadingDelay,
+    formatResult,
+  } = mergeConfig;
 
+  const config: Config<R, P> = {
+    initialData,
+    loadingDelay,
+    throwOnError,
+    formatResult,
+    onSuccess,
+    onError,
+  };
+  const query = createQuery(queryMethod, config);
+
+  const tempReadyParams = ref();
+  const hasTriggerReady = ref(false);
+  const run = (...args: P) => {
+    if (!ready.value && !hasTriggerReady.value) {
+      tempReadyParams.value = args;
+      return;
+    }
+    return query.run(args);
+  };
+
+  // initial run
   if (!manual) {
-    query.run(defaultParams);
+    run(...defaultParams);
   }
 
-  if (!ready.value) {
-    const stopReady = ref();
-    stopReady.value = watch(ready, val => val && query.run(defaultParams) && stopReady.value(), {
+  // watch ready
+  const stopReady = ref();
+  stopReady.value = watch(
+    ready,
+    val => {
+      hasTriggerReady.value = true;
+      if (val && tempReadyParams.value) {
+        run(...defaultParams);
+        stopReady.value();
+      }
+    },
+    {
       flush: 'sync',
-    });
-  }
+    },
+  );
 
-  // refreshDeps change
+  // watch refreshDeps
   if (refreshDeps.length) {
     watch(refreshDeps, () => {
-      if (!manual) {
-        query.refresh();
-      }
+      !manual && query.refresh();
     });
   }
 
   return reactive({
     ...toRefs(query),
-    run: (...args: P) => {
-      return query.run(args);
-    },
+    run,
   }) as QueryState<R, P>;
 }
 
