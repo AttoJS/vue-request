@@ -1,4 +1,4 @@
-import { isFunction, isPlainObject, isPromise, isString } from '../utils';
+import { isFunction, isPlainObject, isPromise, isString, isNil } from '../utils';
 
 describe('utils', () => {
   test('isString should work', () => {
@@ -24,5 +24,14 @@ describe('utils', () => {
     expect(isFunction(function() {})).toBe(true);
     expect(isFunction(() => {})).toBe(true);
     expect(isFunction('')).toBe(false);
+  });
+
+  test('isNil should work', () => {
+    expect(isNil(undefined)).toBe(true);
+    expect(isNil(null)).toBe(true);
+    expect(isNil(void 0)).toBe(true);
+    expect(isNil('')).toBe(false);
+    expect(isNil(false)).toBe(false);
+    expect(isNil(0)).toBe(false);
   });
 });

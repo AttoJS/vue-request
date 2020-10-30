@@ -9,4 +9,4 @@ export const isPromise = (fn: unknown): fn is Promise<unknown> => fn instanceof 
 
 export const isFunction = (fn: unknown): fn is Function => fn instanceof Function;
 
-export const isEmpty = (val: unknown) => val === null || val === undefined;
+export const isNil = (val: unknown) => val === null || val === undefined;
