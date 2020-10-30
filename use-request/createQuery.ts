@@ -38,7 +38,15 @@ const createQuery = <R, P extends unknown[]>(
   query: Query<R, P>,
   config: Config<R, P>,
 ): InnerQueryState<R, P> => {
-  const { throwOnError, initialData, loadingDelay, formatResult, onSuccess, onError } = config;
+  const {
+    throwOnError,
+    initialData,
+    loadingDelay,
+    pollingInterval,
+    formatResult,
+    onSuccess,
+    onError,
+  } = config;
 
   const state = reactive({
     loading: false,
@@ -49,6 +57,8 @@ const createQuery = <R, P extends unknown[]>(
 
   const setState = setStateBind(state);
   const count = ref(0);
+  const pollingTimer = ref();
+  const delayLoadingTimer = ref();
 
   const delayLoading = () => {
     let timerId: number;
@@ -64,13 +74,25 @@ const createQuery = <R, P extends unknown[]>(
     return () => timerId && clearTimeout(timerId);
   };
 
+  const polling = (pollingFunc: () => void) => {
+    let timerId: number;
+
+    if (pollingInterval !== -1) {
+      timerId = setTimeout(() => {
+        pollingFunc();
+      }, pollingInterval);
+    }
+
+    return () => timerId && clearTimeout(timerId);
+  };
+
   const _run = (args: P, cb?: () => void) => {
     setState({
       loading: !loadingDelay,
       params: args,
     });
 
-    const cancelDelayLoading = delayLoading();
+    delayLoadingTimer.value = delayLoading();
     count.value += 1;
     const currentCount = count.value;
     return query(...args)
@@ -111,8 +133,11 @@ const createQuery = <R, P extends unknown[]>(
       })
       .finally(() => {
         if (currentCount === count.value) {
-          cancelDelayLoading();
           cb?.();
+          // clear delayLoadingTimer
+          delayLoadingTimer.value();
+          // run for polling
+          pollingTimer.value = polling(() => _run(args, cb));
         }
       });
   };
@@ -122,9 +147,18 @@ const createQuery = <R, P extends unknown[]>(
   };
 
   const cancel = () => {
-    setState({ loading: false });
     count.value += 1;
-    return;
+    setState({ loading: false });
+
+    // clear pollingTimer
+    if (pollingTimer.value) {
+      pollingTimer.value();
+    }
+
+    // clear delayLoadingTimer
+    if (delayLoadingTimer.value) {
+      delayLoadingTimer.value();
+    }
   };
 
   const refresh = () => {

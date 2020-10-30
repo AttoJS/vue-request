@@ -21,6 +21,7 @@ function useAsyncQuery<R, P extends unknown[]>(
     onError,
     throwOnError,
     loadingDelay,
+    pollingInterval,
     formatResult,
   } = mergeOptions;
 
@@ -28,6 +29,7 @@ function useAsyncQuery<R, P extends unknown[]>(
     initialData,
     loadingDelay,
     throwOnError,
+    pollingInterval,
     formatResult,
     onSuccess,
     onError,

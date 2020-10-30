@@ -462,6 +462,26 @@ describe('useRequest', () => {
     expect(wrapper.vm.$el.textContent).toBe('loading:false');
   });
 
+  test('cancel loadingDelay should work', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { loading, cancel } = useRequest(request, {
+            loadingDelay: 800,
+          });
+
+          return () => <button onClick={() => cancel.value()}>{`loading:${loading.value}`}</button>;
+        },
+      }),
+    );
+
+    expect(wrapper.vm.$el.textContent).toBe('loading:false');
+    await waitForTime(800);
+    expect(wrapper.vm.$el.textContent).toBe('loading:true');
+    await wrapper.find('button').trigger('click');
+    expect(wrapper.vm.$el.textContent).toBe('loading:false');
+  });
+
   test('cancel should work', async () => {
     const wrapper = shallowMount(
       defineComponent({
@@ -514,5 +534,30 @@ describe('useRequest', () => {
     await wrapper.find('#run').trigger('click');
     await waitForAll();
     expect(console.error).toHaveBeenCalledWith(new Error('fail'));
+  });
+
+  test('pollingInterval should work', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { loading, cancel } = useRequest(request, {
+            pollingInterval: 500,
+          });
+
+          return () => <button onClick={() => cancel.value()}>{`loading:${loading.value}`}</button>;
+        },
+      }),
+    );
+
+    expect(wrapper.vm.$el.textContent).toBe('loading:true');
+    await waitForTime(1000);
+    expect(wrapper.vm.$el.textContent).toBe('loading:false');
+    await waitForTime(500);
+    expect(wrapper.vm.$el.textContent).toBe('loading:true');
+    await waitForTime(1000);
+    expect(wrapper.vm.$el.textContent).toBe('loading:false');
+    await wrapper.find('button').trigger('click');
+    waitForTime(600);
+    expect(wrapper.vm.$el.textContent).toBe('loading:false');
   });
 });
