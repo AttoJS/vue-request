@@ -6,9 +6,9 @@ module.exports = {
   },
   collectCoverage: process.env.COVERAGE === 'true',
   collectCoverageFrom: [
-    'use-request/**/*.{ts,tsx}',
+    '<rootDir>/use-request/**/*.{ts,tsx}',
     '!**/node_modules/**',
-    '!use-request/__tests__/**/*',
+    '!<rootDir>/use-request/__tests__/**/*',
   ],
   testMatch: ['<rootDir>/use-request/__tests__/**/*.test.[jt]s?(x)'],
   globals: {

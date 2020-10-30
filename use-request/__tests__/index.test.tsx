@@ -1,8 +1,8 @@
 import { shallowMount } from '@vue/test-utils';
+import fetchMock from 'fetch-mock';
 import { defineComponent, ref } from 'vue';
 import useRequest from '..';
 import { waitForAll, waitForTime } from './utils';
-import fetchMock from 'fetch-mock';
 
 describe('useRequest', () => {
   beforeAll(() => {
@@ -18,6 +18,7 @@ describe('useRequest', () => {
   const serviceWillReturnString = () => successApi;
   const serviceWillReturnObject = () => ({ url: successApi });
   const unkonwService = 1;
+
   const originalError = console.error;
   beforeEach(() => {
     console.error = jest.fn();
