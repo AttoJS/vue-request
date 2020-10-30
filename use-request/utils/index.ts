@@ -8,3 +8,5 @@ export const isPlainObject = (val: unknown): val is Record<string, any> =>
 export const isPromise = (fn: unknown): fn is Promise<unknown> => fn instanceof Promise;
 
 export const isFunction = (fn: unknown): fn is Function => fn instanceof Function;
+
+export const isEmpty = (val: unknown) => val === null || val === undefined;

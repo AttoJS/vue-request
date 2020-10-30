@@ -1,6 +1,6 @@
-import { nextTick, reactive, toRefs, ref } from 'vue';
+import { nextTick, reactive, ref, toRefs } from 'vue';
 import { Config } from './config';
-import { isFunction } from './utils';
+import { isEmpty, isFunction } from './utils';
 type MutateData<R> = (newData: R) => void;
 type MutateFunction<R> = (arg: (oldData: R) => R) => void;
 
@@ -77,7 +77,7 @@ const createQuery = <R, P extends unknown[]>(
   const polling = (pollingFunc: () => void) => {
     let timerId: number;
 
-    if (pollingInterval !== -1) {
+    if (!isEmpty(pollingInterval) && pollingInterval! >= 0) {
       timerId = setTimeout(() => {
         pollingFunc();
       }, pollingInterval);
