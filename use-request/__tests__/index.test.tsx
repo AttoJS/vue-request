@@ -560,4 +560,24 @@ describe('useRequest', () => {
     waitForTime(600);
     expect(wrapper.vm.$el.textContent).toBe('loading:false');
   });
+
+  test('pollingInterval less than 0 should not work', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { loading, cancel } = useRequest(request, {
+            pollingInterval: -0.1,
+          });
+
+          return () => <button onClick={() => cancel.value()}>{`loading:${loading.value}`}</button>;
+        },
+      }),
+    );
+
+    expect(wrapper.vm.$el.textContent).toBe('loading:true');
+    await waitForTime(1000);
+    expect(wrapper.vm.$el.textContent).toBe('loading:false');
+    await waitForTime(10);
+    expect(wrapper.vm.$el.textContent).toBe('loading:false');
+  });
 });
