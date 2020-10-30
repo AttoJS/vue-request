@@ -28,9 +28,7 @@ function useRequest<R, P extends unknown[]>(
 
   let promiseQuery: (() => Promise<R>) | ((...args: P) => Promise<R>);
 
-  if (isString(service)) {
-    promiseQuery = () => requestMethod(service);
-  } else if (isFunction(service)) {
+  if (isFunction(service)) {
     promiseQuery = (...args: P) =>
       new Promise<R>((resolve, reject) => {
         let _service = service(...args);
@@ -48,6 +46,8 @@ function useRequest<R, P extends unknown[]>(
   } else if (isPlainObject(service)) {
     const { url, ...rest } = service;
     promiseQuery = () => requestMethod(url, rest);
+  } else if (isString(service)) {
+    promiseQuery = () => requestMethod(service);
   } else {
     throw Error('未知service类型');
   }
