@@ -1,4 +1,4 @@
-import { nextTick, reactive, toRefs } from 'vue';
+import { nextTick, reactive, toRefs, ref } from 'vue';
 import { Config } from './config';
 import { isFunction } from './utils';
 type MutateData<R> = (newData: R) => void;
@@ -48,6 +48,7 @@ const createQuery = <R, P extends unknown[]>(
   }) as Partial<QueryState<R, P>>;
 
   const setState = setStateBind(state);
+  const count = ref(0);
 
   const delayLoading = () => {
     let timerId: number;
@@ -70,42 +71,49 @@ const createQuery = <R, P extends unknown[]>(
     });
 
     const cancelDelayLoading = delayLoading();
-
+    count.value += 1;
+    const currentCount = count.value;
     return query(...args)
       .then(res => {
-        const formattedResult = formatResult ? formatResult(res) : res;
+        if (currentCount === count.value) {
+          const formattedResult = formatResult ? formatResult(res) : res;
 
-        setState({
-          data: formattedResult,
-          loading: false,
-          error: undefined,
-        });
+          setState({
+            data: formattedResult,
+            loading: false,
+            error: undefined,
+          });
 
-        if (onSuccess) {
-          onSuccess(formattedResult, args);
+          if (onSuccess) {
+            onSuccess(formattedResult, args);
+          }
+
+          return formattedResult;
         }
-
-        return formattedResult;
       })
       .catch(error => {
-        setState({
-          data: undefined,
-          loading: false,
-          error: error,
-        });
-        if (onError) {
-          onError(error, args);
-        }
+        if (currentCount === count.value) {
+          setState({
+            data: undefined,
+            loading: false,
+            error: error,
+          });
+          if (onError) {
+            onError(error, args);
+          }
 
-        if (throwOnError) {
-          throw error;
+          if (throwOnError) {
+            throw error;
+          }
+          console.error(error);
+          return Promise.reject('已处理的错误');
         }
-        console.error(error);
-        return Promise.reject('已处理的错误');
       })
       .finally(() => {
-        cancelDelayLoading();
-        cb?.();
+        if (currentCount === count.value) {
+          cancelDelayLoading();
+          cb?.();
+        }
       });
   };
 
@@ -114,6 +122,8 @@ const createQuery = <R, P extends unknown[]>(
   };
 
   const cancel = () => {
+    setState({ loading: false });
+    count.value += 1;
     return;
   };
 

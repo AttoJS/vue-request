@@ -461,4 +461,58 @@ describe('useRequest', () => {
     await waitForTime(200);
     expect(wrapper.vm.$el.textContent).toBe('loading:false');
   });
+
+  test('cancel should work', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { cancel, data, run } = useRequest(request);
+
+          return () => (
+            <div>
+              <button onClick={() => cancel.value()} id="cancel" />
+              <button onClick={() => run.value()} id="run" />
+              <span id="data">{`data:${data.value}`}</span>
+            </div>
+          );
+        },
+      }),
+    );
+
+    expect(wrapper.find('#data').text()).toBe('data:undefined');
+    await wrapper.find('#cancel').trigger('click');
+    await waitForAll();
+    expect(wrapper.find('#data').text()).toBe('data:undefined');
+    await wrapper.find('#run').trigger('click');
+    await waitForAll();
+    expect(wrapper.find('#data').text()).toBe('data:success');
+  });
+
+  test('cancel should work when request error', async () => {
+    console.error = jest.fn();
+
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { data, run, cancel } = useRequest(failedRequest, { manual: true });
+          return () => (
+            <div>
+              <button id="run" onClick={() => run.value().catch(() => {})}></button>;
+              <button id="cancel" onClick={() => cancel.value()}></button>;
+              <span id="data">{`data:${data.value}`}</span>
+            </div>
+          );
+        },
+      }),
+    );
+    expect(wrapper.find('#data').text()).toBe('data:undefined');
+    await wrapper.find('#run').trigger('click');
+    await waitForTime(200);
+    await wrapper.find('#cancel').trigger('click');
+    await waitForAll();
+    expect(wrapper.find('#data').text()).toBe('data:undefined');
+    await wrapper.find('#run').trigger('click');
+    await waitForAll();
+    expect(console.error).toHaveBeenCalledWith(new Error('fail'));
+  });
 });
