@@ -27,6 +27,5 @@ const DefaultOptions: BaseOptions<any, any> = {
   throwOnError: false,
   refreshDeps: [],
   loadingDelay: 0,
-  pollingInterval: undefined,
 };
 export default DefaultOptions as Required<BaseOptions<any, any>>;
