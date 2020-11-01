@@ -1,6 +1,12 @@
-import { isFunction, isPlainObject, isPromise, isString, isNil } from '../utils';
+import { isFunction, isNil, isPlainObject, isPromise, isString } from '../utils';
+import limitTrigger from '../utils/limitTrigger';
+import { waitForTime } from './utils';
 
 describe('utils', () => {
+  beforeAll(() => {
+    jest.useFakeTimers();
+  });
+
   test('isString should work', () => {
     expect(isString('hello')).toBe(true);
     expect(isString(1)).toBe(false);
@@ -33,5 +39,19 @@ describe('utils', () => {
     expect(isNil('')).toBe(false);
     expect(isNil(false)).toBe(false);
     expect(isNil(0)).toBe(false);
+  });
+
+  test('limitTrigger should work', async () => {
+    const mockFn = jest.fn();
+    const limitedFn = limitTrigger(mockFn, 1000);
+
+    limitedFn();
+    await waitForTime(500);
+    limitedFn();
+    expect(mockFn).toBeCalledTimes(1);
+    await waitForTime(500);
+
+    limitedFn();
+    expect(mockFn).toBeCalledTimes(2);
   });
 });
