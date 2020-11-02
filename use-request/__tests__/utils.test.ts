@@ -1,6 +1,8 @@
 import { isFunction, isNil, isPlainObject, isPromise, isString } from '../utils';
 import limitTrigger from '../utils/limitTrigger';
+import subscriber from '../utils/listener';
 import { waitForTime } from './utils';
+declare let jsdom: any;
 
 describe('utils', () => {
   beforeAll(() => {
@@ -53,5 +55,19 @@ describe('utils', () => {
 
     limitedFn();
     expect(mockFn).toBeCalledTimes(2);
+  });
+
+  test('visibility listener should work', async () => {
+    const mockFn = jest.fn();
+    subscriber('VISIBLE_LISTENER', mockFn);
+    jsdom.window.dispatchEvent(new Event('visibilitychange'));
+    expect(mockFn).toBeCalledTimes(1);
+  });
+
+  test('focus listener should work', async () => {
+    const mockFn = jest.fn();
+    subscriber('FOCUS_LISTENER', mockFn);
+    jsdom.window.dispatchEvent(new Event('focus'));
+    expect(mockFn).toBeCalledTimes(1);
   });
 });
