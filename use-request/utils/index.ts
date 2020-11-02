@@ -10,3 +10,5 @@ export const isPromise = (fn: unknown): fn is Promise<unknown> => fn instanceof 
 export const isFunction = (fn: unknown): fn is Function => fn instanceof Function;
 
 export const isNil = (val: unknown) => val === null || val === undefined;
+
+export const isDocumentVisibilty = () => window?.document?.visibilityState === 'visible';
