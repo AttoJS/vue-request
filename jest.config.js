@@ -16,4 +16,5 @@ module.exports = {
       babelConfig: true,
     },
   },
+  testEnvironment: 'jest-environment-jsdom-global',
 };
