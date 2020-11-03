@@ -1,6 +1,6 @@
 import { nextTick, reactive, ref, toRefs } from 'vue';
 import { Config } from './config';
-import { isNil, isFunction } from './utils';
+import { isFunction, isNil } from './utils';
 type MutateData<R> = (newData: R) => void;
 type MutateFunction<R> = (arg: (oldData: R) => R) => void;
 
@@ -19,7 +19,7 @@ export type QueryState<R, P extends unknown[]> = {
   mutate: Mutate<R>;
 };
 
-export type InnerQueryState<R, P extends unknown[]> = Omit<QueryState<R, P>, 'run'> & {
+export type InnerQueryState<R, P extends unknown[]> = Omit<QueryState<R, P>, 'run' | 'refresh'> & {
   run: (args: P, cb?: () => void) => Promise<R>;
 };
 
@@ -161,10 +161,6 @@ const createQuery = <R, P extends unknown[]>(
     }
   };
 
-  const refresh = () => {
-    return run(state.params!);
-  };
-
   const mutate: Mutate<R> = (
     x: Parameters<MutateData<R>>[0] | Parameters<MutateFunction<R>>[0],
   ) => {
@@ -179,7 +175,6 @@ const createQuery = <R, P extends unknown[]>(
     ...toRefs(state),
     run,
     cancel,
-    refresh,
     mutate,
   }) as InnerQueryState<R, P>;
 

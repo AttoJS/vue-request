@@ -1,10 +1,10 @@
 import { defineComponent, watchEffect } from 'vue';
 import useRequest from '../use-request';
 
-function testService(): Promise<any> {
-  return new Promise(resolve => {
+function testService() {
+  return new Promise<{ name: string; age: number }>(resolve => {
     setTimeout(() => {
-      resolve({name: 'John', age: 18});
+      resolve({ name: 'John', age: 18 });
     }, 1000);
   });
 }
@@ -12,10 +12,10 @@ function testService(): Promise<any> {
 export default defineComponent({
   name: 'App',
   setup() {
-    const { run, data, loading, mutate } = useRequest<any, {
-      name: string;
-      age: number
-    }>(testService, {});
+    const { run, data, loading, mutate } = useRequest(testService, {
+      debounceInterval: 1000,
+      // manual: true,
+    });
     // console.log('setup -> run', run);
     // console.log('setup -> data', data);
 
@@ -24,14 +24,22 @@ export default defineComponent({
     });
     return () => (
       <div>
-        <button onClick={() => run.value()}>run</button>
+        <button
+          onClick={() =>
+            run.value().then(res => {
+              console.log('res', res);
+            })
+          }
+        >
+          run
+        </button>
         <button
           onClick={() =>
             mutate.value(arg => {
               return {
                 name: 'JJ',
-                age: 10
-              }
+                age: 10,
+              };
             })
           }
         >
