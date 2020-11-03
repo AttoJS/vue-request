@@ -4,6 +4,7 @@ module.exports = {
     '^.+\\.(js|jsx)$': 'babel-jest',
     '^.+\\.(ts|tsx)$': 'ts-jest',
   },
+  transformIgnorePatterns: ['<rootDir>/node_modules/(?!lodash-es)'],
   collectCoverage: process.env.COVERAGE === 'true',
   collectCoverageFrom: [
     '<rootDir>/use-request/**/*.{ts,tsx}',

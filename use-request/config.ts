@@ -10,6 +10,8 @@ export type BaseOptions<R, P extends unknown[]> = {
   loadingDelay?: number;
   pollingInterval?: number;
   pollingWhenHidden?: boolean;
+  debounceInterval?: number;
+  throttleInterval?: number;
   // TODO: 正确处理 formatResult 返回值类型和普通请求返回值类型
   formatResult?: (data: any) => R;
   onSuccess?: (data: R, params: P) => void;

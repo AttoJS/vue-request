@@ -37,7 +37,7 @@ describe('useRequest', () => {
     });
 
   const failedRequest = () =>
-    new Promise((_, reject) => {
+    new Promise<Error>((_, reject) => {
       setTimeout(() => {
         reject(new Error('fail'));
       }, 1000);
