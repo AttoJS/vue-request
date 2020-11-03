@@ -1,4 +1,11 @@
-import { isFunction, isNil, isPlainObject, isPromise, isString } from '../utils';
+import {
+  isDocumentVisibilty,
+  isFunction,
+  isNil,
+  isPlainObject,
+  isPromise,
+  isString,
+} from '../utils';
 import limitTrigger from '../utils/limitTrigger';
 import subscriber from '../utils/listener';
 import { waitForTime } from './utils';
@@ -57,17 +64,23 @@ describe('utils', () => {
     expect(mockFn).toBeCalledTimes(2);
   });
 
-  test('visibility listener should work', async () => {
+  test('visibility listener should work', () => {
     const mockFn = jest.fn();
     subscriber('VISIBLE_LISTENER', mockFn);
     jsdom.window.dispatchEvent(new Event('visibilitychange'));
     expect(mockFn).toBeCalledTimes(1);
   });
 
-  test('focus listener should work', async () => {
+  test('focus listener should work', () => {
     const mockFn = jest.fn();
     subscriber('FOCUS_LISTENER', mockFn);
     jsdom.window.dispatchEvent(new Event('focus'));
     expect(mockFn).toBeCalledTimes(1);
+  });
+
+  test('isDocumentVisibilty should work', () => {
+    expect(isDocumentVisibilty()).toBeTruthy();
+    Object.defineProperty(document, 'visibilityState', { value: 'hidden', writable: true });
+    expect(isDocumentVisibilty()).toBeFalsy();
   });
 });
