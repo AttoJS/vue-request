@@ -2,14 +2,18 @@ type EventFunc = () => void;
 type ListenersSet = Set<EventFunc>;
 type ListenerType = 'FOCUS_LISTENER' | 'VISIBLE_LISTENER';
 const FOCUS_LISTENER: ListenersSet = new Set();
+const VISIBLE_LISTENER: ListenersSet = new Set();
 
 const subscriber = (listenerType: ListenerType, event: EventFunc) => {
   let listeners;
   switch (listenerType) {
     case 'FOCUS_LISTENER':
-    case 'VISIBLE_LISTENER':
-    default:
       listeners = FOCUS_LISTENER;
+      break;
+
+    default:
+    case 'VISIBLE_LISTENER':
+      listeners = VISIBLE_LISTENER;
       break;
   }
 
@@ -28,7 +32,7 @@ if (window && window.addEventListener) {
     'visibilitychange',
     () => {
       if (document.visibilityState === 'visible') {
-        observer(FOCUS_LISTENER);
+        observer(VISIBLE_LISTENER);
       }
     },
     false,
