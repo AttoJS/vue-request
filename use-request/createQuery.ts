@@ -1,3 +1,5 @@
+import debounce from 'lodash-es/debounce';
+import throttle from 'lodash-es/throttle';
 import { nextTick, reactive, ref, toRefs } from 'vue';
 import { Config } from './config';
 import { isFunction, isNil } from './utils';
@@ -19,9 +21,11 @@ export type QueryState<R, P extends unknown[]> = {
   mutate: Mutate<R>;
 };
 
-export type InnerQueryState<R, P extends unknown[]> = Omit<QueryState<R, P>, 'run' | 'refresh'> & {
+export type InnerQueryState<R, P extends unknown[]> = Omit<QueryState<R, P>, 'run'> & {
   run: (args: P, cb?: () => void) => Promise<R>;
 };
+
+const resolvedPromise = Promise.resolve();
 
 const setStateBind = <T>(oldState: T) => {
   return (newState: T, cb?: () => void) => {
@@ -43,6 +47,8 @@ const createQuery = <R, P extends unknown[]>(
     initialData,
     loadingDelay,
     pollingInterval,
+    debounceInterval,
+    throttleInterval,
     formatResult,
     onSuccess,
     onError,
@@ -142,7 +148,27 @@ const createQuery = <R, P extends unknown[]>(
       });
   };
 
+  let debounceRun: any;
+  let throttleRun: any;
+
+  // debounceRun
+  if (!isNil(debounceInterval) && debounceInterval! >= 0) {
+    debounceRun = debounce(_run, debounceInterval);
+  }
+  // throttleRun
+  if (!isNil(throttleInterval) && throttleInterval! >= 0) {
+    throttleRun = throttle(_run, throttleInterval);
+  }
+
   const run = (args: P, cb?: () => void) => {
+    if (debounceRun) {
+      debounceRun(args);
+      return resolvedPromise;
+    }
+    if (throttleRun) {
+      throttleRun(args);
+      return resolvedPromise;
+    }
     return _run(args, cb);
   };
 
@@ -161,6 +187,10 @@ const createQuery = <R, P extends unknown[]>(
     }
   };
 
+  const refresh = () => {
+    return run(state.params!);
+  };
+
   const mutate: Mutate<R> = (
     x: Parameters<MutateData<R>>[0] | Parameters<MutateFunction<R>>[0],
   ) => {
@@ -175,6 +205,7 @@ const createQuery = <R, P extends unknown[]>(
     ...toRefs(state),
     run,
     cancel,
+    refresh,
     mutate,
   }) as InnerQueryState<R, P>;
 
