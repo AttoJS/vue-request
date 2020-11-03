@@ -330,6 +330,74 @@ describe('useRequest', () => {
     expect(wrapper.vm.$el.textContent).toBe('data:success');
   });
 
+  test('ready should save the first time request params : case 1', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const readyRef = ref(false);
+          const { data, run } = useRequest(request, {
+            ready: readyRef,
+            defaultParams: ['default'],
+          });
+
+          return () => (
+            <div>
+              <button id="run" onClick={() => run.value('run')} />
+              <button
+                id="ready"
+                onClick={() => {
+                  readyRef.value = true;
+                }}
+              />
+              <span id="text">{`data:${data.value}`}</span>
+            </div>
+          );
+        },
+      }),
+    );
+    await waitForAll();
+    expect(wrapper.find('#text').text()).toBe('data:undefined');
+    await wrapper.find('#ready').trigger('click');
+    await waitForAll();
+    expect(wrapper.find('#text').text()).toBe('data:default');
+    await wrapper.find('#run').trigger('click');
+    await waitForAll();
+    expect(wrapper.find('#text').text()).toBe('data:run');
+  });
+
+  test('ready should save the first time request params : case 2', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const readyRef = ref(false);
+          const { data, run } = useRequest(request, {
+            ready: readyRef,
+            defaultParams: ['default'],
+          });
+
+          return () => (
+            <div>
+              <button id="run" onClick={() => run.value('run')} />
+              <button
+                id="ready"
+                onClick={() => {
+                  readyRef.value = true;
+                }}
+              />
+              <span id="text">{`data:${data.value}`}</span>
+            </div>
+          );
+        },
+      }),
+    );
+    await waitForAll();
+    expect(wrapper.find('#text').text()).toBe('data:undefined');
+    await wrapper.find('#run').trigger('click');
+    await wrapper.find('#ready').trigger('click');
+    await waitForAll();
+    expect(wrapper.find('#text').text()).toBe('data:run');
+  });
+
   test('track ready when ready initial value is false', async () => {
     const wrapper = shallowMount(
       defineComponent({
@@ -584,19 +652,12 @@ describe('useRequest', () => {
 
   test('pollingWhenHidden be false should work', async () => {
     let count = 0;
-    const addRequest = () => {
-      return new Promise<number>(resolve => {
-        setTimeout(() => {
-          resolve((count += 1));
-        }, 1000);
-      });
-    };
     const wrapper = shallowMount(
       defineComponent({
         setup() {
-          const { data } = useRequest(addRequest, {
+          const { data } = useRequest(() => request((count += 1)), {
             pollingInterval: 1000,
-            pollingWhenHidden: false
+            pollingWhenHidden: false,
           });
 
           return () => <button>{`data:${data.value}`}</button>;
@@ -626,19 +687,12 @@ describe('useRequest', () => {
 
   test('pollingWhenHidden be true should work', async () => {
     let count = 0;
-    const addRequest = () => {
-      return new Promise<number>(resolve => {
-        setTimeout(() => {
-          resolve((count += 1));
-        }, 1000);
-      });
-    };
     const wrapper = shallowMount(
       defineComponent({
         setup() {
-          const { data } = useRequest(addRequest, {
+          const { data } = useRequest(() => request((count += 1)), {
             pollingInterval: 1000,
-            pollingWhenHidden: true
+            pollingWhenHidden: true,
           });
 
           return () => <button>{`data:${data.value}`}</button>;
