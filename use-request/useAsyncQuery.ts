@@ -1,9 +1,6 @@
-import debounce from 'lodash-es/debounce';
-import throttle from 'lodash-es/throttle';
 import { reactive, ref, toRefs, watch } from 'vue';
 import DefaultOptions, { BaseOptions, Config } from './config';
 import createQuery, { Query, QueryState } from './createQuery';
-import { isNil } from './utils';
 
 const QUERY_DEFAULT_KEY = 'QUERY_DEFAULT_KEY';
 
@@ -35,6 +32,8 @@ function useAsyncQuery<R, P extends unknown[]>(
     loadingDelay,
     throwOnError,
     pollingInterval,
+    debounceInterval,
+    throttleInterval,
     formatResult,
     onSuccess,
     onError,
@@ -43,7 +42,7 @@ function useAsyncQuery<R, P extends unknown[]>(
 
   const tempReadyParams = ref();
   const hasTriggerReady = ref(false);
-  const normalRun = (...args: P) => {
+  const run = (...args: P) => {
     if (!ready.value && !hasTriggerReady.value) {
       tempReadyParams.value = args;
       return;
@@ -51,22 +50,9 @@ function useAsyncQuery<R, P extends unknown[]>(
     return queryState.run(args);
   };
 
-  let debounceRun: any;
-  let throttleRun: any;
-
-  if (!isNil(debounceInterval) && debounceInterval >= 0) {
-    debounceRun = debounce(normalRun, debounceInterval);
-  }
-
-  if (!isNil(throttleInterval) && throttleInterval >= 0) {
-    throttleRun = throttle(normalRun, throttleInterval);
-  }
-
-  const finalRun: (...args: P) => Promise<R> = debounceRun || throttleRun || normalRun;
-  console.log(finalRun);
   // initial run
   if (!manual) {
-    finalRun(...defaultParams);
+    run(...defaultParams);
   }
 
   // watch ready
@@ -76,7 +62,7 @@ function useAsyncQuery<R, P extends unknown[]>(
     val => {
       hasTriggerReady.value = true;
       if (val && tempReadyParams.value) {
-        finalRun(...defaultParams);
+        run(...tempReadyParams.value);
         stopReady.value();
       }
     },
@@ -86,17 +72,15 @@ function useAsyncQuery<R, P extends unknown[]>(
   );
 
   // watch refreshDeps
-  const refresh = () => finalRun(...queryState.params!);
   if (refreshDeps.length) {
     watch(refreshDeps, () => {
-      !manual && refresh();
+      !manual && queryState.refresh();
     });
   }
 
   return reactive({
     ...toRefs(queryState),
-    refresh,
-    run: finalRun,
+    run,
   }) as QueryState<R, P>;
 }
 
