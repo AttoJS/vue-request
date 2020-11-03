@@ -1,6 +1,6 @@
 import { nextTick, reactive, ref, toRefs } from 'vue';
 import { Config } from './config';
-import { isNil, isFunction } from './utils';
+import { isNil, isFunction, isDocumentVisibilty } from './utils';
 type MutateData<R> = (newData: R) => void;
 type MutateFunction<R> = (arg: (oldData: R) => R) => void;
 
@@ -43,6 +43,8 @@ const createQuery = <R, P extends unknown[]>(
     initialData,
     loadingDelay,
     pollingInterval,
+    pollingWhenHidden,
+    pollingHiddenFlag,
     formatResult,
     onSuccess,
     onError,
@@ -76,8 +78,11 @@ const createQuery = <R, P extends unknown[]>(
 
   const polling = (pollingFunc: () => void) => {
     let timerId: number;
-
     if (!isNil(pollingInterval) && pollingInterval! >= 0) {
+      if (!isDocumentVisibilty() && !pollingWhenHidden) {
+        pollingHiddenFlag.value = true;
+        return;
+      }
       timerId = setTimeout(() => {
         pollingFunc();
       }, pollingInterval);

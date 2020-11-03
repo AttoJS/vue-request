@@ -1,6 +1,7 @@
 import { reactive, toRefs, watch, ref } from 'vue';
 import DefaultOptions, { BaseOptions, Config } from './config';
 import createQuery, { QueryState, Query } from './createQuery';
+import subscriber from './utils/listener';
 
 const QUERY_DEFAULT_KEY = 'QUERY_DEFAULT_KEY';
 
@@ -11,6 +12,7 @@ function useAsyncQuery<R, P extends unknown[]>(
   options: BaseOptions<R, P>,
 ): BaseResult<R, P> {
   const mergeOptions = { ...DefaultOptions, ...options };
+  const pollingHiddenFlag = ref(false);
   const {
     initialData,
     defaultParams,
@@ -22,6 +24,7 @@ function useAsyncQuery<R, P extends unknown[]>(
     throwOnError,
     loadingDelay,
     pollingInterval,
+    pollingWhenHidden,
     formatResult,
   } = mergeOptions;
 
@@ -30,6 +33,8 @@ function useAsyncQuery<R, P extends unknown[]>(
     loadingDelay,
     throwOnError,
     pollingInterval,
+    pollingWhenHidden,
+    pollingHiddenFlag,
     formatResult,
     onSuccess,
     onError,
@@ -71,6 +76,16 @@ function useAsyncQuery<R, P extends unknown[]>(
   if (refreshDeps.length) {
     watch(refreshDeps, () => {
       !manual && queryState.refresh();
+    });
+  }
+
+  // subscribe polling
+  if (!pollingWhenHidden) {
+    subscriber('VISIBLE_LISTENER', () => {
+      if (pollingHiddenFlag.value) {
+        pollingHiddenFlag.value = false;
+        queryState.refresh();
+      }
     });
   }
 
