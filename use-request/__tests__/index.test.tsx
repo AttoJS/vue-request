@@ -3,6 +3,7 @@ import fetchMock from 'fetch-mock';
 import { defineComponent, ref } from 'vue';
 import useRequest from '..';
 import { waitForAll, waitForTime } from './utils';
+declare let jsdom: any;
 
 describe('useRequest', () => {
   beforeAll(() => {
@@ -579,5 +580,90 @@ describe('useRequest', () => {
     expect(wrapper.vm.$el.textContent).toBe('loading:false');
     await waitForTime(10);
     expect(wrapper.vm.$el.textContent).toBe('loading:false');
+  });
+
+  test('pollingWhenHidden be false should work', async () => {
+    let count = 0;
+    const addRequest = () => {
+      return new Promise<number>(resolve => {
+        setTimeout(() => {
+          resolve((count += 1));
+        }, 1000);
+      });
+    };
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { data } = useRequest(addRequest, {
+            pollingInterval: 1000,
+            pollingWhenHidden: false
+          });
+
+          return () => <button>{`data:${data.value}`}</button>;
+        },
+      }),
+    );
+
+    expect(wrapper.vm.$el.textContent).toBe('data:undefined');
+    await waitForTime(1000);
+    expect(wrapper.vm.$el.textContent).toBe('data:1');
+    await waitForTime(2000);
+    expect(wrapper.vm.$el.textContent).toBe('data:2');
+    // mock tab hide
+    Object.defineProperty(document, 'visibilityState', { value: 'hidden', writable: true });
+    await waitForTime(2000);
+    expect(wrapper.vm.$el.textContent).toBe('data:3');
+    await waitForTime(2000);
+    expect(wrapper.vm.$el.textContent).toBe('data:3');
+    // mock tab show
+    Object.defineProperty(document, 'visibilityState', { value: 'visible', writable: true });
+    jsdom.window.dispatchEvent(new Event('visibilitychange'));
+    await waitForTime(1000);
+    expect(wrapper.vm.$el.textContent).toBe('data:4');
+    await waitForTime(2000);
+    expect(wrapper.vm.$el.textContent).toBe('data:5');
+  });
+
+  test('pollingWhenHidden be true should work', async () => {
+    let count = 0;
+    const addRequest = () => {
+      return new Promise<number>(resolve => {
+        setTimeout(() => {
+          resolve((count += 1));
+        }, 1000);
+      });
+    };
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { data } = useRequest(addRequest, {
+            pollingInterval: 1000,
+            pollingWhenHidden: true
+          });
+
+          return () => <button>{`data:${data.value}`}</button>;
+        },
+      }),
+    );
+
+    expect(wrapper.vm.$el.textContent).toBe('data:undefined');
+    await waitForTime(1000);
+    expect(wrapper.vm.$el.textContent).toBe('data:1');
+    await waitForTime(2000);
+    expect(wrapper.vm.$el.textContent).toBe('data:2');
+    // mock tab hide
+    Object.defineProperty(document, 'visibilityState', { value: 'hidden', writable: true });
+    await waitForTime(2000);
+    expect(wrapper.vm.$el.textContent).toBe('data:3');
+    await waitForTime(2000);
+    expect(wrapper.vm.$el.textContent).toBe('data:4');
+    // mock tab show
+    Object.defineProperty(document, 'visibilityState', { value: 'visible', writable: true });
+    jsdom.window.dispatchEvent(new Event('visibilitychange'));
+    await waitForTime(1000);
+    // because pollingWhenHidden is true, so refresh never trigger
+    expect(wrapper.vm.$el.textContent).toBe('data:4');
+    await waitForTime(2000);
+    expect(wrapper.vm.$el.textContent).toBe('data:5');
   });
 });
