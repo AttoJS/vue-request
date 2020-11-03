@@ -720,4 +720,73 @@ describe('useRequest', () => {
     await waitForTime(2000);
     expect(wrapper.vm.$el.textContent).toBe('data:5');
   });
+
+  test('refreshOnWindowFocus should work', async () => {
+    let count = 0;
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { data, run } = useRequest(() => request((count += 1)), {
+            refreshOnWindowFocus: true,
+          });
+
+          return () => <button onClick={() => run.value()}>{`data:${data.value}`}</button>;
+        },
+      }),
+    );
+
+    expect(wrapper.vm.$el.textContent).toBe('data:undefined');
+    await waitForTime(1000);
+    expect(wrapper.vm.$el.textContent).toBe('data:1');
+    await wrapper.find('button').trigger('click');
+    await waitForTime(1000);
+    expect(wrapper.vm.$el.textContent).toBe('data:2');
+    // mock tab visible
+    jsdom.window.dispatchEvent(new Event('visibilitychange'));
+    await waitForTime(1000);
+    expect(wrapper.vm.$el.textContent).toBe('data:3');
+    jsdom.window.dispatchEvent(new Event('visibilitychange'));
+    await waitForTime(1000);
+    expect(wrapper.vm.$el.textContent).toBe('data:3');
+    // wait for 5s
+    await waitForTime(4000);
+    jsdom.window.dispatchEvent(new Event('visibilitychange'));
+    await waitForTime(1000);
+    expect(wrapper.vm.$el.textContent).toBe('data:4');
+  });
+
+  test('focusTimespan should work', async () => {
+    let count = 0;
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { data, run } = useRequest(() => request((count += 1)), {
+            refreshOnWindowFocus: true,
+            focusTimespan: 3000
+          });
+
+          return () => <button onClick={() => run.value()}>{`data:${data.value}`}</button>;
+        },
+      }),
+    );
+
+    expect(wrapper.vm.$el.textContent).toBe('data:undefined');
+    await waitForTime(1000);
+    expect(wrapper.vm.$el.textContent).toBe('data:1');
+    await wrapper.find('button').trigger('click');
+    await waitForTime(1000);
+    expect(wrapper.vm.$el.textContent).toBe('data:2');
+    // mock tab visible
+    jsdom.window.dispatchEvent(new Event('visibilitychange'));
+    await waitForTime(1000);
+    expect(wrapper.vm.$el.textContent).toBe('data:3');
+    jsdom.window.dispatchEvent(new Event('visibilitychange'));
+    await waitForTime(1000);
+    expect(wrapper.vm.$el.textContent).toBe('data:3');
+    // wait for 3s
+    await waitForTime(2000);
+    jsdom.window.dispatchEvent(new Event('visibilitychange'));
+    await waitForTime(1000);
+    expect(wrapper.vm.$el.textContent).toBe('data:4');
+  });
 });

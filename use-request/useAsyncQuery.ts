@@ -1,6 +1,7 @@
 import { reactive, ref, toRefs, watch } from 'vue';
 import DefaultOptions, { BaseOptions, Config } from './config';
 import createQuery, { Query, QueryState } from './createQuery';
+import limitTrigger from './utils/limitTrigger';
 import subscriber from './utils/listener';
 
 const QUERY_DEFAULT_KEY = 'QUERY_DEFAULT_KEY';
@@ -25,6 +26,8 @@ function useAsyncQuery<R, P extends unknown[]>(
     pollingWhenHidden,
     debounceInterval,
     throttleInterval,
+    refreshOnWindowFocus,
+    focusTimespan,
     formatResult,
     onSuccess,
     onError,
@@ -91,6 +94,13 @@ function useAsyncQuery<R, P extends unknown[]>(
         queryState.refresh();
       }
     });
+  }
+
+  // subscribe window focus or visible
+  if (refreshOnWindowFocus) {
+    const limitRefresh = limitTrigger(queryState.refresh, focusTimespan);
+    subscriber('VISIBLE_LISTENER', limitRefresh);
+    subscriber('FOCUS_LISTENER', limitRefresh);
   }
 
   return reactive({

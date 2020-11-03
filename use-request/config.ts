@@ -12,6 +12,8 @@ export type BaseOptions<R, P extends unknown[]> = {
   pollingWhenHidden?: boolean;
   debounceInterval?: number;
   throttleInterval?: number;
+  refreshOnWindowFocus?: boolean;
+  focusTimespan?: number;
   // TODO: 正确处理 formatResult 返回值类型和普通请求返回值类型
   formatResult?: (data: any) => R;
   onSuccess?: (data: R, params: P) => void;
@@ -33,5 +35,7 @@ const DefaultOptions: BaseOptions<any, any> = {
   refreshDeps: [],
   loadingDelay: 0,
   pollingWhenHidden: false,
+  refreshOnWindowFocus: false,
+  focusTimespan: 5000,
 };
 export default DefaultOptions as Required<BaseOptions<any, any>>;
