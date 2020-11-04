@@ -160,11 +160,9 @@ const createQuery = <R, P extends unknown[]>(
 
   const run = (args: P, cb?: () => void) => {
     // initial auto run should not debounce
-    if (!initialAutoRunFlag.value) {
-      if (debounceRun) {
-        debounceRun(args, cb);
-        return resolvedPromise;
-      }
+    if (!initialAutoRunFlag.value && debounceRun) {
+      debounceRun(args, cb);
+      return resolvedPromise;
     }
 
     if (throttleRun) {
