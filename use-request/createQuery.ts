@@ -154,25 +154,16 @@ const createQuery = <R, P extends unknown[]>(
       });
   };
 
-  let debounceRun: any;
-  let throttleRun: any;
-
-  // debounceRun
-  if (!isNil(debounceInterval) && debounceInterval! >= 0) {
-    debounceRun = debounce(_run, debounceInterval);
-  }
-  // throttleRun
-  if (!isNil(throttleInterval) && throttleInterval! >= 0) {
-    throttleRun = throttle(_run, throttleInterval);
-  }
+  const debounceRun = !isNil(debounceInterval) && debounce(_run, debounceInterval);
+  const throttleRun = !isNil(throttleInterval) && throttle(_run, throttleInterval);
 
   const run = (args: P, cb?: () => void) => {
     if (debounceRun) {
-      debounceRun(args);
+      debounceRun(args, cb);
       return resolvedPromise;
     }
     if (throttleRun) {
-      throttleRun(args);
+      throttleRun(args, cb);
       return resolvedPromise;
     }
     return _run(args, cb);
@@ -181,6 +172,13 @@ const createQuery = <R, P extends unknown[]>(
   const cancel = () => {
     count.value += 1;
     setState({ loading: false });
+
+    if (debounceRun) {
+      debounceRun.cancel();
+    }
+    if (throttleRun) {
+      throttleRun.cancel();
+    }
 
     // clear pollingTimer
     if (pollingTimer.value) {

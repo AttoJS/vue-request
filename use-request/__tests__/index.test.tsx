@@ -8,6 +8,7 @@ declare let jsdom: any;
 describe('useRequest', () => {
   beforeAll(() => {
     jest.useFakeTimers();
+    // jest.mock('lodash-es/debounce', () => jest.fn(fn => fn));
   });
 
   const successApi = 'http://example.com/200';
@@ -762,7 +763,7 @@ describe('useRequest', () => {
         setup() {
           const { data, run } = useRequest(() => request((count += 1)), {
             refreshOnWindowFocus: true,
-            focusTimespan: 3000
+            focusTimespan: 3000,
           });
 
           return () => <button onClick={() => run.value()}>{`data:${data.value}`}</button>;
@@ -788,5 +789,77 @@ describe('useRequest', () => {
     jsdom.window.dispatchEvent(new Event('visibilitychange'));
     await waitForTime(1000);
     expect(wrapper.vm.$el.textContent).toBe('data:4');
+  });
+
+  test('debounceInterval should work', async () => {
+    const mockFn = jest.fn();
+
+    const { run } = useRequest(
+      () => {
+        mockFn();
+        return request();
+      },
+      {
+        debounceInterval: 100,
+        manual: true,
+      },
+    );
+
+    run.value();
+    await waitForTime(50);
+    run.value();
+    await waitForTime(50);
+    run.value();
+    await waitForTime(50);
+    run.value();
+
+    await waitForAll();
+    expect(mockFn).toHaveBeenCalledTimes(1);
+
+    run.value();
+    await waitForTime(50);
+    run.value();
+    await waitForTime(50);
+    run.value();
+    await waitForTime(50);
+    run.value();
+
+    await waitForAll();
+    expect(mockFn).toHaveBeenCalledTimes(2);
+  });
+
+  test('throttleInterval should work', async () => {
+    const mockFn = jest.fn();
+
+    const { run } = useRequest(
+      () => {
+        mockFn();
+        return request();
+      },
+      {
+        throttleInterval: 100,
+        manual: true,
+      },
+    );
+
+    run.value();
+    await waitForTime(50);
+    run.value();
+    run.value();
+    await waitForTime(50);
+    run.value();
+
+    await waitForAll();
+    expect(mockFn).toHaveBeenCalledTimes(2);
+
+    run.value();
+    run.value();
+    await waitForTime(50);
+    run.value();
+    await waitForTime(50);
+    run.value();
+
+    await waitForAll();
+    expect(mockFn).toHaveBeenCalledTimes(4);
   });
 });
