@@ -9,12 +9,13 @@ type MutateFunction<R> = (arg: (oldData: R) => R) => void;
 // P mean params, R mean Response
 export type Query<R, P extends unknown[]> = (...args: P) => Promise<R>;
 export interface Mutate<R> extends MutateData<R>, MutateFunction<R> {}
-
-export type QueryState<R, P extends unknown[]> = {
+export type State<R, P extends unknown[]> = {
   loading: boolean;
   data: R | undefined;
   error: Error | undefined;
   params: P;
+};
+export type QueryState<R, P extends unknown[]> = State<R, P> & {
   run: (...arg: P) => Promise<R>;
   cancel: () => void;
   refresh: () => Promise<R>;
@@ -28,7 +29,7 @@ export type InnerQueryState<R, P extends unknown[]> = Omit<QueryState<R, P>, 'ru
 const resolvedPromise = Promise.resolve();
 
 const setStateBind = <T>(oldState: T) => {
-  return (newState: T, cb?: () => void) => {
+  return (newState: Partial<T>, cb?: () => void) => {
     Object.keys(newState).forEach(key => {
       oldState[key] = newState[key];
     });
@@ -61,7 +62,7 @@ const createQuery = <R, P extends unknown[]>(
     data: initialData,
     error: undefined,
     params: ([] as unknown) as P,
-  }) as Partial<QueryState<R, P>>;
+  }) as State<R, P>;
 
   const setState = setStateBind(state);
   const count = ref(0);
