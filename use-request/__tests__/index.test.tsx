@@ -828,6 +828,29 @@ describe('useRequest', () => {
     expect(mockFn).toHaveBeenCalledTimes(2);
   });
 
+  test('initial auto run should skip debounce', async () => {
+    const mockFn = jest.fn();
+
+    const { run } = useRequest(
+      () => {
+        mockFn();
+        return request();
+      },
+      {
+        debounceInterval: 100,
+      },
+    );
+
+    expect(mockFn).toHaveBeenCalledTimes(1);
+
+    run.value();
+    await waitForTime(50);
+    expect(mockFn).toHaveBeenCalledTimes(1);
+
+    await waitForAll();
+    expect(mockFn).toHaveBeenCalledTimes(2);
+  });
+
   test('throttleInterval should work', async () => {
     const mockFn = jest.fn();
 

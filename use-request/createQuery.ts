@@ -43,6 +43,7 @@ const createQuery = <R, P extends unknown[]>(
   config: Config<R, P>,
 ): InnerQueryState<R, P> => {
   const {
+    initialAutoRunFlag,
     throwOnError,
     initialData,
     loadingDelay,
@@ -157,14 +158,19 @@ const createQuery = <R, P extends unknown[]>(
   const throttleRun = !isNil(throttleInterval) && throttle(_run, throttleInterval);
 
   const run = (args: P, cb?: () => void) => {
-    if (debounceRun) {
-      debounceRun(args, cb);
-      return resolvedPromise;
+    // initial auto run should not debounce
+    if (!initialAutoRunFlag.value) {
+      if (debounceRun) {
+        debounceRun(args, cb);
+        return resolvedPromise;
+      }
     }
+
     if (throttleRun) {
       throttleRun(args, cb);
       return resolvedPromise;
     }
+
     return _run(args, cb);
   };
 

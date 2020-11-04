@@ -14,6 +14,7 @@ function useAsyncQuery<R, P extends unknown[]>(
 ): BaseResult<R, P> {
   const mergeOptions = { ...DefaultOptions, ...options };
   const pollingHiddenFlag = ref(false);
+  const initialAutoRunFlag = ref(false);
   const {
     initialData,
     defaultParams,
@@ -34,6 +35,7 @@ function useAsyncQuery<R, P extends unknown[]>(
   } = mergeOptions;
 
   const config: Config<R, P> = {
+    initialAutoRunFlag,
     initialData,
     loadingDelay,
     throwOnError,
@@ -60,7 +62,9 @@ function useAsyncQuery<R, P extends unknown[]>(
 
   // initial run
   if (!manual) {
+    initialAutoRunFlag.value = true;
     run(...defaultParams);
+    initialAutoRunFlag.value = false;
   }
 
   // watch ready

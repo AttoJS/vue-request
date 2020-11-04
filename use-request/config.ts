@@ -25,6 +25,7 @@ export type Config<R, P extends unknown[]> = Omit<
   'defaultParams' | 'manual' | 'ready' | 'refreshDeps'
 > & {
   pollingHiddenFlag: Ref<boolean>;
+  initialAutoRunFlag: Ref<boolean>;
 };
 
 const DefaultOptions: BaseOptions<any, any> = {
