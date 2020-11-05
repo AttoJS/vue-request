@@ -9,7 +9,6 @@ declare let jsdom: any;
 describe('useRequest', () => {
   beforeAll(() => {
     jest.useFakeTimers();
-    // jest.mock('lodash-es/debounce', () => jest.fn(fn => fn));
   });
 
   const successApi = 'http://example.com/200';
@@ -119,6 +118,19 @@ describe('useRequest', () => {
     await wrapper.find('button').trigger('click');
     await waitForAll();
     expect(wrapper.vm.$el.textContent).toBe('data:success');
+  });
+
+  test('params should work', async () => {
+    const { params, run } = useRequest(request, {
+      defaultParams: ['hello', 'world'],
+    });
+
+    await waitForAll();
+    expect(params.value).toEqual(['hello', 'world']);
+
+    run.value('hey');
+    await waitForAll();
+    expect(params.value).toEqual(['hey']);
   });
 
   test('defaultParams should work', async () => {
