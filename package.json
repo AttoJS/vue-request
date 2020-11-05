@@ -39,6 +39,7 @@
     "fetch-mock": "^9.10.7",
     "husky": "^4.3.0",
     "jest": "^26.6.0",
+    "jest-date-mock": "^1.0.8",
     "jest-environment-jsdom": "^26.6.1",
     "jest-environment-jsdom-global": "^2.0.4",
     "node-fetch": "^2.6.1",
