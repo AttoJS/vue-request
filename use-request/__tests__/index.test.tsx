@@ -1,6 +1,7 @@
 import { shallowMount } from '@vue/test-utils';
 import fetchMock from 'fetch-mock';
 import { defineComponent, ref } from 'vue';
+import { advanceBy } from 'jest-date-mock';
 import useRequest from '..';
 import { waitForAll, waitForTime } from './utils';
 declare let jsdom: any;
@@ -884,5 +885,91 @@ describe('useRequest', () => {
 
     await waitForAll();
     expect(mockFn).toHaveBeenCalledTimes(4);
+  });
+
+  test('cache should work', async () => {
+    let count = 0;
+    const TestComponent = defineComponent({
+      setup() {
+        const { data, run } = useRequest(request, {
+          cacheKey: 'cacheKey',
+          cacheTime: 10000,
+        });
+        return () => <button onClick={() => run.value((count += 1))}>{data.value}</button>;
+      },
+    });
+
+    let wrapper = shallowMount(TestComponent);
+    expect(wrapper.find('button').text()).toBe('');
+    await waitForTime(1000);
+    expect(wrapper.find('button').text()).toBe('success');
+    for (let index = 0; index < 5; index++) {
+      await wrapper.find('button').trigger('click');
+      await waitForTime(1000);
+    }
+    expect(wrapper.find('button').text()).toBe('5');
+    wrapper.unmount();
+
+    // remount component
+    wrapper = shallowMount(TestComponent);
+    expect(wrapper.find('button').text()).toBe('5');
+    await waitForTime(1000);
+    expect(wrapper.find('button').text()).toBe('success');
+    for (let index = 0; index < 5; index++) {
+      await wrapper.find('button').trigger('click');
+      await waitForTime(1000);
+    }
+    expect(wrapper.find('button').text()).toBe('10');
+    wrapper.unmount();
+    // waiting for cache timeout
+    waitForTime(10000);
+
+    // remount component
+    wrapper = shallowMount(TestComponent);
+    expect(wrapper.find('button').text()).toBe('');
+  });
+
+  test('cache staleTime should work', async () => {
+    let count = 0;
+    const TestComponent = defineComponent({
+      setup() {
+        const { data, run, params } = useRequest(request, {
+          cacheKey: 'cacheKey',
+          staleTime: 1000,
+        });
+        return () => <button onClick={() => run.value((count += 1))}>{data.value}</button>;
+      },
+    });
+
+    let wrapper = shallowMount(TestComponent);
+    expect(wrapper.find('button').text()).toBe('');
+    await waitForTime(1000);
+    expect(wrapper.find('button').text()).toBe('success');
+    for (let index = 0; index < 5; index++) {
+      await wrapper.find('button').trigger('click');
+      await waitForTime(1000);
+    }
+    expect(wrapper.find('button').text()).toBe('5');
+    wrapper.unmount();
+
+    // remount component
+    wrapper = shallowMount(TestComponent);
+    expect(wrapper.find('button').text()).toBe('5');
+    await waitForTime(1000);
+    expect(wrapper.find('button').text()).toBe('5');
+    for (let index = 0; index < 5; index++) {
+      await wrapper.find('button').trigger('click');
+      await waitForTime(1000);
+    }
+    expect(wrapper.find('button').text()).toBe('10');
+    wrapper.unmount();
+    // waiting for stale timeout
+    advanceBy(5000);
+
+    // remount component
+    wrapper = shallowMount(TestComponent);
+    expect(wrapper.find('button').text()).toBe('10');
+    await waitForTime(1000);
+    expect(wrapper.find('button').text()).toBe('success');
   });
 });

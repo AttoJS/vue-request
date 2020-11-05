@@ -1,6 +1,7 @@
 import { reactive, ref, toRefs, watch } from 'vue';
 import DefaultOptions, { BaseOptions, Config } from './config';
-import createQuery, { Query, QueryState } from './createQuery';
+import createQuery, { Query, QueryState, State } from './createQuery';
+import { getCache, setCache } from './utils/cache';
 import limitTrigger from './utils/limitTrigger';
 import subscriber from './utils/listener';
 
@@ -14,7 +15,17 @@ function useAsyncQuery<R, P extends unknown[]>(
 ): BaseResult<R, P> {
   const mergeOptions = { ...DefaultOptions, ...options };
   const pollingHiddenFlag = ref(false);
+  // skip debounce when initail run
   const initialAutoRunFlag = ref(false);
+  const updateCache = (state: Partial<State<R, P>>) => {
+    const cache = getCache(mergeOptions.cacheKey);
+    if (cache?.data) {
+      setCache(mergeOptions.cacheKey, { ...cache.data, ...state }, mergeOptions.cacheTime);
+    } else {
+      // @ts-ignore
+      setCache(mergeOptions.cacheKey, state, mergeOptions.cacheTime);
+    }
+  };
   const {
     initialData,
     defaultParams,
@@ -29,6 +40,9 @@ function useAsyncQuery<R, P extends unknown[]>(
     throttleInterval,
     refreshOnWindowFocus,
     focusTimespan,
+    cacheKey,
+    cacheTime,
+    staleTime,
     formatResult,
     onSuccess,
     onError,
@@ -44,11 +58,25 @@ function useAsyncQuery<R, P extends unknown[]>(
     throttleInterval,
     pollingWhenHidden,
     pollingHiddenFlag,
+    cacheKey,
+    cacheTime,
+    staleTime,
+    updateCache,
     formatResult,
     onSuccess,
     onError,
   };
-  const queryState = createQuery(query, config);
+
+  const _queryState = () => {
+    if (cacheKey) {
+      const cache = getCache<R, P>(cacheKey);
+      if (cache) {
+        return createQuery(query, config, cache.data);
+      }
+    }
+    return createQuery(query, config);
+  };
+  const queryState = _queryState();
 
   const tempReadyParams = ref();
   const hasTriggerReady = ref(false);
@@ -63,7 +91,12 @@ function useAsyncQuery<R, P extends unknown[]>(
   // initial run
   if (!manual) {
     initialAutoRunFlag.value = true;
-    run(...defaultParams);
+    const cache = getCache(cacheKey);
+    if (cache && (staleTime === -1 || cache.cacheTime + staleTime > new Date().getTime())) {
+      queryState.refresh();
+    } else {
+      run(...defaultParams);
+    }
     initialAutoRunFlag.value = false;
   }
 
