@@ -28,13 +28,14 @@ export type InnerQueryState<R, P extends unknown[]> = Omit<QueryState<R, P>, 'ru
 
 const resolvedPromise = Promise.resolve();
 
-const setStateBind = <T>(oldState: T) => {
-  return (newState: Partial<T>, cb?: () => void) => {
+const setStateBind = <T>(oldState: T, publicCb?: Array<(state: T) => void>) => {
+  return (newState: Partial<T>, cb?: (state: T) => void) => {
     Object.keys(newState).forEach(key => {
       oldState[key] = newState[key];
     });
     nextTick(() => {
-      cb?.();
+      cb?.(oldState);
+      publicCb?.forEach(fun => fun(oldState));
     });
   };
 };
@@ -42,6 +43,7 @@ const setStateBind = <T>(oldState: T) => {
 const createQuery = <R, P extends unknown[]>(
   query: Query<R, P>,
   config: Config<R, P>,
+  initialState?: State<R, P>,
 ): InnerQueryState<R, P> => {
   const {
     initialAutoRunFlag,
@@ -53,19 +55,20 @@ const createQuery = <R, P extends unknown[]>(
     throttleInterval,
     pollingWhenHidden,
     pollingHiddenFlag,
+    updateCache,
     formatResult,
     onSuccess,
     onError,
   } = config;
 
   const state = reactive({
-    loading: false,
-    data: initialData,
-    error: undefined,
-    params: ([] as unknown) as P,
+    loading: initialState?.loading || false,
+    data: initialState?.data || initialData,
+    error: initialState?.error || undefined,
+    params: initialState?.params || (([] as unknown) as P),
   }) as State<R, P>;
 
-  const setState = setStateBind(state);
+  const setState = setStateBind(state, [updateCache]);
   const count = ref(0);
   const pollingTimer = ref();
   const delayLoadingTimer = ref();

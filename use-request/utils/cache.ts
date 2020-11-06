@@ -1,4 +1,5 @@
 import { State } from 'use-request/createQuery';
+import { isNil } from '.';
 
 type CacheDataType<T> = {
   data: T;
@@ -11,6 +12,7 @@ const CACHE_MAP = new Map<CacheKey, CacheDataType<any>>();
 
 type GetCacheReturn<R, P extends unknown[]> = Omit<CacheDataType<State<R, P>>, 'timer'> | undefined;
 export const getCache = <R, P extends unknown[]>(cacheKey: CacheKey): GetCacheReturn<R, P> => {
+  if (isNil(cacheKey)) return;
   const data = CACHE_MAP.get(cacheKey);
   if (!data) return;
   return {
