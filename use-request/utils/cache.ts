@@ -37,3 +37,7 @@ export const setCache = <R, P extends unknown[]>(
     cacheTime: new Date().getTime(),
   });
 };
+
+export const clearCache = () => {
+  CACHE_MAP.clear();
+};

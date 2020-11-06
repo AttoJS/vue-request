@@ -1,4 +1,4 @@
-import { getCache, setCache } from '../utils/cache';
+import { clearCache, getCache, setCache } from '../utils/cache';
 import { waitForAll, waitForTime } from './utils';
 declare let jsdom: any;
 
@@ -12,6 +12,7 @@ describe('utils', () => {
   };
   beforeAll(() => {
     jest.useFakeTimers();
+    clearCache();
   });
 
   test('setCache and getCache should work', () => {
@@ -29,5 +30,12 @@ describe('utils', () => {
     expect(getCache(cacheKey)?.data).toMatchObject(cacheData);
     await waitForTime(5000);
     expect(getCache(cacheKey)).toBeUndefined();
+  });
+
+  test('clearCache should work', async () => {
+    setCache<any, any>(cacheKey, cacheData, 10000);
+    expect(getCache(cacheKey)?.data).toMatchObject(cacheData);
+    clearCache();
+    expect(getCache(cacheKey)?.data).toBeUndefined();
   });
 });
