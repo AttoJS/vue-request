@@ -19,8 +19,10 @@
     "vue": "^3.0.0"
   },
   "devDependencies": {
+    "@sinonjs/fake-timers": "^6.0.1",
     "@types/jest": "^26.0.15",
     "@types/lodash-es": "^4.17.3",
+    "@types/sinonjs__fake-timers": "^6.0.2",
     "@typescript-eslint/eslint-plugin": "^2.33.0",
     "@typescript-eslint/parser": "^2.33.0",
     "@vue/cli-plugin-babel": "~4.5.0",
@@ -39,7 +41,6 @@
     "fetch-mock": "^9.10.7",
     "husky": "^4.3.0",
     "jest": "^26.6.0",
-    "jest-date-mock": "^1.0.8",
     "jest-environment-jsdom": "^26.6.1",
     "jest-environment-jsdom-global": "^2.0.4",
     "node-fetch": "^2.6.1",
