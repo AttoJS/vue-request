@@ -44,7 +44,7 @@ function useRequest<R, P extends unknown[]>(
         } else if (isString(_service)) {
           finallyService = requestMethod(_service);
         } else {
-          throw new Error('未知service类型');
+          throw new Error('Unknown service type');
         }
       } else {
         finallyService = _service;
@@ -60,7 +60,7 @@ function useRequest<R, P extends unknown[]>(
   } else if (isString(service)) {
     promiseQuery = () => requestMethod(service);
   } else {
-    throw Error('未知service类型');
+    throw Error('Unknown service type');
   }
 
   return toRefs(useAsyncQuery<R, P>(promiseQuery, options));

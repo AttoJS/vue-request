@@ -90,7 +90,7 @@ describe('useRequest', () => {
     try {
       useRequest(serviceWillReturnUnknow as any);
     } catch (error) {
-      expect(error.message).toBe('未知service类型');
+      expect(error.message).toBe('Unknown service type');
       fn();
     }
     expect(fn).toHaveBeenCalledTimes(1);
@@ -101,7 +101,7 @@ describe('useRequest', () => {
     try {
       useRequest(unkonwService as any);
     } catch (error) {
-      expect(error.message).toBe('未知service类型');
+      expect(error.message).toBe('Unknown service type');
       fn();
     }
     expect(fn).toHaveBeenCalledTimes(1);
