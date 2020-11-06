@@ -1,9 +1,10 @@
 import { shallowMount } from '@vue/test-utils';
 import fetchMock from 'fetch-mock';
-import { advanceBy } from 'jest-date-mock';
-import { defineComponent, ref, watchEffect } from 'vue';
+import FakeTimers from '@sinonjs/fake-timers';
+import { defineComponent, ref } from 'vue';
 import useRequest from '..';
 import { waitForAll, waitForTime } from './utils';
+import { clearCache } from '../utils/cache';
 declare let jsdom: any;
 
 describe('useRequest', () => {
@@ -24,6 +25,8 @@ describe('useRequest', () => {
   const originalError = console.error;
   beforeEach(() => {
     console.error = jest.fn();
+    // clear cache
+    clearCache();
   });
 
   afterEach(() => {
@@ -930,22 +933,18 @@ describe('useRequest', () => {
     expect(wrapper.find('button').text()).toBe('');
   });
 
-  test.skip('cache staleTime should work', async () => {
+  test('cache staleTime should work', async () => {
+    const clock = FakeTimers.install({ toFake: ['Date'] });
     let count = 0;
     const TestComponent = defineComponent({
       setup() {
-        const { data, run, params } = useRequest(request, {
+        const { data, run, loading } = useRequest(request, {
           cacheKey: 'cacheKey',
-          staleTime: 1000,
-        });
-
-        watchEffect(() => {
-          console.log('setup -> params', params.value);
+          staleTime: 5000,
         });
         return () => <button onClick={() => run.value((count += 1))}>{data.value}</button>;
       },
     });
-
     let wrapper = shallowMount(TestComponent);
     expect(wrapper.find('button').text()).toBe('');
     await waitForTime(1000);
@@ -969,12 +968,13 @@ describe('useRequest', () => {
     expect(wrapper.find('button').text()).toBe('10');
     wrapper.unmount();
     // waiting for stale timeout
-    advanceBy(5000);
+    clock.setSystemTime(new Date().getTime() + 5000);
 
     // remount component
     wrapper = shallowMount(TestComponent);
     expect(wrapper.find('button').text()).toBe('10');
     await waitForTime(1000);
-    expect(wrapper.find('button').text()).toBe('');
+    expect(wrapper.find('button').text()).toBe('success');
+    clock.uninstall();
   });
 });
