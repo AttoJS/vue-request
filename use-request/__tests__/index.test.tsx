@@ -18,9 +18,10 @@ describe('useRequest', () => {
   fetchMock.get(successApi, { data: 'success' });
   fetchMock.get(failApi, 404);
 
+  const unkonwService = 1;
   const serviceWillReturnString = () => successApi;
   const serviceWillReturnObject = () => ({ url: successApi });
-  const unkonwService = 1;
+  const serviceWillReturnUnknow = () => unkonwService;
 
   const originalError = console.error;
   beforeEach(() => {
@@ -84,12 +85,26 @@ describe('useRequest', () => {
     expect(data.value).toEqual({ data: 'success' });
   });
 
-  test('should throw error when use unkonw service', async () => {
+  test('should use function service that will return unknow type', () => {
+    const fn = jest.fn();
+    try {
+      useRequest(serviceWillReturnUnknow as any);
+    } catch (error) {
+      expect(error.message).toBe('未知service类型');
+      fn();
+    }
+    expect(fn).toHaveBeenCalledTimes(1);
+  });
+
+  test('should throw error when use unkonw service', () => {
+    const fn = jest.fn();
     try {
       useRequest(unkonwService as any);
     } catch (error) {
       expect(error.message).toBe('未知service类型');
+      fn();
     }
+    expect(fn).toHaveBeenCalledTimes(1);
   });
 
   test('should auto run', async () => {

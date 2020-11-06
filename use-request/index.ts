@@ -4,10 +4,14 @@ import { Query } from './createQuery';
 import useAsyncQuery from './useAsyncQuery';
 import { isFunction, isPlainObject, isPromise, isString } from './utils';
 
-export type ServiceParams = string | Record<string, any>;
+export type ServiceObject = {
+  [key: string]: any;
+  url: string;
+};
+export type ServiceParams = string | ServiceObject;
 export type IService<R, P extends unknown[]> =
-  | ServiceParams
   | ((...args: P) => ServiceParams)
+  | ServiceParams
   | Query<R, P>;
 
 function requestProxy(...args: unknown[]) {
@@ -29,20 +33,27 @@ function useRequest<R, P extends unknown[]>(
   let promiseQuery: (() => Promise<R>) | ((...args: P) => Promise<R>);
 
   if (isFunction(service)) {
-    promiseQuery = (...args: P) =>
-      new Promise<R>((resolve, reject) => {
-        let _service = service(...args);
-        // 是否为普通异步请求
-        if (!isPromise(_service)) {
-          if (isPlainObject(_service)) {
-            const { url, ...rest } = _service;
-            _service = requestMethod(url, rest);
-          } else if (isString(_service)) {
-            _service = requestMethod(_service);
-          }
+    promiseQuery = (...args: P) => {
+      const _service = service(...args);
+      let finallyService: Promise<R>;
+      // 是否为普通异步请求
+      if (!isPromise(_service)) {
+        if (isPlainObject(_service)) {
+          const { url, ...rest } = _service;
+          finallyService = requestMethod(url, rest);
+        } else if (isString(_service)) {
+          finallyService = requestMethod(_service);
+        } else {
+          throw new Error('未知service类型');
         }
-        _service.then(resolve).catch(reject);
+      } else {
+        finallyService = _service;
+      }
+
+      return new Promise<R>((resolve, reject) => {
+        finallyService.then(resolve).catch(reject);
       });
+    };
   } else if (isPlainObject(service)) {
     const { url, ...rest } = service;
     promiseQuery = () => requestMethod(url, rest);
