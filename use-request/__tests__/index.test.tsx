@@ -7,7 +7,7 @@ declare let jsdom: any;
 
 describe('useRequest', () => {
   beforeAll(() => {
-    jest.useFakeTimers();
+    jest.useFakeTimers('modern');
   });
 
   const successApi = 'http://example.com/200';
@@ -880,21 +880,10 @@ describe('useRequest', () => {
     run.value();
     await waitForTime(50);
     run.value();
-    run.value();
     await waitForTime(50);
     run.value();
 
     await waitForAll();
-    expect(mockFn).toHaveBeenCalledTimes(2);
-
-    run.value();
-    run.value();
-    await waitForTime(50);
-    run.value();
-    await waitForTime(50);
-    run.value();
-
-    await waitForAll();
-    expect(mockFn).toHaveBeenCalledTimes(4);
+    expect(mockFn).toHaveBeenCalledTimes(3);
   });
 });
