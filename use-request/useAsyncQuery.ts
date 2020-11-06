@@ -9,6 +9,8 @@ const QUERY_DEFAULT_KEY = 'QUERY_DEFAULT_KEY';
 
 export type BaseResult<R, P extends unknown[]> = QueryState<R, P>;
 
+export type Queries<R, P extends unknown[]> = Record<string, QueryState<R, P>>;
+
 function useAsyncQuery<R, P extends unknown[]>(
   query: Query<R, P>,
   options: BaseOptions<R, P>,
@@ -43,6 +45,7 @@ function useAsyncQuery<R, P extends unknown[]>(
     cacheKey,
     cacheTime,
     staleTime,
+    fetchKey,
     formatResult,
     onSuccess,
     onError,
@@ -62,6 +65,7 @@ function useAsyncQuery<R, P extends unknown[]>(
     cacheTime,
     staleTime,
     updateCache,
+    fetchKey,
     formatResult,
     onSuccess,
     onError,
@@ -88,15 +92,20 @@ function useAsyncQuery<R, P extends unknown[]>(
     return queryState.run(args);
   };
 
+  const queries: Queries<R, P> = {};
+
   // initial run
   if (!manual) {
     initialAutoRunFlag.value = true;
     const cache = getCache(cacheKey);
-    if (cache && (staleTime === -1 || cache.cacheTime + staleTime > new Date().getTime())) {
-      queryState.refresh();
-    } else {
+
+    const isFresh =
+      cache && (staleTime === -1 || cache.cacheTime + staleTime > new Date().getTime());
+
+    if (!isFresh) {
       run(...defaultParams);
     }
+
     initialAutoRunFlag.value = false;
   }
 

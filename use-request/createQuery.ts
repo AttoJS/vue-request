@@ -158,18 +158,18 @@ const createQuery = <R, P extends unknown[]>(
       });
   };
 
-  const debounceRun = !isNil(debounceInterval) && debounce(_run, debounceInterval);
-  const throttleRun = !isNil(throttleInterval) && throttle(_run, throttleInterval);
+  const debouncedRun = !isNil(debounceInterval) && debounce(_run, debounceInterval);
+  const throttledRun = !isNil(throttleInterval) && throttle(_run, throttleInterval);
 
   const run = (args: P, cb?: () => void) => {
     // initial auto run should not debounce
-    if (!initialAutoRunFlag.value && debounceRun) {
-      debounceRun(args, cb);
+    if (!initialAutoRunFlag.value && debouncedRun) {
+      debouncedRun(args, cb);
       return resolvedPromise;
     }
 
-    if (throttleRun) {
-      throttleRun(args, cb);
+    if (throttledRun) {
+      throttledRun(args, cb);
       return resolvedPromise;
     }
 
@@ -180,11 +180,11 @@ const createQuery = <R, P extends unknown[]>(
     count.value += 1;
     setState({ loading: false });
 
-    if (debounceRun) {
-      debounceRun.cancel();
+    if (debouncedRun) {
+      debouncedRun.cancel();
     }
-    if (throttleRun) {
-      throttleRun.cancel();
+    if (throttledRun) {
+      throttledRun.cancel();
     }
 
     // clear pollingTimer
