@@ -2,6 +2,7 @@ import debounce from 'lodash-es/debounce';
 import throttle from 'lodash-es/throttle';
 import { nextTick, reactive, ref, toRefs } from 'vue';
 import { Config } from './config';
+import { Queries } from './useAsyncQuery';
 import { isDocumentVisibilty, isFunction, isNil } from './utils';
 type MutateData<R> = (newData: R) => void;
 type MutateFunction<R> = (arg: (oldData: R) => R) => void;
@@ -16,13 +17,14 @@ export type State<R, P extends unknown[]> = {
   params: P;
 };
 export type QueryState<R, P extends unknown[]> = State<R, P> & {
+  queries: Queries<R, P>;
   run: (...arg: P) => Promise<R>;
   cancel: () => void;
   refresh: () => Promise<R>;
   mutate: Mutate<R>;
 };
 
-export type InnerQueryState<R, P extends unknown[]> = Omit<QueryState<R, P>, 'run'> & {
+export type InnerQueryState<R, P extends unknown[]> = Omit<QueryState<R, P>, 'run' | 'queries'> & {
   run: (args: P, cb?: () => void) => Promise<R>;
 };
 
@@ -68,7 +70,7 @@ const createQuery = <R, P extends unknown[]>(
     params: initialState?.params || (([] as unknown) as P),
   }) as State<R, P>;
 
-  const setState = setStateBind(state, [updateCache]);
+  const setState = setStateBind(state, [state => updateCache({ state: state })]);
   const count = ref(0);
   const pollingTimer = ref();
   const delayLoadingTimer = ref();
@@ -111,6 +113,7 @@ const createQuery = <R, P extends unknown[]>(
     delayLoadingTimer.value = delayLoading();
     count.value += 1;
     const currentCount = count.value;
+
     return query(...args)
       .then(res => {
         if (currentCount === count.value) {

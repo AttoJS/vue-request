@@ -1,15 +1,16 @@
-import { reactive, ref, toRefs, watch } from 'vue';
+import { computed, reactive, ref, toRefs, watch } from 'vue';
 import DefaultOptions, { BaseOptions, Config } from './config';
-import createQuery, { InnerQueryState, Query, QueryState, State } from './createQuery';
-import { getCache, setCache } from './utils/cache';
+import createQuery, { InnerQueryState, Query, QueryState } from './createQuery';
+import { CacheDataType, getCache, setCache } from './utils/cache';
 import limitTrigger from './utils/limitTrigger';
 import subscriber from './utils/listener';
+import { PartialRecord } from './utils/types';
 
 export type BaseResult<R, P extends unknown[]> = QueryState<R, P>;
 
 export type Queries<R, P extends unknown[]> = Record<string, InnerQueryState<R, P>>;
 
-const QUERY_DEFAULT_KEY = 'QUERY_DEFAULT_KEY';
+const QUERY_DEFAULT_KEY = '__QUERY_DEFAULT_KEY__';
 
 function useAsyncQuery<R, P extends unknown[]>(
   query: Query<R, P>,
@@ -19,20 +20,19 @@ function useAsyncQuery<R, P extends unknown[]>(
   const pollingHiddenFlag = ref(false);
   // skip debounce when initail run
   const initialAutoRunFlag = ref(false);
-  const updateCacheState = (state: Partial<State<R, P>>) => {
-    const cache = getCache(mergeOptions.cacheKey);
-    if (cache?.data.state) {
-      setCache(
+  const updateCache = (params: PartialRecord<CacheDataType<R, P>>) => {
+    const cache = getCache<R, P>(mergeOptions.cacheKey);
+    if (cache?.data) {
+      setCache<R, P>(
         mergeOptions.cacheKey,
         {
-          ...cache.data,
-          state: { ...cache.data.state, ...state },
+          state: { ...cache.data?.state, ...params?.state },
+          queries: { ...cache.data?.queries, ...params?.queries },
         },
         mergeOptions.cacheTime,
       );
     } else {
-      // @ts-ignore
-      setCache(mergeOptions.cacheKey, { state }, mergeOptions.cacheTime);
+      setCache<R, P>(mergeOptions.cacheKey, params, mergeOptions.cacheTime);
     }
   };
   const {
@@ -71,7 +71,7 @@ function useAsyncQuery<R, P extends unknown[]>(
     cacheKey,
     cacheTime,
     staleTime,
-    updateCacheState,
+    updateCache,
     queryKey,
     formatResult,
     onSuccess,
@@ -79,6 +79,28 @@ function useAsyncQuery<R, P extends unknown[]>(
   };
 
   const queries: Queries<R, P> = reactive({});
+
+  const latestQueryKey = ref('');
+  const latestQuery = computed(() => queries[latestQueryKey.value] ?? {});
+
+  // init queries from cache
+  if (cacheKey) {
+    const cache = getCache<R, P>(cacheKey);
+
+    if (cache?.data.queries) {
+      Object.keys(cache?.data.queries).forEach(key => {
+        const cacheQuery = cache.data.queries?.[key];
+        if (cacheQuery) {
+          queries[key] = createQuery(query, config, {
+            loading: cacheQuery.loading,
+            params: cacheQuery.params,
+            data: cacheQuery.data,
+            error: cacheQuery.error,
+          });
+        }
+      });
+    }
+  }
 
   const _queryState = () => {
     if (cacheKey) {
@@ -105,10 +127,14 @@ function useAsyncQuery<R, P extends unknown[]>(
       let currentQuery = queries[key];
 
       if (!currentQuery) {
-        const newQuery = _queryState();
+        const newQuery = createQuery(query, config);
         queries[key] = newQuery;
         currentQuery = newQuery;
+
+        if (cacheKey) updateCache({ queries });
       }
+
+      latestQueryKey.value = key;
 
       return currentQuery.run(args);
     }
@@ -120,11 +146,21 @@ function useAsyncQuery<R, P extends unknown[]>(
   if (!manual) {
     initialAutoRunFlag.value = true;
 
-    const cache = getCache(cacheKey);
+    const cache = getCache<R, P>(cacheKey);
+
     const isFresh =
       cache && (staleTime === -1 || cache.cacheTime + staleTime > new Date().getTime());
+
+    const hasCacheQueries = Object.keys(queries).length > 0;
+
     if (!isFresh) {
-      run(...defaultParams);
+      if (hasCacheQueries) {
+        Object.keys(queries).forEach(key => {
+          queries[key]?.refresh();
+        });
+      } else {
+        run(...defaultParams);
+      }
     }
 
     initialAutoRunFlag.value = false;
@@ -170,11 +206,14 @@ function useAsyncQuery<R, P extends unknown[]>(
     subscriber('FOCUS_LISTENER', limitRefresh);
   }
 
-  return reactive({
+  const finalQueryState = reactive({
     ...toRefs(queryState),
+    ...toRefs(latestQuery),
     run,
     queries,
   }) as QueryState<R, P>;
+
+  return finalQueryState;
 }
 
 export default useAsyncQuery;

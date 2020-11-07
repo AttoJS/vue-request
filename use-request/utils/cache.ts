@@ -1,33 +1,37 @@
 import { InnerQueryState, State } from 'use-request/createQuery';
 import { isNil } from '.';
+import { PartialRecord } from './types';
 
-type CacheDataType<T> = {
+type CacheResultType<T> = {
   data: T;
   timer?: number;
   cacheTime: number;
 };
 type CacheKey = string;
 
-const CACHE_MAP = new Map<CacheKey, CacheDataType<any>>();
+const CACHE_MAP = new Map<CacheKey, CacheResultType<any>>();
 
-type DataType<R, P extends unknown[]> = { state?: State<R, P>; queries?: InnerQueryState<R, P> };
+export type CacheDataType<R, P extends unknown[]> = {
+  state?: State<R, P>;
+  queries?: Record<string, InnerQueryState<R, P>>;
+};
 
 type GetCacheReturn<R, P extends unknown[]> =
-  | Omit<CacheDataType<DataType<R, P>>, 'timer'>
+  | Omit<CacheResultType<CacheDataType<R, P>>, 'timer'>
   | undefined;
 export const getCache = <R, P extends unknown[]>(cacheKey: CacheKey): GetCacheReturn<R, P> => {
   if (isNil(cacheKey)) return;
   const data = CACHE_MAP.get(cacheKey);
   if (!data) return;
   return {
-    data: (data.data as unknown) as DataType<R, P>,
+    data: (data.data as unknown) as CacheDataType<R, P>,
     cacheTime: data.cacheTime,
   };
 };
 
 export const setCache = <R, P extends unknown[]>(
   cacheKey: CacheKey,
-  data: DataType<R, P>,
+  data: PartialRecord<CacheDataType<R, P>>,
   cacheTime: number,
 ) => {
   const oldCache = CACHE_MAP.get(cacheKey);
