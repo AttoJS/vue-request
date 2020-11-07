@@ -1,5 +1,5 @@
 import { computed, reactive, ref, toRefs, watch } from 'vue';
-import DefaultOptions, { BaseOptions, Config } from './config';
+import DefaultOptions, { BaseOptions, Config, GetGlobalOptions } from './config';
 import createQuery, { InnerQueryState, Query, QueryState } from './createQuery';
 import { CacheDataType, getCache, setCache } from './utils/cache';
 import limitTrigger from './utils/limitTrigger';
@@ -16,7 +16,7 @@ function useAsyncQuery<R, P extends unknown[]>(
   query: Query<R, P>,
   options: BaseOptions<R, P>,
 ): BaseResult<R, P> {
-  const mergeOptions = { ...DefaultOptions, ...options };
+  const mergeOptions = { ...DefaultOptions, ...GetGlobalOptions(), ...options };
   const pollingHiddenFlag = ref(false);
   // skip debounce when initail run
   const initialAutoRunFlag = ref(false);
