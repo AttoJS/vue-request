@@ -1,13 +1,24 @@
 import { ref, Ref } from 'vue';
 import { State } from './createQuery';
 
-export type BaseOptions<R, P extends unknown[]> = {
-  defaultParams?: P;
-  manual?: boolean;
-  ready?: Ref<boolean>;
-  throwOnError?: boolean;
-  initialData?: R;
-  refreshDeps?: Ref<any>[];
+const GLOBAL_OPTIONS: GlobalOptions = {};
+export const SetGlobalOptions = (config: GlobalOptions) => {
+  Object.keys(config).forEach(key => {
+    GLOBAL_OPTIONS[key] = config[key];
+  });
+};
+
+export const GetGlobalOptions = () => {
+  return GLOBAL_OPTIONS;
+};
+
+export const ClearGlobalOptions = () => {
+  Object.keys(GLOBAL_OPTIONS).forEach(key => {
+    delete GLOBAL_OPTIONS[key];
+  });
+};
+
+export type GlobalOptions = {
   loadingDelay?: number;
   pollingInterval?: number;
   pollingWhenHidden?: boolean;
@@ -15,10 +26,19 @@ export type BaseOptions<R, P extends unknown[]> = {
   throttleInterval?: number;
   refreshOnWindowFocus?: boolean;
   focusTimespan?: number;
-  cacheKey?: string;
   cacheTime?: number;
   // -1 mean cache is allway vaild
   staleTime?: number;
+  throwOnError?: boolean;
+  manual?: boolean;
+};
+
+export type BaseOptions<R, P extends unknown[]> = GlobalOptions & {
+  defaultParams?: P;
+  ready?: Ref<boolean>;
+  initialData?: R;
+  refreshDeps?: Ref<any>[];
+  cacheKey?: string;
   fetchKey?: (...args: P) => string;
   // TODO: 正确处理 formatResult 返回值类型和普通请求返回值类型
   formatResult?: (data: any) => R;

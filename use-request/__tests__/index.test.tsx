@@ -5,6 +5,7 @@ import { defineComponent, ref } from 'vue';
 import useRequest from '..';
 import { waitForAll, waitForTime } from './utils';
 import { clearCache } from '../utils/cache';
+import { ClearGlobalOptions, SetGlobalOptions } from '../config';
 declare let jsdom: any;
 
 describe('useRequest', () => {
@@ -28,6 +29,8 @@ describe('useRequest', () => {
     console.error = jest.fn();
     // clear cache
     clearCache();
+    // clear global options
+    ClearGlobalOptions()
   });
 
   afterEach(() => {
@@ -991,5 +994,48 @@ describe('useRequest', () => {
     await waitForTime(1000);
     expect(wrapper.find('button').text()).toBe('success');
     clock.uninstall();
+  });
+
+  test('global options should work', async () => {
+    const ComponentA = defineComponent({
+      setup() {
+        const { data, run } = useRequest(request);
+        return () => <button onClick={() => run.value()}>{data.value}</button>;
+      },
+    });
+    const ComponentB = defineComponent({
+      setup() {
+        const { data, run } = useRequest(request);
+        return () => <button onClick={() => run.value()}>{data.value}</button>;
+      },
+    });
+
+    SetGlobalOptions({ manual: true });
+    let wrapperA = shallowMount(ComponentA);
+    let wrapperB = shallowMount(ComponentB);
+    
+    expect(wrapperA.find('button').text()).toBe('');
+    expect(wrapperB.find('button').text()).toBe('');
+    await waitForTime(1000);
+    expect(wrapperA.find('button').text()).toBe('');
+    expect(wrapperB.find('button').text()).toBe('');
+    await wrapperA.find('button').trigger('click');
+    await wrapperB.find('button').trigger('click');
+    await waitForTime(1000);
+    expect(wrapperA.find('button').text()).toBe('success');
+    expect(wrapperB.find('button').text()).toBe('success');
+
+
+    // clear global options
+    ClearGlobalOptions()
+    wrapperA = shallowMount(ComponentA);
+    wrapperB = shallowMount(ComponentB);
+
+    expect(wrapperA.find('button').text()).toBe('');
+    expect(wrapperB.find('button').text()).toBe('');
+    await waitForTime(1000);
+    expect(wrapperA.find('button').text()).toBe('success');
+    expect(wrapperB.find('button').text()).toBe('success');
+
   });
 });
