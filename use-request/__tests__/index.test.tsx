@@ -1,10 +1,10 @@
+import FakeTimers from '@sinonjs/fake-timers';
 import { shallowMount } from '@vue/test-utils';
 import fetchMock from 'fetch-mock';
-import FakeTimers from '@sinonjs/fake-timers';
 import { defineComponent, ref } from 'vue';
 import useRequest from '..';
-import { waitForAll, waitForTime } from './utils';
 import { clearCache } from '../utils/cache';
+import { waitForAll, waitForTime } from './utils';
 declare let jsdom: any;
 
 describe('useRequest', () => {
@@ -953,7 +953,7 @@ describe('useRequest', () => {
     let count = 0;
     const TestComponent = defineComponent({
       setup() {
-        const { data, run, loading } = useRequest(request, {
+        const { data, run } = useRequest(request, {
           cacheKey: 'cacheKey',
           staleTime: 5000,
         });
