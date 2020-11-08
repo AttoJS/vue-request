@@ -1,4 +1,4 @@
-import { computed, reactive, ref, toRefs, watch } from 'vue';
+import { reactive, ref, toRefs, watch } from 'vue';
 import DefaultOptions, { BaseOptions, Config, GetGlobalOptions } from './config';
 import createQuery, { InnerQueryState, Query, QueryState } from './createQuery';
 import { CacheDataType, getCache, setCache } from './utils/cache';
@@ -80,15 +80,12 @@ function useAsyncQuery<R, P extends unknown[]>(
 
   const queries: Queries<R, P> = reactive({});
 
-  const latestQueryKey = ref('');
-  const latestQuery = computed(() => queries[latestQueryKey.value] ?? {});
-
   // init queries from cache
   if (cacheKey) {
     const cache = getCache<R, P>(cacheKey);
 
-    if (cache?.data.queries) {
-      Object.keys(cache?.data.queries).forEach(key => {
+    if (cache?.data?.queries) {
+      Object.keys(cache.data.queries).forEach(key => {
         const cacheQuery = cache.data.queries?.[key];
         if (cacheQuery) {
           queries[key] = createQuery(query, config, {
@@ -111,7 +108,7 @@ function useAsyncQuery<R, P extends unknown[]>(
     }
     return createQuery(query, config);
   };
-  const queryState = _queryState();
+  const queryState = ref(_queryState());
 
   const tempReadyParams = ref();
   const hasTriggerReady = ref(false);
@@ -123,23 +120,15 @@ function useAsyncQuery<R, P extends unknown[]>(
 
     if (queryKey) {
       const key = queryKey(...args) ?? QUERY_DEFAULT_KEY;
-
-      let currentQuery = queries[key];
-
-      if (!currentQuery) {
-        const newQuery = createQuery(query, config);
-        queries[key] = newQuery;
-        currentQuery = newQuery;
-
+      if (!queries[key]) {
+        queries[key] = createQuery(query, config);
         if (cacheKey) updateCache({ queries });
       }
-
-      latestQueryKey.value = key;
-
-      return currentQuery.run(args);
+      // @ts-ignore
+      queryState.value = queries[key];
     }
 
-    return queryState.run(args);
+    return queryState.value.run(args);
   };
 
   // initial run
@@ -185,7 +174,7 @@ function useAsyncQuery<R, P extends unknown[]>(
   // watch refreshDeps
   if (refreshDeps.length) {
     watch(refreshDeps, () => {
-      !manual && queryState.refresh();
+      !manual && queryState.value.refresh();
     });
   }
 
@@ -194,21 +183,20 @@ function useAsyncQuery<R, P extends unknown[]>(
     subscriber('VISIBLE_LISTENER', () => {
       if (pollingHiddenFlag.value) {
         pollingHiddenFlag.value = false;
-        queryState.refresh();
+        queryState.value.refresh();
       }
     });
   }
 
   // subscribe window focus or visible
   if (refreshOnWindowFocus) {
-    const limitRefresh = limitTrigger(queryState.refresh, focusTimespan);
+    const limitRefresh = limitTrigger(queryState.value.refresh, focusTimespan);
     subscriber('VISIBLE_LISTENER', limitRefresh);
     subscriber('FOCUS_LISTENER', limitRefresh);
   }
 
   const finalQueryState = reactive({
-    ...toRefs(queryState),
-    ...toRefs(latestQuery),
+    ...toRefs(queryState.value),
     run,
     queries,
   }) as QueryState<R, P>;
