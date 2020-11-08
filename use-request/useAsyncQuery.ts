@@ -1,4 +1,4 @@
-import { reactive, ref, toRefs, watch } from 'vue';
+import { reactive, ref, toRef, toRefs, watch } from 'vue';
 import DefaultOptions, { BaseOptions, Config, GetGlobalOptions } from './config';
 import createQuery, { InnerQueryState, Query, QueryState } from './createQuery';
 import { CacheDataType, getCache, setCache } from './utils/cache';
@@ -108,7 +108,9 @@ function useAsyncQuery<R, P extends unknown[]>(
     }
     return createQuery(query, config);
   };
-  const queryState = ref(_queryState());
+  const queryState = reactive({
+    ...toRefs(_queryState()),
+  });
 
   const tempReadyParams = ref();
   const hasTriggerReady = ref(false);
@@ -124,11 +126,13 @@ function useAsyncQuery<R, P extends unknown[]>(
         queries[key] = createQuery(query, config);
         if (cacheKey) updateCache({ queries });
       }
-      // @ts-ignore
-      queryState.value = queries[key];
+
+      Object.keys(queries[key]).forEach(stateKey => {
+        queryState[stateKey] = toRef(queries[key], stateKey as keyof InnerQueryState<R, P>);
+      });
     }
 
-    return queryState.value.run(args);
+    return queryState.run(args);
   };
 
   // initial run
@@ -174,7 +178,7 @@ function useAsyncQuery<R, P extends unknown[]>(
   // watch refreshDeps
   if (refreshDeps.length) {
     watch(refreshDeps, () => {
-      !manual && queryState.value.refresh();
+      !manual && queryState.refresh();
     });
   }
 
@@ -183,20 +187,20 @@ function useAsyncQuery<R, P extends unknown[]>(
     subscriber('VISIBLE_LISTENER', () => {
       if (pollingHiddenFlag.value) {
         pollingHiddenFlag.value = false;
-        queryState.value.refresh();
+        queryState.refresh();
       }
     });
   }
 
   // subscribe window focus or visible
   if (refreshOnWindowFocus) {
-    const limitRefresh = limitTrigger(queryState.value.refresh, focusTimespan);
+    const limitRefresh = limitTrigger(queryState.refresh, focusTimespan);
     subscriber('VISIBLE_LISTENER', limitRefresh);
     subscriber('FOCUS_LISTENER', limitRefresh);
   }
 
   const finalQueryState = reactive({
-    ...toRefs(queryState.value),
+    ...toRefs(queryState),
     run,
     queries,
   }) as QueryState<R, P>;
