@@ -108,9 +108,7 @@ function useAsyncQuery<R, P extends unknown[]>(
     }
     return createQuery(query, config);
   };
-  const queryState = reactive({
-    ...toRefs(_queryState()),
-  });
+  const queryState = _queryState();
 
   const tempReadyParams = ref();
   const hasTriggerReady = ref(false);
