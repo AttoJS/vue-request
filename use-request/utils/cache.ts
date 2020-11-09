@@ -14,6 +14,7 @@ const CACHE_MAP = new Map<CacheKey, CacheResultType<any>>();
 export type CacheDataType<R, P extends unknown[]> = {
   state?: State<R, P>;
   queries?: Record<string, InnerQueryState<R, P>>;
+  latestQueriesKey?: string;
 };
 
 type GetCacheReturn<R, P extends unknown[]> =

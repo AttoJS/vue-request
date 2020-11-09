@@ -28,6 +28,7 @@ function useAsyncQuery<R, P extends unknown[]>(
         {
           state: { ...cache.data?.state, ...params?.state },
           queries: { ...cache.data?.queries, ...params?.queries },
+          latestQueriesKey: cache.data?.latestQueriesKey ?? params?.latestQueriesKey,
         },
         mergeOptions.cacheTime,
       );
@@ -80,6 +81,8 @@ function useAsyncQuery<R, P extends unknown[]>(
 
   const queries: Queries<R, P> = reactive({});
 
+  const latestQueriesKey = ref('');
+
   // init queries from cache
   if (cacheKey) {
     const cache = getCache<R, P>(cacheKey);
@@ -96,6 +99,10 @@ function useAsyncQuery<R, P extends unknown[]>(
           });
         }
       });
+
+      if (cache.data.latestQueriesKey) {
+        latestQueriesKey.value = cache.data.latestQueriesKey;
+      }
     }
   }
 
@@ -125,9 +132,14 @@ function useAsyncQuery<R, P extends unknown[]>(
         if (cacheKey) updateCache({ queries });
       }
 
-      Object.keys(queries[key]).forEach(stateKey => {
-        queryState[stateKey] = toRef(queries[key], stateKey as keyof InnerQueryState<R, P>);
-      });
+      if (latestQueriesKey.value !== key) {
+        Object.keys(queries[key]).forEach(stateKey => {
+          queryState[stateKey] = toRef(queries[key], stateKey as keyof InnerQueryState<R, P>);
+        });
+      }
+
+      latestQueriesKey.value = key;
+      updateCache({ latestQueriesKey: key });
     }
 
     return queryState.run(args);
@@ -197,13 +209,11 @@ function useAsyncQuery<R, P extends unknown[]>(
     subscriber('FOCUS_LISTENER', limitRefresh);
   }
 
-  const finalQueryState = reactive({
+  return reactive({
     ...toRefs(queryState),
     run,
     queries,
   }) as QueryState<R, P>;
-
-  return finalQueryState;
 }
 
 export default useAsyncQuery;
