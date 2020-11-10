@@ -1,5 +1,5 @@
 import { defineComponent, watchEffect } from 'vue';
-import useRequest from '../use-request';
+import useRequest from '../src/index';
 
 function testService() {
   return new Promise<{ name: string; age: number }>(resolve => {

@@ -7,14 +7,15 @@ module.exports = {
   transformIgnorePatterns: ['<rootDir>/node_modules/(?!lodash-es)'],
   collectCoverage: process.env.COVERAGE === 'true',
   collectCoverageFrom: [
-    '<rootDir>/use-request/**/*.{ts,tsx}',
+    '<rootDir>/src/**/*.{ts,tsx}',
     '!**/node_modules/**',
-    '!<rootDir>/use-request/__tests__/**/*',
+    '!<rootDir>/src/__tests__/**/*',
+    '!<rootDir>/dist/**/*',
   ],
-  testMatch: ['<rootDir>/use-request/__tests__/**/*.test.[jt]s?(x)'],
+  testMatch: ['<rootDir>/src/__tests__/**/*.test.[jt]s?(x)'],
   globals: {
     'ts-jest': {
-      babelConfig: true,
+      babelConfig: './babel.config.js'
     },
   },
   testEnvironment: 'jest-environment-jsdom-global',
