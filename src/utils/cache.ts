@@ -1,4 +1,4 @@
-import { InnerQueryState, State } from 'use-request/createQuery';
+import { InnerQueryState, State } from '../createQuery';
 import { isNil } from '.';
 import { PartialRecord } from './types';
 
