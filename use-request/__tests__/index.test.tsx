@@ -1,7 +1,7 @@
 import FakeTimers from '@sinonjs/fake-timers';
-import { shallowMount } from '@vue/test-utils';
+import { mount, shallowMount } from '@vue/test-utils';
 import fetchMock from 'fetch-mock';
-import { defineComponent, ref } from 'vue';
+import { defineComponent, nextTick, ref } from 'vue';
 import useRequest from '..';
 import { ClearGlobalOptions, SetGlobalOptions } from '../config';
 import { clearCache } from '../utils/cache';
@@ -1035,5 +1035,136 @@ describe('useRequest', () => {
     await waitForTime(1000);
     expect(wrapperA.find('button').text()).toBe('success');
     expect(wrapperB.find('button').text()).toBe('success');
+  });
+
+  test('queryKey should work : case 1', async () => {
+    // auto run with no params
+    const { loading, params, data } = useRequest(request, {
+      queryKey: id => id,
+    });
+
+    expect(loading.value).toBe(true);
+    await waitForAll();
+    expect(loading.value).toBe(false);
+    expect(data.value).toBe('success');
+    expect(params.value).toEqual([]);
+  });
+
+  test('queryKey should work : case 2', async () => {
+    const users = [
+      { id: '1', username: 'A' },
+      { id: '2', username: 'B' },
+      { id: '3', username: 'C' },
+    ];
+
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { run, queries } = useRequest(request, {
+            manual: true,
+            queryKey: id => id,
+          });
+
+          return () => (
+            <ul>
+              {users.map(item => (
+                <li key={item.id} id={item.username} onClick={() => run.value(item.id)}>
+                  {queries.value[item.id]?.loading ? 'loading' : item.username}
+                </li>
+              ))}
+            </ul>
+          );
+        },
+      }),
+    );
+
+    for (let i = 0; i < users.length; i++) {
+      const userName = users[i].username;
+
+      await wrapper.find(`#${userName}`).trigger('click');
+      expect(wrapper.find(`#${userName}`).text()).toBe('loading');
+      await waitForTime(1000);
+      expect(wrapper.find(`#${userName}`).text()).toBe(userName);
+    }
+  });
+
+  test('queryKey should work : case 3', async () => {
+    // swr
+    const users = [
+      { id: '1', username: 'A' },
+      { id: '2', username: 'B' },
+      { id: '3', username: 'C' },
+    ];
+
+    const Child = defineComponent({
+      setup() {
+        const { run, queries } = useRequest(request, {
+          queryKey: id => id,
+          cacheKey: 'users',
+        });
+
+        return () => (
+          <ul id="child">
+            {users.map(item => (
+              <li key={item.id} id={item.username} onClick={() => run.value(item.id)}>
+                {queries.value[item.id]?.loading ? 'loading' : item.username}
+              </li>
+            ))}
+          </ul>
+        );
+      },
+    });
+
+    const Parent = mount({
+      props: {
+        show: {
+          type: Boolean,
+          default: false,
+        },
+      },
+      setup(props) {
+        return () => <div>{props.show && <Child />}</div>;
+      },
+    });
+
+    await Parent.setProps({
+      show: true,
+    });
+
+    for (let i = 0; i < users.length; i++) {
+      const userName = users[i].username;
+
+      await Parent.find(`#${userName}`).trigger('click');
+      expect(Parent.find(`#${userName}`).text()).toBe('loading');
+      await waitForTime(1000);
+      expect(Parent.find(`#${userName}`).text()).toBe(userName);
+    }
+
+    // unmount Child
+    await Parent.setProps({
+      show: false,
+    });
+    await nextTick();
+
+    // reMount Child
+    await Parent.setProps({
+      show: true,
+    });
+    await nextTick();
+
+    // all queries will auto refresh
+    for (let i = 0; i < users.length; i++) {
+      const userName = users[i].username;
+
+      expect(Parent.find(`#${userName}`).text()).toBe('loading');
+    }
+
+    await waitForTime(1000);
+
+    for (let i = 0; i < users.length; i++) {
+      const userName = users[i].username;
+
+      expect(Parent.find(`#${userName}`).text()).toBe(userName);
+    }
   });
 });
