@@ -25,6 +25,9 @@ const RollUpConfig = {
       file: './dist/request.min.js',
       format: 'umd',
       plugins: [terser()],
+      globals: {
+        vue: '_Vue',
+      },
     },
   ],
   plugins: [
@@ -39,9 +42,9 @@ const RollUpConfig = {
     babel({
       extensions: ['js', 'ts'],
       babelHelpers: 'runtime',
-      configFile: './babel.config.js'
+      configFile: './babel.config.js',
     }),
   ],
-  external: ['vue', 'lodash'],
+  external: ['vue'],
 };
 export default RollUpConfig;
