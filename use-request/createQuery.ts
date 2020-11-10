@@ -92,6 +92,7 @@ const createQuery = <R, P extends unknown[]>(
   const polling = (pollingFunc: () => void) => {
     let timerId: number;
     if (!isNil(pollingInterval) && pollingInterval! >= 0) {
+      // stop polling
       if (!isDocumentVisibilty() && !pollingWhenHidden) {
         pollingHiddenFlag.value = true;
         return;
