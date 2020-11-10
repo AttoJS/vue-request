@@ -1,7 +1,7 @@
 import FakeTimers from '@sinonjs/fake-timers';
 import { mount, shallowMount } from '@vue/test-utils';
 import fetchMock from 'fetch-mock';
-import { defineComponent, nextTick, ref } from 'vue';
+import { defineComponent, ref } from 'vue';
 import useRequest from '..';
 import { ClearGlobalOptions, SetGlobalOptions } from '../config';
 import { clearCache } from '../utils/cache';
@@ -1144,13 +1144,11 @@ describe('useRequest', () => {
     await Parent.setProps({
       show: false,
     });
-    await nextTick();
 
     // reMount Child
     await Parent.setProps({
       show: true,
     });
-    await nextTick();
 
     // all queries will auto refresh
     for (let i = 0; i < users.length; i++) {
