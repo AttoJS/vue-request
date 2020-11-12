@@ -8,7 +8,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "yarn clean && rollup --config ./build/rollup.config.js",
+    "build": " yarn clean && rollup --config ./build/rollup.config.js",
     "clean": "rimraf dist/*",
     "test": "jest --coverage"
   },
