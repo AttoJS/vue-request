@@ -1,14 +1,15 @@
 {
   "name": "vue-request",
   "version": "0.1.0",
-  "main": "dist/index.es.js",
+  "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
   "types": "dist/types/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": " yarn clean && rollup --config ./build/rollup.config.js",
+    "build": "yarn clean && rollup --config ./build/rollup.config.js",
+    "dev": "webpack serve --config ./build/webpack.config.js",
     "clean": "rimraf dist/*",
     "test": "jest --coverage"
   },
@@ -39,12 +40,13 @@
     "@vue/babel-plugin-jsx": "^1.0.0-rc.3",
     "@vue/test-utils": "^2.0.0-beta.8",
     "babel-jest": "^26.6.0",
-    "babel-loader": "^8.1.0",
+    "babel-loader": "^8.2.1",
     "eslint": "^6.7.2",
     "eslint-config-prettier": "^6.15.0",
     "eslint-plugin-prettier": "^3.1.4",
     "eslint-plugin-vue": "^7.0.0-0",
     "fetch-mock": "^9.10.7",
+    "html-webpack-plugin": "^4.5.0",
     "husky": "^4.3.0",
     "jest": "^26.6.0",
     "jest-environment-jsdom-global": "^2.0.4",
@@ -56,8 +58,11 @@
     "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript2": "^0.29.0",
     "ts-jest": "^26.4.1",
-    "ts-loader": "^8.0.9",
+    "ts-loader": "^8.0.11",
     "typescript": "^4.0.5",
-    "vue": "^3.0.2"
+    "vue": "^3.0.2",
+    "webpack": "^5.4.0",
+    "webpack-cli": "^4.2.0",
+    "webpack-dev-server": "^3.11.0"
   }
 }

@@ -14,7 +14,7 @@ module.exports = {
   testMatch: ['<rootDir>/src/__tests__/**/*.test.[jt]s?(x)'],
   globals: {
     'ts-jest': {
-      babelConfig: './babel.config.js'
+      babelConfig: './babel.config.js',
     },
   },
   testEnvironment: 'jest-environment-jsdom-global',
