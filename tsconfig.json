@@ -13,12 +13,12 @@
     "sourceMap": true,
     "declaration": true,
     "declarationDir": "dist/types",
-    "baseUrl": ".",
+    "baseUrl": "./",
     "types": ["jest", "@vue/test-utils"],
     "paths": {
       "vue-request": ["src/index.ts"]
     }
   },
-  "include": ["src/**/*.[jt]s?(x)", "example/**/*.[jt]s?(x)", "**/__tests__/**/*"],
-  "exclude": ["node_modules"]
+  "include": ["src", "example", "**/__tests__/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
