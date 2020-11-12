@@ -43,6 +43,7 @@ const RollUpConfig = {
       extensions: ['js', 'ts'],
       babelHelpers: 'runtime',
       configFile: './babel.config.js',
+      exclude: [/core-js/],
     }),
   ],
   external: ['vue'],
