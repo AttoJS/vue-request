@@ -14,23 +14,11 @@
     "declaration": true,
     "declarationDir": "dist/types",
     "baseUrl": ".",
-    "types": [
-      "jest",
-      "@vue/test-utils"
-    ],
+    "types": ["jest", "@vue/test-utils"],
     "paths": {
-      "@/*": [
-        "src/*"
-      ]
+      "vue-request": ["src/index.ts"]
     }
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.vue",
-    "**/__tests__/**/*"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["src/**/*.[jt]s?(x)", "example/**/*.[jt]s?(x)", "**/__tests__/**/*"],
+  "exclude": ["node_modules"]
 }
