@@ -1,8 +1,8 @@
-import resolve from '@rollup/plugin-node-resolve';
-import typescript2 from 'rollup-plugin-typescript2';
-import commonjs from '@rollup/plugin-commonjs';
 import babel from '@rollup/plugin-babel';
+import commonjs from '@rollup/plugin-commonjs';
+import resolve from '@rollup/plugin-node-resolve';
 import { terser } from 'rollup-plugin-terser';
+import typescript2 from 'rollup-plugin-typescript2';
 
 /**
  * @type { import('rollup').RollupOptions }
@@ -26,7 +26,7 @@ const RollUpConfig = {
       format: 'umd',
       plugins: [terser()],
       globals: {
-        vue: '_Vue',
+        vue: 'Vue',
       },
     },
   ],
