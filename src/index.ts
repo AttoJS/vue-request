@@ -66,4 +66,5 @@ function useRequest<R, P extends unknown[]>(
   return toRefs(useAsyncQuery<R, P>(promiseQuery, options));
 }
 
+export { SetGlobalOptions } from './config';
 export default useRequest;
