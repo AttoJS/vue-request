@@ -1,4 +1,4 @@
-import { reactive, ref, toRef, toRefs, watch } from 'vue';
+import { computed, reactive, ref, toRefs, watch } from 'vue';
 import DefaultOptions, { BaseOptions, Config, GetGlobalOptions } from './config';
 import createQuery, { InnerQueryState, Query, QueryState } from './createQuery';
 import { CacheDataType, getCache, setCache } from './utils/cache';
@@ -26,7 +26,6 @@ function useAsyncQuery<R, P extends unknown[]>(
       setCache<R, P>(
         mergeOptions.cacheKey,
         {
-          state: { ...cache.data?.state, ...params?.state },
           queries: { ...cache.data?.queries, ...params?.queries },
           latestQueriesKey: cache.data?.latestQueriesKey ?? params?.latestQueriesKey,
         },
@@ -79,9 +78,13 @@ function useAsyncQuery<R, P extends unknown[]>(
     onError,
   };
 
-  const queries: Queries<R, P> = reactive({});
+  const queries: Queries<R, P> = reactive<any>({
+    [QUERY_DEFAULT_KEY]: createQuery<R, P>(query, config),
+  });
 
-  const latestQueriesKey = ref('');
+  const latestQueriesKey = ref(QUERY_DEFAULT_KEY);
+
+  const latestQuery = computed(() => queries[latestQueriesKey.value]);
 
   // init queries from cache
   if (cacheKey) {
@@ -106,17 +109,6 @@ function useAsyncQuery<R, P extends unknown[]>(
     }
   }
 
-  const _queryState = () => {
-    if (cacheKey) {
-      const cache = getCache<R, P>(cacheKey);
-      if (cache) {
-        return createQuery(query, config, cache.data.state);
-      }
-    }
-    return createQuery(query, config);
-  };
-  const queryState = _queryState();
-
   const tempReadyParams = ref();
   const hasTriggerReady = ref(false);
   const run = (...args: P) => {
@@ -127,22 +119,19 @@ function useAsyncQuery<R, P extends unknown[]>(
 
     if (queryKey) {
       const key = queryKey(...args) ?? QUERY_DEFAULT_KEY;
-      if (!queries[key]) {
-        queries[key] = createQuery(query, config);
-        if (cacheKey) updateCache({ queries });
-      }
-
-      if (latestQueriesKey.value !== key) {
-        Object.keys(queries[key]).forEach(stateKey => {
-          queryState[stateKey] = toRef(queries[key], stateKey as keyof InnerQueryState<R, P>);
-        });
-      }
 
       latestQueriesKey.value = key;
-      updateCache({ latestQueriesKey: key });
     }
 
-    return queryState.run(args);
+    if (!queries[latestQueriesKey.value]) {
+      queries[latestQueriesKey.value] = createQuery(query, config);
+    }
+
+    if (cacheKey) {
+      updateCache({ queries, latestQueriesKey: latestQueriesKey.value });
+    }
+
+    return latestQuery.value.run(args);
   };
 
   // initial run
@@ -150,11 +139,12 @@ function useAsyncQuery<R, P extends unknown[]>(
     initialAutoRunFlag.value = true;
 
     const cache = getCache<R, P>(cacheKey);
+    const cacheQueries = cache?.data.queries ?? {};
 
     const isFresh =
       cache && (staleTime === -1 || cache.cacheTime + staleTime > new Date().getTime());
 
-    const hasCacheQueries = Object.keys(queries).length > 0;
+    const hasCacheQueries = Object.keys(cacheQueries).length > 0;
 
     if (!isFresh) {
       if (hasCacheQueries) {
@@ -188,7 +178,7 @@ function useAsyncQuery<R, P extends unknown[]>(
   // watch refreshDeps
   if (refreshDeps.length) {
     watch(refreshDeps, () => {
-      !manual && queryState.refresh();
+      !manual && latestQuery.value.refresh();
     });
   }
 
@@ -197,20 +187,20 @@ function useAsyncQuery<R, P extends unknown[]>(
     subscriber('VISIBLE_LISTENER', () => {
       if (pollingHiddenFlag.value) {
         pollingHiddenFlag.value = false;
-        queryState.refresh();
+        latestQuery.value.refresh();
       }
     });
   }
 
   // subscribe window focus or visible
   if (refreshOnWindowFocus) {
-    const limitRefresh = limitTrigger(queryState.refresh, focusTimespan);
+    const limitRefresh = limitTrigger(latestQuery.value.refresh, focusTimespan);
     subscriber('VISIBLE_LISTENER', limitRefresh);
     subscriber('FOCUS_LISTENER', limitRefresh);
   }
 
   return reactive({
-    ...toRefs(queryState),
+    ...toRefs(latestQuery.value),
     run,
     queries,
   }) as QueryState<R, P>;
