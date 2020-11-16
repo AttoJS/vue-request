@@ -1,4 +1,4 @@
-import { computed, reactive, ref, toRefs, watch } from 'vue';
+import { computed, reactive, ref, toRef, toRefs, watch } from 'vue';
 import DefaultOptions, { BaseOptions, Config, GetGlobalOptions } from './config';
 import createQuery, { InnerQueryState, Query, QueryState } from './createQuery';
 import { CacheDataType, getCache, setCache } from './utils/cache';
@@ -199,11 +199,30 @@ function useAsyncQuery<R, P extends unknown[]>(
     subscriber('FOCUS_LISTENER', limitRefresh);
   }
 
-  return reactive({
+  const queryState = reactive({
     ...toRefs(latestQuery.value),
     run,
     queries,
   }) as QueryState<R, P>;
+
+  // keep reactive
+  watch(
+    latestQuery,
+    val => {
+      if (!val) return;
+
+      Object.keys(val).forEach(stateKey => {
+        if (stateKey !== 'run' && stateKey !== 'queries') {
+          queryState[stateKey] = toRef(val, stateKey as keyof InnerQueryState<R, P>);
+        }
+      });
+    },
+    {
+      immediate: true,
+    },
+  );
+
+  return queryState;
 }
 
 export default useAsyncQuery;
