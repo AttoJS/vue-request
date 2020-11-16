@@ -936,7 +936,7 @@ describe('useRequest', () => {
     wrapper = shallowMount(TestComponent);
     expect(wrapper.find('button').text()).toBe('5');
     await waitForTime(1000);
-    expect(wrapper.find('button').text()).toBe('success');
+    expect(wrapper.find('button').text()).toBe('5');
     for (let index = 0; index < 5; index++) {
       await wrapper.find('button').trigger('click');
       await waitForTime(1000);
@@ -992,7 +992,7 @@ describe('useRequest', () => {
     wrapper = shallowMount(TestComponent);
     expect(wrapper.find('button').text()).toBe('10');
     await waitForTime(1000);
-    expect(wrapper.find('button').text()).toBe('success');
+    expect(wrapper.find('button').text()).toBe('10');
     clock.uninstall();
   });
 
