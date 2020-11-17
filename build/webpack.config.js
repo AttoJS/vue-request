@@ -16,7 +16,15 @@ const WebpackConfig = {
       {
         test: /\.(ts|tsx)/,
         exclude: /node_modules/,
-        use: ['babel-loader', 'ts-loader'],
+        use: [
+          'babel-loader',
+          {
+            loader: 'ts-loader',
+            options: {
+              configFile: path.resolve(__dirname, './tsconfig.webpack.json'),
+            },
+          },
+        ],
       },
       {
         test: /\.(js|jsx)/,
