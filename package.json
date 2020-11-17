@@ -17,7 +17,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npx ./scripts/preCommit.js",
+      "pre-commit": "node ./scripts/preCommit.js",
       "commit-msg": "commitlint -x @commitlint/config-conventional -e $HUSKY_GIT_PARAMS",
       "pre-push": "yarn test --coverage=false"
     }
