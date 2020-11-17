@@ -1,5 +1,5 @@
-import { InnerQueryState, State } from '../createQuery';
 import { isNil } from '.';
+import { InnerQueryState } from '../createQuery';
 import { PartialRecord } from './types';
 
 type CacheResultType<T> = {
@@ -12,7 +12,6 @@ type CacheKey = string;
 const CACHE_MAP = new Map<CacheKey, CacheResultType<any>>();
 
 export type CacheDataType<R, P extends unknown[]> = {
-  state?: State<R, P>;
   queries?: Record<string, InnerQueryState<R, P>>;
   latestQueriesKey?: string;
 };

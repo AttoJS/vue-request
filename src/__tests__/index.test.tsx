@@ -936,7 +936,7 @@ describe('useRequest', () => {
     wrapper = shallowMount(TestComponent);
     expect(wrapper.find('button').text()).toBe('5');
     await waitForTime(1000);
-    expect(wrapper.find('button').text()).toBe('success');
+    expect(wrapper.find('button').text()).toBe('5');
     for (let index = 0; index < 5; index++) {
       await wrapper.find('button').trigger('click');
       await waitForTime(1000);
@@ -992,7 +992,7 @@ describe('useRequest', () => {
     wrapper = shallowMount(TestComponent);
     expect(wrapper.find('button').text()).toBe('10');
     await waitForTime(1000);
-    expect(wrapper.find('button').text()).toBe('success');
+    expect(wrapper.find('button').text()).toBe('10');
     clock.uninstall();
   });
 
@@ -1060,19 +1060,23 @@ describe('useRequest', () => {
     const wrapper = shallowMount(
       defineComponent({
         setup() {
-          const { run, queries } = useRequest(request, {
+          const { run, queries, data, loading } = useRequest(request, {
             manual: true,
             queryKey: id => id,
           });
 
           return () => (
-            <ul>
-              {users.map(item => (
-                <li key={item.id} id={item.username} onClick={() => run.value(item.id)}>
-                  {queries.value[item.id]?.loading ? 'loading' : item.username}
-                </li>
-              ))}
-            </ul>
+            <div>
+              <div id="data">{data.value}</div>
+              <div id="loading">{loading.value.toString()}</div>
+              <ul>
+                {users.map(item => (
+                  <li key={item.id} id={item.username} onClick={() => run.value(item.id)}>
+                    {queries.value[item.id]?.loading ? 'loading' : item.username}
+                  </li>
+                ))}
+              </ul>
+            </div>
           );
         },
       }),
@@ -1080,11 +1084,19 @@ describe('useRequest', () => {
 
     for (let i = 0; i < users.length; i++) {
       const userName = users[i].username;
+      const currentId = users[i].id;
 
       await wrapper.find(`#${userName}`).trigger('click');
       expect(wrapper.find(`#${userName}`).text()).toBe('loading');
+
+      expect(wrapper.find('#data').text()).toBe('');
+      expect(wrapper.find('#loading').text()).toBe('true');
+
       await waitForTime(1000);
       expect(wrapper.find(`#${userName}`).text()).toBe(userName);
+
+      expect(wrapper.find('#data').text()).toBe(currentId);
+      expect(wrapper.find('#loading').text()).toBe('false');
     }
   });
 
@@ -1104,13 +1116,15 @@ describe('useRequest', () => {
         });
 
         return () => (
-          <ul id="child">
-            {users.map(item => (
-              <li key={item.id} id={item.username} onClick={() => run.value(item.id)}>
-                {queries.value[item.id]?.loading ? 'loading' : item.username}
-              </li>
-            ))}
-          </ul>
+          <div>
+            <ul id="child">
+              {users.map(item => (
+                <li key={item.id} id={item.username} onClick={() => run.value(item.id)}>
+                  {queries.value[item.id]?.loading ? 'loading' : item.username}
+                </li>
+              ))}
+            </ul>
+          </div>
         );
       },
     });
@@ -1145,7 +1159,7 @@ describe('useRequest', () => {
       show: false,
     });
 
-    // reMount Child
+    // remount Child
     await Parent.setProps({
       show: true,
     });

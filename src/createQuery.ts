@@ -70,7 +70,7 @@ const createQuery = <R, P extends unknown[]>(
     params: initialState?.params || (([] as unknown) as P),
   }) as State<R, P>;
 
-  const setState = setStateBind(state, [state => updateCache({ state: state })]);
+  const setState = setStateBind(state);
   const count = ref(0);
   const pollingTimer = ref();
   const delayLoadingTimer = ref();

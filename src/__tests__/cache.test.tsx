@@ -1,16 +1,12 @@
-import { clearCache, getCache, setCache } from '../utils/cache';
+import { PartialRecord } from 'src/utils/types';
+import { CacheDataType, clearCache, getCache, setCache } from '../utils/cache';
 import { waitForTime } from './utils';
 declare let jsdom: any;
 
 describe('utils', () => {
   const cacheKey = 'test';
-  const cacheData = {
-    state: {
-      data: { name: 'John' },
-      loading: false,
-      error: undefined,
-      params: [],
-    },
+  const cacheData: PartialRecord<CacheDataType<any, any>> = {
+    latestQueriesKey: 'testKey',
   };
   beforeAll(() => {
     jest.useFakeTimers();
