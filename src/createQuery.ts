@@ -1,6 +1,6 @@
 import debounce from 'lodash/debounce';
 import throttle from 'lodash/throttle';
-import { nextTick, reactive, ref, toRefs } from 'vue';
+import { nextTick, Ref, ref } from 'vue';
 import { Config } from './config';
 import { Queries } from './useAsyncQuery';
 import { isDocumentVisibilty, isFunction, isNil } from './utils';
@@ -10,12 +10,14 @@ type MutateFunction<R> = (arg: (oldData: R) => R) => void;
 // P mean params, R mean Response
 export type Query<R, P extends unknown[]> = (...args: P) => Promise<R>;
 export interface Mutate<R> extends MutateData<R>, MutateFunction<R> {}
+
 export type State<R, P extends unknown[]> = {
-  loading: boolean;
-  data: R | undefined;
-  error: Error | undefined;
-  params: P;
+  loading: Ref<boolean>;
+  data: Ref<R | undefined>;
+  error: Ref<Error | undefined>;
+  params: Ref<P>;
 };
+
 export type QueryState<R, P extends unknown[]> = State<R, P> & {
   queries: Queries<R, P>;
   run: (...arg: P) => Promise<R>;
@@ -28,12 +30,15 @@ export type InnerQueryState<R, P extends unknown[]> = Omit<QueryState<R, P>, 'ru
   run: (args: P, cb?: () => void) => Promise<R>;
 };
 
-const resolvedPromise = Promise.resolve();
+const resolvedPromise = Promise.resolve(null);
 
-const setStateBind = <T>(oldState: T, publicCb?: Array<(state: T) => void>) => {
-  return (newState: Partial<T>, cb?: (state: T) => void) => {
+const setStateBind = <T extends { [key: string]: Ref<any> }>(
+  oldState: T,
+  publicCb?: Array<(state: T) => void>,
+) => {
+  return (newState: Partial<{ [K in keyof T]: any }>, cb?: (state: T) => void) => {
     Object.keys(newState).forEach(key => {
-      oldState[key] = newState[key];
+      oldState[key].value = newState[key];
     });
     nextTick(() => {
       cb?.(oldState);
@@ -46,7 +51,7 @@ const createQuery = <R, P extends unknown[]>(
   query: Query<R, P>,
   config: Config<R, P>,
   initialState?: State<R, P>,
-): InnerQueryState<R, P> => {
+) => {
   const {
     initialAutoRunFlag,
     throwOnError,
@@ -57,20 +62,22 @@ const createQuery = <R, P extends unknown[]>(
     throttleInterval,
     pollingWhenHidden,
     pollingHiddenFlag,
-    updateCache,
     formatResult,
     onSuccess,
     onError,
   } = config;
 
-  const state = reactive({
-    loading: initialState?.loading || false,
-    data: initialState?.data || initialData,
-    error: initialState?.error || undefined,
-    params: initialState?.params || (([] as unknown) as P),
-  }) as State<R, P>;
+  const loading = ref(initialState?.loading || false);
+  const data = ref(initialState?.data || initialData);
+  const error = ref(initialState?.error || undefined);
+  const params = ref(initialState?.params || (([] as unknown) as P));
 
-  const setState = setStateBind(state);
+  const setState = setStateBind({
+    loading,
+    data,
+    error,
+    params,
+  });
   const count = ref(0);
   const pollingTimer = ref();
   const delayLoadingTimer = ref();
@@ -203,26 +210,31 @@ const createQuery = <R, P extends unknown[]>(
   };
 
   const refresh = () => {
-    return run(state.params!);
+    return run(params.value as P);
   };
 
   const mutate: Mutate<R> = (
     x: Parameters<MutateData<R>>[0] | Parameters<MutateFunction<R>>[0],
   ) => {
     if (isFunction(x)) {
-      state.data = x(state.data!);
+      // @ts-ignore
+      data.value = x(data.value);
     } else {
-      state.data = x;
+      // @ts-ignore
+      data.value = x;
     }
   };
 
-  const reactiveState = reactive({
-    ...toRefs(state),
+  const reactiveState = {
+    loading,
+    data,
+    error,
+    params,
     run,
     cancel,
     refresh,
     mutate,
-  }) as InnerQueryState<R, P>;
+  };
 
   return reactiveState;
 };
