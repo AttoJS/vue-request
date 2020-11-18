@@ -1,14 +1,29 @@
-import { computed, reactive, ref, toRef, toRefs, watch } from 'vue';
+import { computed, reactive, Ref, ref, toRefs, watch, watchEffect } from 'vue';
 import DefaultOptions, { BaseOptions, Config, GetGlobalOptions } from './config';
-import createQuery, { InnerQueryState, Query, QueryState } from './createQuery';
-import { CacheDataType, getCache, setCache } from './utils/cache';
+import createQuery, {
+  InnerQueryState,
+  InnerRunReturn,
+  Query,
+  QueryState,
+  State,
+} from './createQuery';
+import { getCache, setCache } from './utils/cache';
 import limitTrigger from './utils/limitTrigger';
 import subscriber from './utils/listener';
-import { PartialRecord } from './utils/types';
+import { UnWrapRefObject } from './utils/types';
 
-export type BaseResult<R, P extends unknown[]> = QueryState<R, P>;
+export type BaseResult<R, P extends unknown[]> = Omit<QueryState<R, P>, 'run'> & {
+  run: (...arg: P) => InnerRunReturn<R> | undefined;
+};
 
-export type Queries<R, P extends unknown[]> = Record<string, InnerQueryState<R, P>>;
+export type Queries<R, P extends unknown[]> = {
+  [key: string]: InnerQueryState<R, P>;
+};
+
+export type UpdateCacheParams<R, P extends unknown[]> = {
+  queryData: UnWrapRefObject<State<R, P>>;
+  key?: string;
+};
 
 const QUERY_DEFAULT_KEY = '__QUERY_DEFAULT_KEY__';
 
@@ -20,21 +35,33 @@ function useAsyncQuery<R, P extends unknown[]>(
   const pollingHiddenFlag = ref(false);
   // skip debounce when initail run
   const initialAutoRunFlag = ref(false);
-  const updateCache = (params: PartialRecord<CacheDataType<R, P>>) => {
-    const cache = getCache<R, P>(mergeOptions.cacheKey);
-    if (cache?.data) {
-      setCache<R, P>(
-        mergeOptions.cacheKey,
-        {
-          queries: { ...cache.data?.queries, ...params?.queries },
-          latestQueriesKey: cache.data?.latestQueriesKey ?? params?.latestQueriesKey,
-        },
-        mergeOptions.cacheTime,
-      );
-    } else {
-      setCache<R, P>(mergeOptions.cacheKey, params, mergeOptions.cacheTime);
-    }
+
+  const updateCache = (params: UpdateCacheParams<R, P>) => {
+    if (!cacheKey) return;
+
+    const cacheData = getCache<R, P>(mergeOptions.cacheKey)?.data;
+    const { queryData, key: currentQueriesKey = QUERY_DEFAULT_KEY } = params;
+
+    const newQuery = {
+      ...cacheData?.queries?.[currentQueriesKey],
+      ...queryData,
+    };
+
+    setCache<R, P>(
+      mergeOptions.cacheKey,
+      {
+        queries: { ...cacheData?.queries, [currentQueriesKey]: newQuery },
+        latestQueriesKey: currentQueriesKey ?? cacheData?.latestQueriesKey,
+      },
+      mergeOptions.cacheTime,
+    );
+
+    console.log(
+      'updateCache -> getCache<R, P>(mergeOptions.cacheKey)',
+      getCache<R, P>(mergeOptions.cacheKey),
+    );
   };
+
   const {
     initialData,
     defaultParams,
@@ -78,13 +105,30 @@ function useAsyncQuery<R, P extends unknown[]>(
     onError,
   };
 
-  const queries: Queries<R, P> = reactive<any>({
+  const loading = ref(false);
+  const data = ref({}) as Ref<R>;
+  const error = ref<Error | undefined>(undefined);
+  const params = ref(([] as unknown) as P) as Ref<P>;
+
+  const queries = reactive<Queries<R, P>>({
     [QUERY_DEFAULT_KEY]: createQuery<R, P>(query, config),
   });
 
   const latestQueriesKey = ref(QUERY_DEFAULT_KEY);
 
   const latestQuery = computed(() => queries[latestQueriesKey.value]);
+
+  watchEffect(
+    () => {
+      loading.value = latestQuery.value.loading;
+      data.value = latestQuery.value.data as R;
+      error.value = latestQuery.value.error;
+      params.value = latestQuery.value.params as P;
+    },
+    {
+      flush: 'sync',
+    },
+  );
 
   // init queries from cache
   if (cacheKey) {
@@ -93,7 +137,9 @@ function useAsyncQuery<R, P extends unknown[]>(
     if (cache?.data?.queries) {
       Object.keys(cache.data.queries).forEach(key => {
         const cacheQuery = cache.data.queries?.[key];
+
         if (cacheQuery) {
+          // @ts-ignore
           queries[key] = createQuery(query, config, {
             loading: cacheQuery.loading,
             params: cacheQuery.params,
@@ -117,19 +163,14 @@ function useAsyncQuery<R, P extends unknown[]>(
       return;
     }
 
-    if (queryKey) {
-      const key = queryKey(...args) ?? QUERY_DEFAULT_KEY;
+    const newKey = queryKey?.(...args) ?? QUERY_DEFAULT_KEY;
 
-      latestQueriesKey.value = key;
+    if (!queries[newKey]) {
+      // @ts-ignore
+      queries[newKey] = createQuery(query, config);
     }
 
-    if (!queries[latestQueriesKey.value]) {
-      queries[latestQueriesKey.value] = createQuery(query, config);
-    }
-
-    if (cacheKey) {
-      updateCache({ queries, latestQueriesKey: latestQueriesKey.value });
-    }
+    latestQueriesKey.value = newKey;
 
     return latestQuery.value.run(args);
   };
@@ -199,28 +240,18 @@ function useAsyncQuery<R, P extends unknown[]>(
     subscriber('FOCUS_LISTENER', limitRefresh);
   }
 
-  const queryState = reactive({
-    ...toRefs(latestQuery.value),
+  // @ts-ignore
+  const queryState = {
+    loading,
+    data,
+    error,
+    params,
+    cancel: latestQuery.value.cancel,
+    refresh: latestQuery.value.refresh,
+    mutate: latestQuery.value.mutate,
     run,
     queries,
-  }) as QueryState<R, P>;
-
-  // keep reactive
-  watch(
-    latestQuery,
-    val => {
-      if (!val) return;
-
-      Object.keys(val).forEach(stateKey => {
-        if (stateKey !== 'run' && stateKey !== 'queries') {
-          queryState[stateKey] = toRef(val, stateKey as keyof InnerQueryState<R, P>);
-        }
-      });
-    },
-    {
-      immediate: true,
-    },
-  );
+  } as QueryState<R, P>;
 
   return queryState;
 }

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import FakeTimers from '@sinonjs/fake-timers';
 import { mount, shallowMount } from '@vue/test-utils';
 import fetchMock from 'fetch-mock';
@@ -65,7 +66,7 @@ describe('useRequest', () => {
     const { error, run } = useRequest(failApi, {
       manual: true,
     });
-    run.value().catch(() => {});
+    run().catch(() => {});
     await waitForAll();
     expect(error.value?.message).toBe('Not Found');
   });
@@ -130,7 +131,7 @@ describe('useRequest', () => {
         setup() {
           const { data, run } = useRequest(request, { manual: true });
 
-          return () => <button onClick={() => run.value()}>{`data:${data.value}`}</button>;
+          return () => <button onClick={() => run()}>{`data:${data.value}`}</button>;
         },
       }),
     );
@@ -149,7 +150,7 @@ describe('useRequest', () => {
     await waitForAll();
     expect(params.value).toEqual(['hello', 'world']);
 
-    run.value('hey');
+    run('hey');
     await waitForAll();
     expect(params.value).toEqual(['hey']);
   });
@@ -177,7 +178,7 @@ describe('useRequest', () => {
           const { data, run } = useRequest(request);
 
           return () => (
-            <button onClick={() => run.value('hello', 'world')}>{`data:${data.value}`}</button>
+            <button onClick={() => run('hello', 'world')}>{`data:${data.value}`}</button>
           );
         },
       }),
@@ -195,7 +196,7 @@ describe('useRequest', () => {
         setup() {
           const { data, mutate } = useRequest(request);
 
-          return () => <button onClick={() => mutate.value('ok')}>{`data:${data.value}`}</button>;
+          return () => <button onClick={() => mutate('ok')}>{`data:${data.value}`}</button>;
         },
       }),
     );
@@ -211,9 +212,7 @@ describe('useRequest', () => {
         setup() {
           const { data, mutate } = useRequest(request);
 
-          return () => (
-            <button onClick={() => mutate.value(() => 'ok')}>{`data:${data.value}`}</button>
-          );
+          return () => <button onClick={() => mutate(() => 'ok')}>{`data:${data.value}`}</button>;
         },
       }),
     );
@@ -229,9 +228,7 @@ describe('useRequest', () => {
         setup() {
           const { refresh, loading } = useRequest(request);
 
-          return () => (
-            <button onClick={() => refresh.value()}>{`loading:${loading.value}`}</button>
-          );
+          return () => <button onClick={() => refresh()}>{`loading:${loading.value}`}</button>;
         },
       }),
     );
@@ -248,7 +245,7 @@ describe('useRequest', () => {
       defineComponent({
         setup() {
           const { run } = useRequest(failedRequest, { manual: true });
-          const handleClick = () => run.value().catch(() => {}); // catch is needed or the node.js will be crash
+          const handleClick = () => run().catch(() => {}); // catch is needed or the node.js will be crash
           return () => <button onClick={handleClick}></button>;
         },
       }),
@@ -269,7 +266,7 @@ describe('useRequest', () => {
           return () => (
             <button
               onClick={() =>
-                run.value().catch((err: Error) => {
+                run().catch((err: Error) => {
                   errorText = err.message;
                 })
               }
@@ -293,7 +290,7 @@ describe('useRequest', () => {
             manual: true,
             onSuccess: mockSuccessCallback,
           });
-          const handleClick = () => run.value().catch(() => {}); // catch is needed or the node.js will be crash
+          const handleClick = () => run().catch(() => {}); // catch is needed or the node.js will be crash
           return () => <button onClick={handleClick}></button>;
         },
       }),
@@ -311,7 +308,7 @@ describe('useRequest', () => {
       defineComponent({
         setup() {
           const { run } = useRequest(failedRequest, { manual: true, onError: mockErrorCallback });
-          const handleClick = () => run.value().catch(() => {}); // catch is needed or the node.js will be crash
+          const handleClick = () => run().catch(() => {}); // catch is needed or the node.js will be crash
           return () => <button onClick={handleClick}></button>;
         },
       }),
@@ -377,7 +374,7 @@ describe('useRequest', () => {
 
           return () => (
             <div>
-              <button id="run" onClick={() => run.value('run')} />
+              <button id="run" onClick={() => run('run')} />
               <button
                 id="ready"
                 onClick={() => {
@@ -412,7 +409,7 @@ describe('useRequest', () => {
 
           return () => (
             <div>
-              <button id="run" onClick={() => run.value('run')} />
+              <button id="run" onClick={() => run('run')} />
               <button
                 id="ready"
                 onClick={() => {
@@ -449,7 +446,7 @@ describe('useRequest', () => {
               onClick={() => {
                 readyRef.value = !readyRef.value;
                 count.value += 1;
-                run.value(count.value);
+                run(count.value);
               }}
             >{`data:${data.value}`}</button>
           );
@@ -481,7 +478,7 @@ describe('useRequest', () => {
 
                 // setTimeout(() => {
                 count.value += 1;
-                run.value(count.value);
+                run(count.value);
                 // }, 50);
               }}
             >{`data:${data.value}`}</button>
@@ -574,7 +571,7 @@ describe('useRequest', () => {
             loadingDelay: 800,
           });
 
-          return () => <button onClick={() => cancel.value()}>{`loading:${loading.value}`}</button>;
+          return () => <button onClick={() => cancel()}>{`loading:${loading.value}`}</button>;
         },
       }),
     );
@@ -594,8 +591,8 @@ describe('useRequest', () => {
 
           return () => (
             <div>
-              <button onClick={() => cancel.value()} id="cancel" />
-              <button onClick={() => run.value()} id="run" />
+              <button onClick={() => cancel()} id="cancel" />
+              <button onClick={() => run()} id="run" />
               <span id="data">{`data:${data.value}`}</span>
             </div>
           );
@@ -621,8 +618,8 @@ describe('useRequest', () => {
           const { data, run, cancel } = useRequest(failedRequest, { manual: true });
           return () => (
             <div>
-              <button id="run" onClick={() => run.value().catch(() => {})}></button>;
-              <button id="cancel" onClick={() => cancel.value()}></button>;
+              <button id="run" onClick={() => run().catch(() => {})}></button>;
+              <button id="cancel" onClick={() => cancel()}></button>;
               <span id="data">{`data:${data.value}`}</span>
             </div>
           );
@@ -648,7 +645,7 @@ describe('useRequest', () => {
             pollingInterval: 500,
           });
 
-          return () => <button onClick={() => cancel.value()}>{`loading:${loading.value}`}</button>;
+          return () => <button onClick={() => cancel()}>{`loading:${loading.value}`}</button>;
         },
       }),
     );
@@ -673,7 +670,7 @@ describe('useRequest', () => {
             pollingInterval: -0.1,
           });
 
-          return () => <button onClick={() => cancel.value()}>{`loading:${loading.value}`}</button>;
+          return () => <button onClick={() => cancel()}>{`loading:${loading.value}`}</button>;
         },
       }),
     );
@@ -765,7 +762,7 @@ describe('useRequest', () => {
             refreshOnWindowFocus: true,
           });
 
-          return () => <button onClick={() => run.value()}>{`data:${data.value}`}</button>;
+          return () => <button onClick={() => run()}>{`data:${data.value}`}</button>;
         },
       }),
     );
@@ -800,7 +797,7 @@ describe('useRequest', () => {
             focusTimespan: 3000,
           });
 
-          return () => <button onClick={() => run.value()}>{`data:${data.value}`}</button>;
+          return () => <button onClick={() => run()}>{`data:${data.value}`}</button>;
         },
       }),
     );
@@ -839,24 +836,24 @@ describe('useRequest', () => {
       },
     );
 
-    run.value();
+    run();
     await waitForTime(50);
-    run.value();
+    run();
     await waitForTime(50);
-    run.value();
+    run();
     await waitForTime(50);
-    run.value();
+    run();
 
     await waitForAll();
     expect(mockFn).toHaveBeenCalledTimes(1);
 
-    run.value();
+    run();
     await waitForTime(50);
-    run.value();
+    run();
     await waitForTime(50);
-    run.value();
+    run();
     await waitForTime(50);
-    run.value();
+    run();
 
     await waitForAll();
     expect(mockFn).toHaveBeenCalledTimes(2);
@@ -877,7 +874,7 @@ describe('useRequest', () => {
 
     expect(mockFn).toHaveBeenCalledTimes(1);
 
-    run.value();
+    run();
     await waitForTime(50);
     expect(mockFn).toHaveBeenCalledTimes(1);
 
@@ -899,11 +896,11 @@ describe('useRequest', () => {
       },
     );
 
-    run.value();
+    run();
     await waitForTime(50);
-    run.value();
+    run();
     await waitForTime(50);
-    run.value();
+    run();
 
     await waitForAll();
     expect(mockFn).toHaveBeenCalledTimes(3);
@@ -917,7 +914,7 @@ describe('useRequest', () => {
           cacheKey: 'cacheKey',
           cacheTime: 10000,
         });
-        return () => <button onClick={() => run.value((count += 1))}>{data.value}</button>;
+        return () => <button onClick={() => run((count += 1))}>{data.value}</button>;
       },
     });
 
@@ -960,7 +957,7 @@ describe('useRequest', () => {
           cacheKey: 'cacheKey',
           staleTime: 5000,
         });
-        return () => <button onClick={() => run.value((count += 1))}>{data.value}</button>;
+        return () => <button onClick={() => run((count += 1))}>{data.value}</button>;
       },
     });
     let wrapper = shallowMount(TestComponent);
@@ -1000,13 +997,13 @@ describe('useRequest', () => {
     const ComponentA = defineComponent({
       setup() {
         const { data, run } = useRequest(request);
-        return () => <button onClick={() => run.value()}>{data.value}</button>;
+        return () => <button onClick={() => run()}>{data.value}</button>;
       },
     });
     const ComponentB = defineComponent({
       setup() {
         const { data, run } = useRequest(request);
-        return () => <button onClick={() => run.value()}>{data.value}</button>;
+        return () => <button onClick={() => run()}>{data.value}</button>;
       },
     });
 
@@ -1071,8 +1068,8 @@ describe('useRequest', () => {
               <div id="loading">{loading.value.toString()}</div>
               <ul>
                 {users.map(item => (
-                  <li key={item.id} id={item.username} onClick={() => run.value(item.id)}>
-                    {queries.value[item.id]?.loading ? 'loading' : item.username}
+                  <li key={item.id} id={item.username} onClick={() => run(item.id)}>
+                    {queries[item.id]?.loading ? 'loading' : item.username}
                   </li>
                 ))}
               </ul>
@@ -1119,8 +1116,8 @@ describe('useRequest', () => {
           <div>
             <ul id="child">
               {users.map(item => (
-                <li key={item.id} id={item.username} onClick={() => run.value(item.id)}>
-                  {queries.value[item.id]?.loading ? 'loading' : item.username}
+                <li key={item.id} id={item.username} onClick={() => run(item.id)}>
+                  {queries[item.id]?.loading ? 'loading' : item.username}
                 </li>
               ))}
             </ul>

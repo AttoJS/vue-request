@@ -1,6 +1,6 @@
 import { isNil } from '.';
-import { InnerQueryState } from '../createQuery';
-import { PartialRecord } from './types';
+import { State } from '../createQuery';
+import { UnWrapRefObject } from './types';
 
 type CacheResultType<T> = {
   data: T;
@@ -12,7 +12,7 @@ type CacheKey = string;
 const CACHE_MAP = new Map<CacheKey, CacheResultType<any>>();
 
 export type CacheDataType<R, P extends unknown[]> = {
-  queries?: Record<string, InnerQueryState<R, P>>;
+  queries?: { [key: string]: UnWrapRefObject<State<R, P>> };
   latestQueriesKey?: string;
 };
 
@@ -31,7 +31,7 @@ export const getCache = <R, P extends unknown[]>(cacheKey: CacheKey): GetCacheRe
 
 export const setCache = <R, P extends unknown[]>(
   cacheKey: CacheKey,
-  data: PartialRecord<CacheDataType<R, P>>,
+  data: CacheDataType<R, P>,
   cacheTime: number,
 ) => {
   const oldCache = CACHE_MAP.get(cacheKey);

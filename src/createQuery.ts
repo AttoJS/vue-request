@@ -3,7 +3,8 @@ import throttle from 'lodash/throttle';
 import { nextTick, Ref, ref } from 'vue';
 import { Config } from './config';
 import { Queries } from './useAsyncQuery';
-import { isDocumentVisibilty, isFunction, isNil } from './utils';
+import { isDocumentVisibilty, isFunction, isNil, unRefObject } from './utils';
+import { UnWrapRefObject } from './utils/types';
 type MutateData<R> = (newData: R) => void;
 type MutateFunction<R> = (arg: (oldData: R) => R) => void;
 
@@ -18,25 +19,28 @@ export type State<R, P extends unknown[]> = {
   params: Ref<P>;
 };
 
+// common run resutl | debounce and throttle result
+export type InnerRunReturn<R> = Promise<R | undefined> | Promise<null>;
+
 export type QueryState<R, P extends unknown[]> = State<R, P> & {
   queries: Queries<R, P>;
-  run: (...arg: P) => Promise<R>;
+  run: (...arg: P) => InnerRunReturn<R>;
   cancel: () => void;
-  refresh: () => Promise<R>;
+  refresh: () => InnerRunReturn<R>;
   mutate: Mutate<R>;
 };
 
 export type InnerQueryState<R, P extends unknown[]> = Omit<QueryState<R, P>, 'run' | 'queries'> & {
-  run: (args: P, cb?: () => void) => Promise<R>;
+  run: (args: P, cb?: () => void) => InnerRunReturn<R>;
 };
 
 const resolvedPromise = Promise.resolve(null);
 
-const setStateBind = <T extends { [key: string]: Ref<any> }>(
+const setStateBind = <R, P extends unknown[], T extends State<R, P>>(
   oldState: T,
   publicCb?: Array<(state: T) => void>,
 ) => {
-  return (newState: Partial<{ [K in keyof T]: any }>, cb?: (state: T) => void) => {
+  return (newState: Partial<UnWrapRefObject<State<R, P>>>, cb?: (state: T) => void) => {
     Object.keys(newState).forEach(key => {
       oldState[key].value = newState[key];
     });
@@ -50,8 +54,8 @@ const setStateBind = <T extends { [key: string]: Ref<any> }>(
 const createQuery = <R, P extends unknown[]>(
   query: Query<R, P>,
   config: Config<R, P>,
-  initialState?: State<R, P>,
-) => {
+  initialState?: UnWrapRefObject<State<R, P>>,
+): InnerQueryState<R, P> => {
   const {
     initialAutoRunFlag,
     throwOnError,
@@ -62,22 +66,35 @@ const createQuery = <R, P extends unknown[]>(
     throttleInterval,
     pollingWhenHidden,
     pollingHiddenFlag,
+    queryKey,
+    updateCache,
     formatResult,
     onSuccess,
     onError,
   } = config;
 
-  const loading = ref(initialState?.loading || false);
-  const data = ref(initialState?.data || initialData);
-  const error = ref(initialState?.error || undefined);
-  const params = ref(initialState?.params || (([] as unknown) as P));
+  const loading = ref(initialState?.loading ?? false);
+  const data = ref(initialState?.data ?? initialData) as Ref<R>;
+  const error = ref(initialState?.error ?? undefined);
+  const params = ref(initialState?.params ?? []) as Ref<P>;
 
-  const setState = setStateBind({
-    loading,
-    data,
-    error,
-    params,
-  });
+  const setState = setStateBind(
+    {
+      loading,
+      data,
+      error,
+      params,
+    },
+    [
+      state => {
+        updateCache({
+          queryData: unRefObject(state),
+          key: queryKey?.(...state.params.value),
+        });
+      },
+    ],
+  );
+
   const count = ref(0);
   const pollingTimer = ref();
   const delayLoadingTimer = ref();
@@ -210,7 +227,7 @@ const createQuery = <R, P extends unknown[]>(
   };
 
   const refresh = () => {
-    return run(params.value as P);
+    return run(params.value);
   };
 
   const mutate: Mutate<R> = (

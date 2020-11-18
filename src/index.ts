@@ -1,4 +1,3 @@
-import { toRefs } from 'vue';
 import { BaseOptions } from './config';
 import { Query } from './createQuery';
 import useAsyncQuery from './useAsyncQuery';
@@ -63,7 +62,7 @@ function useRequest<R, P extends unknown[]>(
     throw Error('Unknown service type');
   }
 
-  return toRefs(useAsyncQuery<R, P>(promiseQuery, options));
+  return useAsyncQuery<R, P>(promiseQuery, options);
 }
 
 export { SetGlobalOptions } from './config';

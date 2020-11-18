@@ -5,7 +5,8 @@ declare let jsdom: any;
 
 describe('utils', () => {
   const cacheKey = 'test';
-  const cacheData: PartialRecord<CacheDataType<any, any>> = {
+  const cacheData: CacheDataType<any, any> = {
+    queries: {},
     latestQueriesKey: 'testKey',
   };
   beforeAll(() => {

@@ -1,6 +1,5 @@
 import { ref, Ref } from 'vue';
-import { CacheDataType } from './utils/cache';
-import { PartialRecord } from './utils/types';
+import { UpdateCacheParams } from './useAsyncQuery';
 
 const GLOBAL_OPTIONS: GlobalOptions = {};
 export const SetGlobalOptions = (config: GlobalOptions) => {
@@ -53,7 +52,7 @@ export type Config<R, P extends unknown[]> = Omit<
 > & {
   pollingHiddenFlag: Ref<boolean>;
   initialAutoRunFlag: Ref<boolean>;
-  updateCache: (params: PartialRecord<CacheDataType<R, P>>) => void;
+  updateCache: (params: UpdateCacheParams<R, P>) => void;
 };
 
 const DefaultOptions: BaseOptions<any, any> = {
