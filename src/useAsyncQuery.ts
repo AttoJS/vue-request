@@ -1,4 +1,4 @@
-import { computed, reactive, Ref, ref, toRefs, watch, watchEffect } from 'vue';
+import { computed, reactive, Ref, ref, watch, watchEffect } from 'vue';
 import DefaultOptions, { BaseOptions, Config, GetGlobalOptions } from './config';
 import createQuery, {
   InnerQueryState,
@@ -7,10 +7,10 @@ import createQuery, {
   QueryState,
   State,
 } from './createQuery';
+import { unRefObject } from './utils';
 import { getCache, setCache } from './utils/cache';
 import limitTrigger from './utils/limitTrigger';
 import subscriber from './utils/listener';
-import { UnWrapRefObject } from './utils/types';
 
 export type BaseResult<R, P extends unknown[]> = Omit<QueryState<R, P>, 'run'> & {
   run: (...arg: P) => InnerRunReturn<R> | undefined;
@@ -18,11 +18,6 @@ export type BaseResult<R, P extends unknown[]> = Omit<QueryState<R, P>, 'run'> &
 
 export type Queries<R, P extends unknown[]> = {
   [key: string]: InnerQueryState<R, P>;
-};
-
-export type UpdateCacheParams<R, P extends unknown[]> = {
-  queryData: UnWrapRefObject<State<R, P>>;
-  key?: string;
 };
 
 const QUERY_DEFAULT_KEY = '__QUERY_DEFAULT_KEY__';
@@ -36,29 +31,28 @@ function useAsyncQuery<R, P extends unknown[]>(
   // skip debounce when initail run
   const initialAutoRunFlag = ref(false);
 
-  const updateCache = (params: UpdateCacheParams<R, P>) => {
+  const updateCache = (state: State<R, P>) => {
+    const { cacheKey } = mergeOptions;
     if (!cacheKey) return;
 
-    const cacheData = getCache<R, P>(mergeOptions.cacheKey)?.data;
-    const { queryData, key: currentQueriesKey = QUERY_DEFAULT_KEY } = params;
-
-    const newQuery = {
-      ...cacheData?.queries?.[currentQueriesKey],
-      ...queryData,
-    };
+    const cacheData = getCache<R, P>(cacheKey)?.data;
+    const cacheQueries = cacheData?.queries;
+    const queryData = unRefObject(state);
+    const currentQueryKey = queryKey?.(...state.params.value) ?? QUERY_DEFAULT_KEY;
 
     setCache<R, P>(
-      mergeOptions.cacheKey,
+      cacheKey,
       {
-        queries: { ...cacheData?.queries, [currentQueriesKey]: newQuery },
-        latestQueriesKey: currentQueriesKey ?? cacheData?.latestQueriesKey,
+        queries: {
+          ...cacheQueries,
+          [currentQueryKey]: {
+            ...cacheQueries?.[currentQueryKey],
+            ...queryData,
+          },
+        },
+        latestQueriesKey: currentQueryKey ?? cacheData?.latestQueriesKey,
       },
-      mergeOptions.cacheTime,
-    );
-
-    console.log(
-      'updateCache -> getCache<R, P>(mergeOptions.cacheKey)',
-      getCache<R, P>(mergeOptions.cacheKey),
+      cacheTime,
     );
   };
 
@@ -99,7 +93,6 @@ function useAsyncQuery<R, P extends unknown[]>(
     cacheTime,
     staleTime,
     updateCache,
-    queryKey,
     formatResult,
     onSuccess,
     onError,

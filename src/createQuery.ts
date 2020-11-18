@@ -3,7 +3,7 @@ import throttle from 'lodash/throttle';
 import { nextTick, Ref, ref } from 'vue';
 import { Config } from './config';
 import { Queries } from './useAsyncQuery';
-import { isDocumentVisibilty, isFunction, isNil, unRefObject } from './utils';
+import { isDocumentVisibilty, isFunction, isNil } from './utils';
 import { UnWrapRefObject } from './utils/types';
 type MutateData<R> = (newData: R) => void;
 type MutateFunction<R> = (arg: (oldData: R) => R) => void;
@@ -66,7 +66,6 @@ const createQuery = <R, P extends unknown[]>(
     throttleInterval,
     pollingWhenHidden,
     pollingHiddenFlag,
-    queryKey,
     updateCache,
     formatResult,
     onSuccess,
@@ -85,14 +84,7 @@ const createQuery = <R, P extends unknown[]>(
       error,
       params,
     },
-    [
-      state => {
-        updateCache({
-          queryData: unRefObject(state),
-          key: queryKey?.(...state.params.value),
-        });
-      },
-    ],
+    [state => updateCache(state)],
   );
 
   const count = ref(0);
