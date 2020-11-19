@@ -7,6 +7,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
  */
 const WebpackConfig = {
   mode: 'development',
+  devtool: 'eval-source-map',
   target: 'web',
   entry: {
     app: './example/main.ts',
