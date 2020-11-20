@@ -225,13 +225,10 @@ const createQuery = <R, P extends unknown[]>(
   const mutate: Mutate<R> = (
     x: Parameters<MutateData<R>>[0] | Parameters<MutateFunction<R>>[0],
   ) => {
-    if (isFunction(x)) {
-      // @ts-ignore
-      data.value = x(data.value);
-    } else {
-      // @ts-ignore
-      data.value = x;
-    }
+    const mutateData = isFunction(x) ? x(data.value) : x;
+    setState({
+      data: mutateData,
+    });
   };
 
   const reactiveState = {
