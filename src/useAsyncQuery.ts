@@ -1,4 +1,4 @@
-import { computed, reactive, Ref, ref, watch, watchEffect } from 'vue';
+import { computed, reactive, Ref, ref, shallowReactive, watch, watchEffect } from 'vue';
 import DefaultOptions, { BaseOptions, Config, GetGlobalOptions } from './config';
 import createQuery, {
   InnerQueryState,
@@ -103,7 +103,7 @@ function useAsyncQuery<R, P extends unknown[]>(
   const error = ref<Error | undefined>(undefined);
   const params = ref(([] as unknown) as P) as Ref<P>;
 
-  const queries = reactive<Queries<R, P>>({
+  const queries = shallowReactive<Queries<R, P>>({
     [QUERY_DEFAULT_KEY]: createQuery<R, P>(query, config),
   });
 
@@ -113,10 +113,10 @@ function useAsyncQuery<R, P extends unknown[]>(
 
   watchEffect(
     () => {
-      loading.value = latestQuery.value.loading;
-      data.value = latestQuery.value.data as R;
-      error.value = latestQuery.value.error;
-      params.value = latestQuery.value.params as P;
+      loading.value = latestQuery.value.loading.value;
+      data.value = latestQuery.value.data.value as R;
+      error.value = latestQuery.value.error.value;
+      params.value = latestQuery.value.params.value as P;
     },
     {
       flush: 'sync',

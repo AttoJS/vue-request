@@ -1069,7 +1069,7 @@ describe('useRequest', () => {
               <ul>
                 {users.map(item => (
                   <li key={item.id} id={item.username} onClick={() => run(item.id)}>
-                    {queries[item.id]?.loading ? 'loading' : item.username}
+                    {queries[item.id]?.loading.value ? 'loading' : item.username}
                   </li>
                 ))}
               </ul>
@@ -1117,7 +1117,7 @@ describe('useRequest', () => {
             <ul id="child">
               {users.map(item => (
                 <li key={item.id} id={item.username} onClick={() => run(item.id)}>
-                  {queries[item.id]?.loading ? 'loading' : item.username}
+                  {queries[item.id]?.loading.value ? 'loading' : item.username}
                 </li>
               ))}
             </ul>
