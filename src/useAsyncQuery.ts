@@ -7,13 +7,13 @@ import createQuery, {
   QueryState,
   State,
 } from './createQuery';
-import { unRefObject } from './utils';
+import { unRefObject, resolvedPromise } from './utils';
 import { getCache, setCache } from './utils/cache';
 import limitTrigger from './utils/limitTrigger';
 import subscriber from './utils/listener';
 
 export type BaseResult<R, P extends unknown[]> = Omit<QueryState<R, P>, 'run'> & {
-  run: (...arg: P) => InnerRunReturn<R> | undefined;
+  run: (...arg: P) => InnerRunReturn<R>;
 };
 
 export type Queries<R, P extends unknown[]> = {
@@ -99,9 +99,9 @@ function useAsyncQuery<R, P extends unknown[]>(
   };
 
   const loading = ref(false);
-  const data = ref({}) as Ref<R>;
-  const error = ref<Error | undefined>(undefined);
-  const params = ref(([] as unknown) as P) as Ref<P>;
+  const data = ref<R>();
+  const error = ref<Error>();
+  const params = ref<P>();
 
   const queries = shallowReactive<Queries<R, P>>({
     [QUERY_DEFAULT_KEY]: createQuery<R, P>(query, config),
@@ -111,12 +111,14 @@ function useAsyncQuery<R, P extends unknown[]>(
 
   const latestQuery = computed(() => queries[latestQueriesKey.value]);
 
+  // sync state
+  // TODO: 需要探索一下有没有更优的处理方法
   watchEffect(
     () => {
       loading.value = latestQuery.value.loading.value;
-      data.value = latestQuery.value.data.value as R;
+      data.value = latestQuery.value.data.value;
       error.value = latestQuery.value.error.value;
-      params.value = latestQuery.value.params.value as P;
+      params.value = latestQuery.value.params.value;
     },
     {
       flush: 'sync',
@@ -132,7 +134,6 @@ function useAsyncQuery<R, P extends unknown[]>(
         const cacheQuery = cache.data.queries?.[key];
 
         if (cacheQuery) {
-          // @ts-ignore
           queries[key] = createQuery(query, config, {
             loading: cacheQuery.loading,
             params: cacheQuery.params,
@@ -153,13 +154,12 @@ function useAsyncQuery<R, P extends unknown[]>(
   const run = (...args: P) => {
     if (!ready.value && !hasTriggerReady.value) {
       tempReadyParams.value = args;
-      return;
+      return resolvedPromise;
     }
 
     const newKey = queryKey?.(...args) ?? QUERY_DEFAULT_KEY;
 
     if (!queries[newKey]) {
-      // @ts-ignore
       queries[newKey] = createQuery(query, config);
     }
 
@@ -233,7 +233,6 @@ function useAsyncQuery<R, P extends unknown[]>(
     subscriber('FOCUS_LISTENER', limitRefresh);
   }
 
-  // @ts-ignore
   const queryState = {
     loading,
     data,

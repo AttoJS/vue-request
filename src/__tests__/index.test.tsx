@@ -1,4 +1,3 @@
-// @ts-nocheck
 import FakeTimers from '@sinonjs/fake-timers';
 import { mount, shallowMount } from '@vue/test-utils';
 import fetchMock from 'fetch-mock';

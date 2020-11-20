@@ -27,3 +27,5 @@ export const unRefObject = <T extends RefObject>(val: T) => {
     [K in keyof T]: UnRef<T[K]>;
   };
 };
+
+export const resolvedPromise = Promise.resolve(null);

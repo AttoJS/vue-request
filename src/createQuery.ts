@@ -3,7 +3,7 @@ import throttle from 'lodash/throttle';
 import { nextTick, Ref, ref } from 'vue';
 import { Config } from './config';
 import { Queries } from './useAsyncQuery';
-import { isDocumentVisibilty, isFunction, isNil } from './utils';
+import { isDocumentVisibilty, isFunction, isNil, resolvedPromise } from './utils';
 import { UnWrapRefObject } from './utils/types';
 type MutateData<R> = (newData: R) => void;
 type MutateFunction<R> = (arg: (oldData: R) => R) => void;
@@ -20,7 +20,7 @@ export type State<R, P extends unknown[]> = {
 };
 
 // common run resutl | debounce and throttle result
-export type InnerRunReturn<R> = Promise<R | undefined> | Promise<null>;
+export type InnerRunReturn<R> = Promise<R | null>;
 
 export type QueryState<R, P extends unknown[]> = State<R, P> & {
   queries: Queries<R, P>;
@@ -33,8 +33,6 @@ export type QueryState<R, P extends unknown[]> = State<R, P> & {
 export type InnerQueryState<R, P extends unknown[]> = Omit<QueryState<R, P>, 'run' | 'queries'> & {
   run: (args: P, cb?: () => void) => InnerRunReturn<R>;
 };
-
-const resolvedPromise = Promise.resolve(null);
 
 const setStateBind = <R, P extends unknown[], T extends State<R, P>>(
   oldState: T,
@@ -148,6 +146,7 @@ const createQuery = <R, P extends unknown[]>(
 
           return formattedResult;
         }
+        return resolvedPromise;
       })
       .catch(error => {
         if (currentCount === count.value) {
@@ -166,6 +165,7 @@ const createQuery = <R, P extends unknown[]>(
           console.error(error);
           return Promise.reject('已处理的错误');
         }
+        return resolvedPromise;
       })
       .finally(() => {
         if (currentCount === count.value) {
