@@ -231,7 +231,7 @@ const createQuery = <R, P extends unknown[]>(
     });
   };
 
-  const reactiveState = {
+  return {
     loading,
     data,
     error,
@@ -241,8 +241,6 @@ const createQuery = <R, P extends unknown[]>(
     refresh,
     mutate,
   };
-
-  return reactiveState;
 };
 
 export default createQuery;

@@ -104,7 +104,7 @@ function useAsyncQuery<R, P extends unknown[]>(
   const params = ref<P>();
 
   const queries = shallowReactive<Queries<R, P>>({
-    [QUERY_DEFAULT_KEY]: createQuery<R, P>(query, config),
+    [QUERY_DEFAULT_KEY]: createQuery(query, config),
   });
 
   const latestQueriesKey = ref(QUERY_DEFAULT_KEY);

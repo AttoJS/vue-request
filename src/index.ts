@@ -23,7 +23,7 @@ function requestProxy(...args: unknown[]) {
   });
 }
 
-function useRequest<R, P extends unknown[]>(
+function useRequest<R = any, P extends unknown[] = any>(
   service: IService<R, P>,
   options: BaseOptions<R, P> = {},
 ) {
