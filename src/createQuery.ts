@@ -1,39 +1,46 @@
 import debounce from 'lodash/debounce';
 import throttle from 'lodash/throttle';
-import { nextTick, reactive, ref, toRefs } from 'vue';
+import { nextTick, Ref, ref } from 'vue';
 import { Config } from './config';
 import { Queries } from './useAsyncQuery';
-import { isDocumentVisibilty, isFunction, isNil } from './utils';
+import { isDocumentVisibilty, isFunction, isNil, resolvedPromise } from './utils';
+import { UnWrapRefObject } from './utils/types';
 type MutateData<R> = (newData: R) => void;
 type MutateFunction<R> = (arg: (oldData: R) => R) => void;
 
 // P mean params, R mean Response
 export type Query<R, P extends unknown[]> = (...args: P) => Promise<R>;
 export interface Mutate<R> extends MutateData<R>, MutateFunction<R> {}
+
 export type State<R, P extends unknown[]> = {
-  loading: boolean;
-  data: R | undefined;
-  error: Error | undefined;
-  params: P;
+  loading: Ref<boolean>;
+  data: Ref<R | undefined>;
+  error: Ref<Error | undefined>;
+  params: Ref<P>;
 };
+
+// common run resutl | debounce and throttle result
+export type InnerRunReturn<R> = Promise<R | null>;
+
 export type QueryState<R, P extends unknown[]> = State<R, P> & {
   queries: Queries<R, P>;
-  run: (...arg: P) => Promise<R>;
+  run: (...arg: P) => InnerRunReturn<R>;
   cancel: () => void;
-  refresh: () => Promise<R>;
+  refresh: () => InnerRunReturn<R>;
   mutate: Mutate<R>;
 };
 
 export type InnerQueryState<R, P extends unknown[]> = Omit<QueryState<R, P>, 'run' | 'queries'> & {
-  run: (args: P, cb?: () => void) => Promise<R>;
+  run: (args: P, cb?: () => void) => InnerRunReturn<R>;
 };
 
-const resolvedPromise = Promise.resolve();
-
-const setStateBind = <T>(oldState: T, publicCb?: Array<(state: T) => void>) => {
-  return (newState: Partial<T>, cb?: (state: T) => void) => {
+const setStateBind = <R, P extends unknown[], T extends State<R, P>>(
+  oldState: T,
+  publicCb?: Array<(state: T) => void>,
+) => {
+  return (newState: Partial<UnWrapRefObject<State<R, P>>>, cb?: (state: T) => void) => {
     Object.keys(newState).forEach(key => {
-      oldState[key] = newState[key];
+      oldState[key].value = newState[key];
     });
     nextTick(() => {
       cb?.(oldState);
@@ -45,7 +52,7 @@ const setStateBind = <T>(oldState: T, publicCb?: Array<(state: T) => void>) => {
 const createQuery = <R, P extends unknown[]>(
   query: Query<R, P>,
   config: Config<R, P>,
-  initialState?: State<R, P>,
+  initialState?: UnWrapRefObject<State<R, P>>,
 ): InnerQueryState<R, P> => {
   const {
     initialAutoRunFlag,
@@ -63,14 +70,21 @@ const createQuery = <R, P extends unknown[]>(
     onError,
   } = config;
 
-  const state = reactive({
-    loading: initialState?.loading || false,
-    data: initialState?.data || initialData,
-    error: initialState?.error || undefined,
-    params: initialState?.params || (([] as unknown) as P),
-  }) as State<R, P>;
+  const loading = ref(initialState?.loading ?? false);
+  const data = ref(initialState?.data ?? initialData) as Ref<R>;
+  const error = ref(initialState?.error ?? undefined);
+  const params = ref(initialState?.params ?? []) as Ref<P>;
 
-  const setState = setStateBind(state);
+  const setState = setStateBind(
+    {
+      loading,
+      data,
+      error,
+      params,
+    },
+    [state => updateCache(state)],
+  );
+
   const count = ref(0);
   const pollingTimer = ref();
   const delayLoadingTimer = ref();
@@ -132,6 +146,7 @@ const createQuery = <R, P extends unknown[]>(
 
           return formattedResult;
         }
+        return resolvedPromise;
       })
       .catch(error => {
         if (currentCount === count.value) {
@@ -150,6 +165,7 @@ const createQuery = <R, P extends unknown[]>(
           console.error(error);
           return Promise.reject('已处理的错误');
         }
+        return resolvedPromise;
       })
       .finally(() => {
         if (currentCount === count.value) {
@@ -203,28 +219,28 @@ const createQuery = <R, P extends unknown[]>(
   };
 
   const refresh = () => {
-    return run(state.params!);
+    return run(params.value);
   };
 
   const mutate: Mutate<R> = (
     x: Parameters<MutateData<R>>[0] | Parameters<MutateFunction<R>>[0],
   ) => {
-    if (isFunction(x)) {
-      state.data = x(state.data!);
-    } else {
-      state.data = x;
-    }
+    const mutateData = isFunction(x) ? x(data.value) : x;
+    setState({
+      data: mutateData,
+    });
   };
 
-  const reactiveState = reactive({
-    ...toRefs(state),
+  return {
+    loading,
+    data,
+    error,
+    params,
     run,
     cancel,
     refresh,
     mutate,
-  }) as InnerQueryState<R, P>;
-
-  return reactiveState;
+  };
 };
 
 export default createQuery;

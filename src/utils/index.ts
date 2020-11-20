@@ -1,3 +1,6 @@
+import { unref } from 'vue';
+import { RefObject, UnRef } from './types';
+
 export const objectToString = Object.prototype.toString;
 export const toTypeString = (val: unknown): string => objectToString.call(val);
 
@@ -12,3 +15,17 @@ export const isFunction = (fn: unknown): fn is Function => fn instanceof Functio
 export const isNil = (val: unknown) => val === null || val === undefined;
 
 export const isDocumentVisibilty = () => window?.document?.visibilityState === 'visible';
+
+export const unRefObject = <T extends RefObject>(val: T) => {
+  const obj = {};
+
+  Object.keys(val).forEach(key => {
+    obj[key] = unref(val[key]);
+  });
+
+  return obj as {
+    [K in keyof T]: UnRef<T[K]>;
+  };
+};
+
+export const resolvedPromise = Promise.resolve(null);

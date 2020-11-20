@@ -1,6 +1,5 @@
 import { ref, Ref } from 'vue';
-import { CacheDataType } from './utils/cache';
-import { PartialRecord } from './utils/types';
+import { State } from './createQuery';
 
 const GLOBAL_OPTIONS: GlobalOptions = {};
 export const SetGlobalOptions = (config: GlobalOptions) => {
@@ -49,11 +48,11 @@ export type BaseOptions<R, P extends unknown[]> = GlobalOptions & {
 
 export type Config<R, P extends unknown[]> = Omit<
   BaseOptions<R, P>,
-  'defaultParams' | 'manual' | 'ready' | 'refreshDeps'
+  'defaultParams' | 'manual' | 'ready' | 'refreshDeps' | 'queryKey'
 > & {
   pollingHiddenFlag: Ref<boolean>;
   initialAutoRunFlag: Ref<boolean>;
-  updateCache: (params: PartialRecord<CacheDataType<R, P>>) => void;
+  updateCache: (state: State<R, P>) => void;
 };
 
 const DefaultOptions: BaseOptions<any, any> = {
