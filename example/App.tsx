@@ -15,7 +15,7 @@ export default defineComponent({
     const { run, data, loading } = useRequest(testService);
     return () => (
       <div>
-        <button onClick={() => run.value()}>run</button>
+        <button onClick={() => run()}>run</button>
         <br />
         {loading.value ? 'loading...' : data.value}
       </div>
