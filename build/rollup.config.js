@@ -4,9 +4,6 @@ import resolve from '@rollup/plugin-node-resolve';
 import { terser } from 'rollup-plugin-terser';
 import typescript2 from 'rollup-plugin-typescript2';
 
-// append to the end
-const appendToIIFE = `VueRequest.default.SetGlobalOptions = VueRequest.SetGlobalOptions; VueRequest = VueRequest.default;`;
-
 /**
  * @type { import('rollup').RollupOptions }
  */
@@ -28,8 +25,8 @@ const RollUpConfig = {
       file: './dist/vue-request.min.js',
       format: 'iife',
       exports: 'named',
+      extend: true,
       plugins: [terser()],
-      footer: appendToIIFE,
       globals: {
         vue: 'Vue',
       },
