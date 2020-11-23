@@ -1,6 +1,6 @@
-import { BaseOptions } from './core/config';
+import { BaseOptions, FormatOptions, MixinOptions } from './core/config';
 import { Query } from './core/createQuery';
-import useAsyncQuery from './core/useAsyncQuery';
+import useAsyncQuery, { BaseResult } from './core/useAsyncQuery';
 import { isFunction, isPlainObject, isPromise, isString } from './core/utils';
 
 export type ServiceObject = {
@@ -23,9 +23,18 @@ function requestProxy(...args: unknown[]) {
   });
 }
 
-function useRequest<R = any, P extends unknown[] = any>(
+function useRequest<R, P extends unknown[] = any>(service: IService<R, P>): BaseResult<R, P>;
+function useRequest<R, P extends unknown[] = any, FR = any>(
   service: IService<R, P>,
-  options: BaseOptions<R, P> = {},
+  options: FormatOptions<R, P, FR>,
+): BaseResult<FR, P>;
+function useRequest<R, P extends unknown[]>(
+  service: IService<R, P>,
+  options: BaseOptions<R, P>,
+): BaseResult<R, P>;
+function useRequest<R, P extends unknown[], FR>(
+  service: IService<R, P>,
+  options?: MixinOptions<R, P, FR>,
 ) {
   const requestMethod = requestProxy;
 
@@ -62,7 +71,7 @@ function useRequest<R = any, P extends unknown[] = any>(
     throw Error('Unknown service type');
   }
 
-  return useAsyncQuery<R, P>(promiseQuery, options);
+  return useAsyncQuery<R, P, FR>(promiseQuery, (options ?? {}) as any);
 }
 
 export default useRequest;

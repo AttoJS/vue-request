@@ -1,5 +1,5 @@
 import { computed, ref, shallowReactive, watch, watchEffect } from 'vue';
-import DefaultOptions, { BaseOptions, Config, getGlobalOptions } from './config';
+import { BaseOptions, Config, getGlobalOptions, MixinOptions, FormatOptions } from './config';
 import createQuery, {
   InnerQueryState,
   InnerRunReturn,
@@ -22,17 +22,46 @@ export type Queries<R, P extends unknown[]> = {
 
 const QUERY_DEFAULT_KEY = '__QUERY_DEFAULT_KEY__';
 
+function useAsyncQuery<R, P extends unknown[], FR>(
+  query: Query<R, P>,
+  options: FormatOptions<R, P, FR>,
+): BaseResult<FR, P>;
 function useAsyncQuery<R, P extends unknown[]>(
   query: Query<R, P>,
   options: BaseOptions<R, P>,
-): BaseResult<R, P> {
-  const mergeOptions = { ...DefaultOptions, ...getGlobalOptions(), ...options };
+): BaseResult<R, P>;
+function useAsyncQuery<R, P extends unknown[], FR>(
+  query: Query<R, P>,
+  options: MixinOptions<R, P, FR>,
+) {
+  const {
+    initialData,
+    pollingInterval,
+    debounceInterval,
+    throttleInterval,
+    cacheKey,
+    defaultParams = ([] as unknown) as P,
+    manual = false,
+    ready = ref(true),
+    refreshDeps = [],
+    throwOnError = false,
+    loadingDelay = 0,
+    pollingWhenHidden = false,
+    refreshOnWindowFocus = false,
+    focusTimespan = 5000,
+    cacheTime = 10000,
+    staleTime = 0,
+    queryKey,
+    formatResult,
+    onSuccess,
+    onError,
+  } = { ...getGlobalOptions(), ...options };
+
   const pollingHiddenFlag = ref(false);
   // skip debounce when initail run
   const initialAutoRunFlag = ref(false);
 
   const updateCache = (state: State<R, P>) => {
-    const { cacheKey } = mergeOptions;
     if (!cacheKey) return;
 
     const cacheData = getCache<R, P>(cacheKey)?.data;
@@ -56,30 +85,7 @@ function useAsyncQuery<R, P extends unknown[]>(
     );
   };
 
-  const {
-    initialData,
-    defaultParams,
-    manual,
-    ready,
-    refreshDeps,
-    throwOnError,
-    loadingDelay,
-    pollingInterval,
-    pollingWhenHidden,
-    debounceInterval,
-    throttleInterval,
-    refreshOnWindowFocus,
-    focusTimespan,
-    cacheKey,
-    cacheTime,
-    staleTime,
-    queryKey,
-    formatResult,
-    onSuccess,
-    onError,
-  } = mergeOptions;
-
-  const config: Config<R, P> = {
+  const config = {
     initialAutoRunFlag,
     initialData,
     loadingDelay,
@@ -96,7 +102,7 @@ function useAsyncQuery<R, P extends unknown[]>(
     formatResult,
     onSuccess,
     onError,
-  };
+  } as Config<R, P>;
 
   const loading = ref(false);
   const data = ref<R>();
@@ -172,7 +178,8 @@ function useAsyncQuery<R, P extends unknown[]>(
   if (!manual) {
     initialAutoRunFlag.value = true;
 
-    const cache = getCache<R, P>(cacheKey);
+    // TODO: need refactor
+    const cache = getCache<R, P>(cacheKey!);
     const cacheQueries = cache?.data.queries ?? {};
 
     const isFresh =
