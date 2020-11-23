@@ -5,9 +5,9 @@ import {
   isPlainObject,
   isPromise,
   isString,
-} from '../utils';
-import limitTrigger from '../utils/limitTrigger';
-import subscriber from '../utils/listener';
+} from '../core/utils';
+import limitTrigger from '../core/utils/limitTrigger';
+import subscriber from '../core/utils/listener';
 import { waitForTime } from './utils';
 declare let jsdom: any;
 

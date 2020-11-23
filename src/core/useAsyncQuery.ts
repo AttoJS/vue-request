@@ -1,5 +1,5 @@
-import { computed, reactive, Ref, ref, shallowReactive, watch, watchEffect } from 'vue';
-import DefaultOptions, { BaseOptions, Config, GetGlobalOptions } from './config';
+import { computed, ref, shallowReactive, watch, watchEffect } from 'vue';
+import DefaultOptions, { BaseOptions, Config, getGlobalOptions } from './config';
 import createQuery, {
   InnerQueryState,
   InnerRunReturn,
@@ -26,7 +26,7 @@ function useAsyncQuery<R, P extends unknown[]>(
   query: Query<R, P>,
   options: BaseOptions<R, P>,
 ): BaseResult<R, P> {
-  const mergeOptions = { ...DefaultOptions, ...GetGlobalOptions(), ...options };
+  const mergeOptions = { ...DefaultOptions, ...getGlobalOptions(), ...options };
   const pollingHiddenFlag = ref(false);
   // skip debounce when initail run
   const initialAutoRunFlag = ref(false);

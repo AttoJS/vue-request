@@ -2,9 +2,9 @@ import FakeTimers from '@sinonjs/fake-timers';
 import { mount, shallowMount } from '@vue/test-utils';
 import fetchMock from 'fetch-mock';
 import { defineComponent, ref } from 'vue';
-import useRequest from '..';
-import { ClearGlobalOptions, SetGlobalOptions } from '../config';
-import { clearCache } from '../utils/cache';
+import { useRequest } from '../index';
+import { clearGlobalOptions, setGlobalOptions } from '../core/config';
+import { clearCache } from '../core/utils/cache';
 import { waitForAll, waitForTime } from './utils';
 declare let jsdom: any;
 
@@ -30,7 +30,7 @@ describe('useRequest', () => {
     // clear cache
     clearCache();
     // clear global options
-    ClearGlobalOptions();
+    clearGlobalOptions();
   });
 
   afterEach(() => {
@@ -1006,7 +1006,7 @@ describe('useRequest', () => {
       },
     });
 
-    SetGlobalOptions({ manual: true });
+    setGlobalOptions({ manual: true });
     let wrapperA = shallowMount(ComponentA);
     let wrapperB = shallowMount(ComponentB);
 
@@ -1022,7 +1022,7 @@ describe('useRequest', () => {
     expect(wrapperB.find('button').text()).toBe('success');
 
     // clear global options
-    ClearGlobalOptions();
+    clearGlobalOptions();
     wrapperA = shallowMount(ComponentA);
     wrapperB = shallowMount(ComponentB);
 

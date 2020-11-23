@@ -1,4 +1,4 @@
-import { isNil } from '.';
+import { isNil } from './index';
 import { State } from '../createQuery';
 import { UnWrapRefObject } from './types';
 

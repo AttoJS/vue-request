@@ -2,17 +2,17 @@ import { ref, Ref } from 'vue';
 import { State } from './createQuery';
 
 const GLOBAL_OPTIONS: GlobalOptions = {};
-export const SetGlobalOptions = (config: GlobalOptions) => {
+export const setGlobalOptions = (config: GlobalOptions) => {
   Object.keys(config).forEach(key => {
     GLOBAL_OPTIONS[key] = config[key];
   });
 };
 
-export const GetGlobalOptions = () => {
+export const getGlobalOptions = () => {
   return GLOBAL_OPTIONS;
 };
 
-export const ClearGlobalOptions = () => {
+export const clearGlobalOptions = () => {
   Object.keys(GLOBAL_OPTIONS).forEach(key => {
     delete GLOBAL_OPTIONS[key];
   });
