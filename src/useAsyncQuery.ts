@@ -33,7 +33,7 @@ function useAsyncQuery<R, P extends unknown[]>(
 function useAsyncQuery<R, P extends unknown[], FR>(
   query: Query<R, P>,
   options: MixinOptions<R, P, FR>,
-): BaseResult<R, P> | BaseResult<FR, P> {
+) {
   const {
     initialData,
     pollingInterval,
