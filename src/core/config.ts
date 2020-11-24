@@ -1,4 +1,4 @@
-import { ref, Ref } from 'vue';
+import { Ref } from 'vue';
 import { State } from './createQuery';
 
 const GLOBAL_OPTIONS: GlobalOptions = {};
@@ -27,7 +27,7 @@ export type GlobalOptions = {
   refreshOnWindowFocus?: boolean;
   focusTimespan?: number;
   cacheTime?: number;
-  // -1 mean cache is allway vaild
+  // -1 means the cache is always valid
   staleTime?: number;
   throwOnError?: boolean;
   manual?: boolean;

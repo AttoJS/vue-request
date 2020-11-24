@@ -306,7 +306,10 @@ describe('useRequest', () => {
     const wrapper = shallowMount(
       defineComponent({
         setup() {
-          const { run } = useRequest(failedRequest, { manual: true, onError: mockErrorCallback });
+          const { run } = useRequest(failedRequest, {
+            manual: true,
+            onError: mockErrorCallback,
+          });
           const handleClick = () => run().catch(() => {}); // catch is needed or the node.js will be crash
           return () => <button onClick={handleClick}></button>;
         },
@@ -614,7 +617,9 @@ describe('useRequest', () => {
     const wrapper = shallowMount(
       defineComponent({
         setup() {
-          const { data, run, cancel } = useRequest(failedRequest, { manual: true });
+          const { data, run, cancel } = useRequest(failedRequest, {
+            manual: true,
+          });
           return () => (
             <div>
               <button id="run" onClick={() => run().catch(() => {})}></button>;
@@ -702,13 +707,19 @@ describe('useRequest', () => {
     await waitForTime(2000);
     expect(wrapper.vm.$el.textContent).toBe('data:2');
     // mock tab hide
-    Object.defineProperty(document, 'visibilityState', { value: 'hidden', writable: true });
+    Object.defineProperty(document, 'visibilityState', {
+      value: 'hidden',
+      writable: true,
+    });
     await waitForTime(2000);
     expect(wrapper.vm.$el.textContent).toBe('data:3');
     await waitForTime(2000);
     expect(wrapper.vm.$el.textContent).toBe('data:3');
     // mock tab show
-    Object.defineProperty(document, 'visibilityState', { value: 'visible', writable: true });
+    Object.defineProperty(document, 'visibilityState', {
+      value: 'visible',
+      writable: true,
+    });
     jsdom.window.dispatchEvent(new Event('visibilitychange'));
     await waitForTime(1000);
     expect(wrapper.vm.$el.textContent).toBe('data:4');
@@ -737,13 +748,19 @@ describe('useRequest', () => {
     await waitForTime(2000);
     expect(wrapper.vm.$el.textContent).toBe('data:2');
     // mock tab hide
-    Object.defineProperty(document, 'visibilityState', { value: 'hidden', writable: true });
+    Object.defineProperty(document, 'visibilityState', {
+      value: 'hidden',
+      writable: true,
+    });
     await waitForTime(2000);
     expect(wrapper.vm.$el.textContent).toBe('data:3');
     await waitForTime(2000);
     expect(wrapper.vm.$el.textContent).toBe('data:4');
     // mock tab show
-    Object.defineProperty(document, 'visibilityState', { value: 'visible', writable: true });
+    Object.defineProperty(document, 'visibilityState', {
+      value: 'visible',
+      writable: true,
+    });
     jsdom.window.dispatchEvent(new Event('visibilitychange'));
     await waitForTime(1000);
     // because pollingWhenHidden is true, so refresh never trigger
@@ -1125,17 +1142,19 @@ describe('useRequest', () => {
       },
     });
 
-    const Parent = mount({
-      props: {
-        show: {
-          type: Boolean,
-          default: false,
+    const Parent = mount(
+      defineComponent({
+        props: {
+          show: {
+            type: Boolean,
+            default: false,
+          },
         },
-      },
-      setup(props) {
-        return () => <div>{props.show && <Child />}</div>;
-      },
-    });
+        setup(props) {
+          return () => <div>{props.show && <Child />}</div>;
+        },
+      }),
+    );
 
     await Parent.setProps({
       show: true,

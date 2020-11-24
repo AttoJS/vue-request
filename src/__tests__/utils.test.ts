@@ -32,11 +32,11 @@ describe('utils', () => {
 
   test('isPromise should work', () => {
     expect(isPromise(Promise.resolve())).toBe(true);
-    expect(isPromise(function() {})).toBe(false);
+    expect(isPromise(function () {})).toBe(false);
   });
 
   test('isPromise should work', () => {
-    expect(isFunction(function() {})).toBe(true);
+    expect(isFunction(function () {})).toBe(true);
     expect(isFunction(() => {})).toBe(true);
     expect(isFunction('')).toBe(false);
   });
@@ -80,7 +80,10 @@ describe('utils', () => {
 
   test('isDocumentVisibilty should work', () => {
     expect(isDocumentVisibilty()).toBeTruthy();
-    Object.defineProperty(document, 'visibilityState', { value: 'hidden', writable: true });
+    Object.defineProperty(document, 'visibilityState', {
+      value: 'hidden',
+      writable: true,
+    });
     expect(isDocumentVisibilty()).toBeFalsy();
   });
 });

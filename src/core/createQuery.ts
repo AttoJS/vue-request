@@ -8,7 +8,7 @@ import { UnWrapRefObject } from './utils/types';
 type MutateData<R> = (newData: R) => void;
 type MutateFunction<R> = (arg: (oldData: R) => R) => void;
 
-// P mean params, R mean Response
+// P means params, R means Response
 export type Query<R, P extends unknown[]> = (...args: P) => Promise<R>;
 export interface Mutate<R> extends MutateData<R>, MutateFunction<R> {}
 

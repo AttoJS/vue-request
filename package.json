@@ -13,7 +13,8 @@
     "build": "yarn clean && rollup --config ./build/rollup.config.js",
     "dev": "webpack serve --config ./build/webpack.config.js",
     "clean": "rimraf dist/*",
-    "test": "jest --coverage"
+    "test": "jest --coverage",
+    "lint": "eslint -c ./.eslintrc.js './{src,scripts,build}/**/*.{js,ts,tsx}'"
   },
   "husky": {
     "hooks": {
@@ -40,13 +41,13 @@
     "@types/jest": "^26.0.15",
     "@types/lodash": "^4.14.165",
     "@types/sinonjs__fake-timers": "^6.0.2",
-    "@typescript-eslint/eslint-plugin": "^4.7.0",
-    "@typescript-eslint/parser": "^4.7.0",
+    "@typescript-eslint/eslint-plugin": "^4.8.2",
+    "@typescript-eslint/parser": "^4.8.2",
     "@vue/babel-plugin-jsx": "^1.0.0-rc.3",
     "@vue/test-utils": "^2.0.0-beta.8",
     "babel-jest": "^26.6.0",
     "babel-loader": "^8.2.1",
-    "eslint": "^6.7.2",
+    "eslint": "^7.14.0",
     "eslint-config-prettier": "^6.15.0",
     "eslint-plugin-prettier": "^3.1.4",
     "eslint-plugin-vue": "^7.0.0-0",
@@ -57,7 +58,7 @@
     "jest-environment-jsdom-global": "^2.0.4",
     "lodash": "^4.17.20",
     "node-fetch": "^2.6.1",
-    "prettier": "^1.19.1",
+    "prettier": "^2.2.0",
     "rimraf": "^3.0.2",
     "rollup": "^2.33.1",
     "rollup-plugin-terser": "^7.0.2",
