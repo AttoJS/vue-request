@@ -94,7 +94,25 @@ const createQuery = <R, P extends unknown[]>(
 
   const count = ref(0);
   const pollingTimer = ref();
+  const retryTimer = ref();
   const delayLoadingTimer = ref();
+
+  const clearAllTimer = () => {
+    // clear pollingTimer
+    if (pollingTimer.value) {
+      pollingTimer.value();
+    }
+
+    // clear delayLoadingTimer
+    if (delayLoadingTimer.value) {
+      delayLoadingTimer.value();
+    }
+
+    // clear retryTimer
+    if (retryTimer.value) {
+      retryTimer.value();
+    }
+  };
 
   const delayLoading = () => {
     let timerId: number;
@@ -126,11 +144,13 @@ const createQuery = <R, P extends unknown[]>(
   };
 
   const errorRetryHooks = (retryFunc: () => void) => {
+    let timerId: number;
     // if errorRetryCount is -1, it will retry the request until it success
     if (error.value && (errorRetryCount === -1 || retriedCount < errorRetryCount!)) {
       retriedCount += 1;
-      setTimeout(retryFunc, errorRetryInterval);
+      timerId = setTimeout(retryFunc, errorRetryInterval);
     }
+    return () => timerId && clearTimeout(timerId);
   };
 
   const _run = (args: P, cb?: () => void) => {
@@ -186,7 +206,7 @@ const createQuery = <R, P extends unknown[]>(
           delayLoadingTimer.value();
 
           // retry
-          errorRetryHooks(() => _run(args, cb));
+          retryTimer.value = errorRetryHooks(() => _run(args, cb));
 
           // run for polling
           pollingTimer.value = polling(() => _run(args, cb));
@@ -198,6 +218,7 @@ const createQuery = <R, P extends unknown[]>(
   const throttledRun = !isNil(throttleInterval) && throttle(_run, throttleInterval);
 
   const run = (args: P, cb?: () => void) => {
+    clearAllTimer();
     // initial auto run should not debounce
     if (!initialAutoRunFlag.value && debouncedRun) {
       debouncedRun(args, cb);
@@ -224,15 +245,7 @@ const createQuery = <R, P extends unknown[]>(
       throttledRun.cancel();
     }
 
-    // clear pollingTimer
-    if (pollingTimer.value) {
-      pollingTimer.value();
-    }
-
-    // clear delayLoadingTimer
-    if (delayLoadingTimer.value) {
-      delayLoadingTimer.value();
-    }
+    clearAllTimer();
   };
 
   const refresh = () => {
