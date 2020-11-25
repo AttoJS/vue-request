@@ -56,7 +56,6 @@ const createQuery = <R, P extends unknown[]>(
 ): InnerQueryState<R, P> => {
   const {
     initialAutoRunFlag,
-    throwOnError,
     initialData,
     loadingDelay,
     pollingInterval,
@@ -159,17 +158,14 @@ const createQuery = <R, P extends unknown[]>(
             onError(error, args);
           }
 
-          if (throwOnError) {
-            throw error;
-          }
           console.error(error);
-          return Promise.reject('已处理的错误');
         }
         return resolvedPromise;
       })
       .finally(() => {
         if (currentCount === count.value) {
           cb?.();
+
           // clear delayLoadingTimer
           delayLoadingTimer.value();
           // run for polling

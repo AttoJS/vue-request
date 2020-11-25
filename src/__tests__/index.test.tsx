@@ -244,7 +244,7 @@ describe('useRequest', () => {
       defineComponent({
         setup() {
           const { run } = useRequest(failedRequest, { manual: true });
-          const handleClick = () => run().catch(() => {}); // catch is needed or the node.js will be crash
+          const handleClick = () => run();
           return () => <button onClick={handleClick}></button>;
         },
       }),
@@ -252,31 +252,6 @@ describe('useRequest', () => {
     await wrapper.find('button').trigger('click');
     await waitForAll();
     expect(console.error).toHaveBeenCalledWith(new Error('fail'));
-  });
-
-  test('request error can be handle by user', async () => {
-    let errorText = '';
-
-    const wrapper = shallowMount(
-      defineComponent({
-        setup() {
-          const { run } = useRequest(failedRequest, { manual: true, throwOnError: true });
-
-          return () => (
-            <button
-              onClick={() =>
-                run().catch((err: Error) => {
-                  errorText = err.message;
-                })
-              }
-            ></button>
-          );
-        },
-      }),
-    );
-    await wrapper.find('button').trigger('click');
-    await waitForAll();
-    expect(errorText).toBe('fail');
   });
 
   test('onSuccess should work', async () => {
@@ -289,7 +264,7 @@ describe('useRequest', () => {
             manual: true,
             onSuccess: mockSuccessCallback,
           });
-          const handleClick = () => run().catch(() => {}); // catch is needed or the node.js will be crash
+          const handleClick = () => run();
           return () => <button onClick={handleClick}></button>;
         },
       }),
@@ -310,7 +285,7 @@ describe('useRequest', () => {
             manual: true,
             onError: mockErrorCallback,
           });
-          const handleClick = () => run().catch(() => {}); // catch is needed or the node.js will be crash
+          const handleClick = () => run();
           return () => <button onClick={handleClick}></button>;
         },
       }),

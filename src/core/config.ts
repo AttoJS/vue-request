@@ -29,7 +29,6 @@ export type GlobalOptions = {
   cacheTime?: number;
   // -1 means the cache is always valid
   staleTime?: number;
-  throwOnError?: boolean;
   manual?: boolean;
 };
 
