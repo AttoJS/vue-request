@@ -63,12 +63,15 @@ const createQuery = <R, P extends unknown[]>(
     throttleInterval,
     pollingWhenHidden,
     pollingHiddenFlag,
+    errorRetryCount,
+    errorRetryInterval,
     updateCache,
     formatResult,
     onSuccess,
     onError,
   } = config;
 
+  let retriedCount = 0;
   const loading = ref(initialState?.loading ?? false);
   const data = ref(initialState?.data ?? initialData) as Ref<R>;
   const error = ref(initialState?.error ?? undefined);
@@ -83,6 +86,11 @@ const createQuery = <R, P extends unknown[]>(
     },
     [state => updateCache(state)],
   );
+
+  // reset retried count
+  const resetRetiredCount = () => {
+    retriedCount = 0;
+  };
 
   const count = ref(0);
   const pollingTimer = ref();
@@ -101,6 +109,9 @@ const createQuery = <R, P extends unknown[]>(
   };
 
   const polling = (pollingFunc: () => void) => {
+    // if errorRetry is enabled, then skip this method
+    if (errorRetryCount !== 0) return;
+
     let timerId: number;
     if (!isNil(pollingInterval) && pollingInterval! >= 0) {
       // stop polling
@@ -112,6 +123,14 @@ const createQuery = <R, P extends unknown[]>(
     }
 
     return () => timerId && clearTimeout(timerId);
+  };
+
+  const errorRetryHooks = (retryFunc: () => void) => {
+    // if errorRetryCount is -1, it will retry the request until it success
+    if (error.value && (errorRetryCount === -1 || retriedCount < errorRetryCount!)) {
+      retriedCount += 1;
+      setTimeout(retryFunc, errorRetryInterval);
+    }
   };
 
   const _run = (args: P, cb?: () => void) => {
@@ -139,6 +158,7 @@ const createQuery = <R, P extends unknown[]>(
             onSuccess(formattedResult, args);
           }
 
+          resetRetiredCount();
           return formattedResult;
         }
         return resolvedPromise;
@@ -164,6 +184,10 @@ const createQuery = <R, P extends unknown[]>(
 
           // clear delayLoadingTimer
           delayLoadingTimer.value();
+
+          // retry
+          errorRetryHooks(() => _run(args, cb));
+
           // run for polling
           pollingTimer.value = polling(() => _run(args, cb));
         }
@@ -184,6 +208,7 @@ const createQuery = <R, P extends unknown[]>(
       throttledRun(args, cb);
       return resolvedPromise;
     }
+    resetRetiredCount();
 
     return _run(args, cb);
   };

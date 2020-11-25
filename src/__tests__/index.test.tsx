@@ -452,11 +452,8 @@ describe('useRequest', () => {
             <button
               onClick={async () => {
                 readyRef.value = !readyRef.value;
-
-                // setTimeout(() => {
                 count.value += 1;
                 run(count.value);
-                // }, 50);
               }}
             >{`data:${data.value}`}</button>
           );
@@ -1167,6 +1164,160 @@ describe('useRequest', () => {
       const userName = users[i].username;
 
       expect(Parent.find(`#${userName}`).text()).toBe(userName);
+    }
+  });
+
+  test('errorRetry should work. case 1', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { run, loading } = useRequest(failedRequest, {
+            manual: true,
+            errorRetryCount: 2,
+            errorRetryInterval: 1000,
+          });
+          const handleClick = () => run();
+          return () => <button onClick={handleClick}>{`${loading.value}`}</button>;
+        },
+      }),
+    );
+
+    for (let oIndex = 0; oIndex < 100; oIndex++) {
+      await wrapper.find('button').trigger('click');
+      expect(wrapper.text()).toBe('true');
+      await waitForTime(1000);
+      expect(wrapper.text()).toBe('false');
+
+      // retrying
+      for (let index = 0; index < 2; index++) {
+        await waitForTime(1000);
+        expect(wrapper.text()).toBe('true');
+        await waitForTime(1000);
+        expect(wrapper.text()).toBe('false');
+      }
+
+      // stop retry
+      await waitForTime(1000);
+      expect(wrapper.text()).toBe('false');
+    }
+  });
+
+  test('errorRetry should work. case 2', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { loading, cancel } = useRequest(failedRequest, {
+            errorRetryCount: 3,
+            errorRetryInterval: 1000,
+          });
+          return () => <button onClick={() => cancel()}>{`${loading.value}`}</button>;
+        },
+      }),
+    );
+    expect(wrapper.text()).toBe('true');
+    await waitForTime(1000);
+    expect(wrapper.text()).toBe('false');
+    // first retry
+    await waitForTime(1000);
+    expect(wrapper.text()).toBe('true');
+    await waitForTime(1000);
+    expect(wrapper.text()).toBe('false');
+
+    // second retry
+    await waitForTime(1000);
+    expect(wrapper.text()).toBe('true');
+
+    // trigger cancel
+    await wrapper.find('button').trigger('click');
+    expect(wrapper.text()).toBe('false');
+    await waitForTime(1000);
+    expect(wrapper.text()).toBe('false');
+  });
+
+  test('errorRetry should work with pollingInterval', async () => {
+    let flag = false;
+    const mixinRequest = () => {
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          if (flag) {
+            resolve('success');
+          } else {
+            reject(new Error('fail'));
+          }
+        }, 1000);
+      });
+    };
+    flag = false;
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { loading, error } = useRequest(mixinRequest, {
+            errorRetryCount: 3,
+            errorRetryInterval: 1000,
+            pollingInterval: 1000,
+          });
+          return () => <button>{`${loading.value || error.value?.message}`}</button>;
+        },
+      }),
+    );
+    // initial run
+    expect(wrapper.text()).toBe('true');
+    await waitForTime(1000);
+    expect(wrapper.text()).toBe('fail');
+
+    // retrying
+    for (let index = 0; index < 3; index++) {
+      await waitForTime(1000);
+      expect(wrapper.text()).toBe('true');
+      await waitForTime(1000);
+      expect(wrapper.text()).toBe('fail');
+    }
+
+    // stop retry
+    await waitForTime(1000);
+    expect(wrapper.text()).toBe('fail');
+  });
+
+  test('pollingInterval allway receive a failed request', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { loading, error } = useRequest(failedRequest, {
+            pollingInterval: 1000,
+          });
+          return () => <button>{`${loading.value || error.value?.message}`}</button>;
+        },
+      }),
+    );
+
+    for (let index = 0; index < 1000; index++) {
+      expect(wrapper.text()).toBe('true');
+      await waitForTime(1000);
+      expect(wrapper.text()).toBe('fail');
+      await waitForTime(1000);
+    }
+  });
+
+  test('pollingInterval allway receive a failed request and errorRetryCount is -1', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { loading, error } = useRequest(failedRequest, {
+            errorRetryCount: -1,
+            pollingInterval: 1000,
+            errorRetryInterval: 500,
+          });
+          return () => <button>{`${loading.value || error.value?.message}`}</button>;
+        },
+      }),
+    );
+
+    for (let index = 0; index < 1000; index++) {
+      expect(wrapper.text()).toBe('true');
+      await waitForTime(1000);
+      expect(wrapper.text()).toBe('fail');
+      await waitForTime(500);
+      expect(wrapper.text()).toBe('true');
     }
   });
 });
