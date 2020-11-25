@@ -92,11 +92,9 @@ const createQuery = <R, P extends unknown[]>(
     let timerId: number;
 
     if (loadingDelay) {
-      timerId = setTimeout(() => {
-        setState({
-          loading: true,
-        });
-      }, loadingDelay);
+      timerId = setTimeout(setState, loadingDelay, {
+        loading: true,
+      });
     }
 
     return () => timerId && clearTimeout(timerId);
@@ -110,9 +108,7 @@ const createQuery = <R, P extends unknown[]>(
         pollingHiddenFlag.value = true;
         return;
       }
-      timerId = setTimeout(() => {
-        pollingFunc();
-      }, pollingInterval);
+      timerId = setTimeout(pollingFunc, pollingInterval);
     }
 
     return () => timerId && clearTimeout(timerId);
