@@ -127,8 +127,8 @@ const createQuery = <R, P extends unknown[]>(
   };
 
   const polling = (pollingFunc: () => void) => {
-    // if errorRetry is enabled, then skip this method
-    if (errorRetryCount !== 0) return;
+    // if errorRetry is enabled and retriedCount less than errorRetryCount, then skip this method
+    if (errorRetryCount !== 0 && retriedCount >= errorRetryCount!) return;
 
     let timerId: number;
     if (!isNil(pollingInterval) && pollingInterval! >= 0) {
@@ -147,7 +147,7 @@ const createQuery = <R, P extends unknown[]>(
     let timerId: number;
     // if errorRetryCount is -1, it will retry the request until it success
     if (error.value && (errorRetryCount === -1 || retriedCount < errorRetryCount!)) {
-      retriedCount += 1;
+      retriedCount = errorRetryCount === -1 ? -1 : retriedCount + 1;
       timerId = setTimeout(retryFunc, errorRetryInterval);
     }
     return () => timerId && clearTimeout(timerId);

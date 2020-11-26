@@ -1235,7 +1235,7 @@ describe('useRequest', () => {
   });
 
   test('errorRetry should work with pollingInterval', async () => {
-    let flag = false;
+    let flag = true;
     const mixinRequest = () => {
       return new Promise((resolve, reject) => {
         setTimeout(() => {
@@ -1247,34 +1247,43 @@ describe('useRequest', () => {
         }, 1000);
       });
     };
-    flag = false;
     const wrapper = shallowMount(
       defineComponent({
         setup() {
-          const { loading, error } = useRequest(mixinRequest, {
+          const { loading, error, data } = useRequest(mixinRequest, {
             errorRetryCount: 3,
-            errorRetryInterval: 1000,
-            pollingInterval: 1000,
+            errorRetryInterval: 600,
+            pollingInterval: 500,
           });
-          return () => <button>{`${loading.value || error.value?.message}`}</button>;
+          return () => <button>{`${loading.value || data.value || error.value?.message}`}</button>;
         },
       }),
     );
-    // initial run
-    expect(wrapper.text()).toBe('true');
-    await waitForTime(1000);
-    expect(wrapper.text()).toBe('fail');
+
+    // normal API request
+    for (let index = 0; index < 1000; index++) {
+      expect(wrapper.text()).toBe('true');
+      await waitForTime(1000);
+      expect(wrapper.text()).toBe('success');
+      await waitForTime(500);
+    }
+
+    // mock API errored request
+    flag = false;
 
     // retrying
     for (let index = 0; index < 3; index++) {
-      await waitForTime(1000);
       expect(wrapper.text()).toBe('true');
       await waitForTime(1000);
       expect(wrapper.text()).toBe('fail');
+      await waitForTime(600);
     }
 
     // stop retry
+    expect(wrapper.text()).toBe('true');
     await waitForTime(1000);
+    expect(wrapper.text()).toBe('fail');
+    await waitForTime(600);
     expect(wrapper.text()).toBe('fail');
   });
 
@@ -1304,8 +1313,8 @@ describe('useRequest', () => {
         setup() {
           const { loading, error } = useRequest(failedRequest, {
             errorRetryCount: -1,
-            pollingInterval: 1000,
-            errorRetryInterval: 500,
+            pollingInterval: 500,
+            errorRetryInterval: 600,
           });
           return () => <button>{`${loading.value || error.value?.message}`}</button>;
         },
@@ -1316,8 +1325,7 @@ describe('useRequest', () => {
       expect(wrapper.text()).toBe('true');
       await waitForTime(1000);
       expect(wrapper.text()).toBe('fail');
-      await waitForTime(500);
-      expect(wrapper.text()).toBe('true');
+      await waitForTime(600);
     }
   });
 });
