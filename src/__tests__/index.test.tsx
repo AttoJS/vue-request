@@ -1182,7 +1182,7 @@ describe('useRequest', () => {
       }),
     );
 
-    for (let oIndex = 0; oIndex < 100; oIndex++) {
+    for (let oIndex = 0; oIndex < 10; oIndex++) {
       await wrapper.find('button').trigger('click');
       expect(wrapper.text()).toBe('true');
       await waitForTime(1000);
@@ -1278,7 +1278,7 @@ describe('useRequest', () => {
     expect(wrapper.text()).toBe('fail');
   });
 
-  test('pollingInterval allway receive a failed request', async () => {
+  test('pollingInterval always receive a errored request', async () => {
     const wrapper = shallowMount(
       defineComponent({
         setup() {
@@ -1298,7 +1298,7 @@ describe('useRequest', () => {
     }
   });
 
-  test('pollingInterval allway receive a failed request and errorRetryCount is -1', async () => {
+  test('pollingInterval always receive a errored request and errorRetryCount is -1', async () => {
     const wrapper = shallowMount(
       defineComponent({
         setup() {
