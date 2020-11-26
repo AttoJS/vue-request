@@ -127,8 +127,8 @@ const createQuery = <R, P extends unknown[]>(
   };
 
   const polling = (pollingFunc: () => void) => {
-    // if errorRetry is enabled and retriedCount greater or equal to errorRetryCount, then skip this method
-    if (errorRetryCount !== 0) return;
+    // if errorRetry is enabled, then skip this method
+    if (error.value && errorRetryCount !== 0) return;
 
     let timerId: number;
     if (!isNil(pollingInterval) && pollingInterval! >= 0) {
