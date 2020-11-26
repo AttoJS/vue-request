@@ -3,7 +3,7 @@ import throttle from 'lodash/throttle';
 import { nextTick, Ref, ref } from 'vue';
 import { Config } from './config';
 import { Queries } from './useAsyncQuery';
-import { isDocumentVisibilty, isFunction, isNil, resolvedPromise } from './utils';
+import { isDocumentVisibilty, isFunction, isNil, isOnline, resolvedPromise } from './utils';
 import { UnWrapRefObject } from './utils/types';
 type MutateData<R> = (newData: R) => void;
 type MutateFunction<R> = (arg: (oldData: R) => R) => void;
@@ -62,6 +62,7 @@ const createQuery = <R, P extends unknown[]>(
     debounceInterval,
     throttleInterval,
     pollingWhenHidden,
+    pollingWhenOffline,
     pollingHiddenFlag,
     errorRetryCount,
     errorRetryInterval,
@@ -132,12 +133,13 @@ const createQuery = <R, P extends unknown[]>(
 
     let timerId: number;
     if (!isNil(pollingInterval) && pollingInterval! >= 0) {
-      // stop polling
-      if (!isDocumentVisibilty() && !pollingWhenHidden) {
+      if ((pollingWhenHidden || isDocumentVisibilty()) && (pollingWhenOffline || isOnline())) {
+        timerId = setTimeout(pollingFunc, pollingInterval);
+      } else {
+        // stop polling
         pollingHiddenFlag.value = true;
         return;
       }
-      timerId = setTimeout(pollingFunc, pollingInterval);
     }
 
     return () => timerId && clearTimeout(timerId);

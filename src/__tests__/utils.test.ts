@@ -1,4 +1,5 @@
 import {
+  isOnline,
   isDocumentVisibilty,
   isFunction,
   isNil,
@@ -78,6 +79,13 @@ describe('utils', () => {
     expect(mockFn).toBeCalledTimes(1);
   });
 
+  test('reconnect listener should work', () => {
+    const mockFn = jest.fn();
+    subscriber('RECONNECT_LISTENER', mockFn);
+    jsdom.window.dispatchEvent(new Event('online'));
+    expect(mockFn).toBeCalledTimes(1);
+  });
+
   test('isDocumentVisibilty should work', () => {
     expect(isDocumentVisibilty()).toBeTruthy();
     Object.defineProperty(document, 'visibilityState', {
@@ -85,5 +93,14 @@ describe('utils', () => {
       writable: true,
     });
     expect(isDocumentVisibilty()).toBeFalsy();
+  });
+
+  test('isOnline should work', () => {
+    expect(isOnline()).toBeTruthy();
+    Object.defineProperty(window.navigator, 'onLine', {
+      value: false,
+      writable: true,
+    });
+    expect(isOnline()).toBeFalsy();
   });
 });

@@ -46,6 +46,7 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     refreshDeps = [],
     loadingDelay = 0,
     pollingWhenHidden = false,
+    pollingWhenOffline = false,
     refreshOnWindowFocus = false,
     focusTimespan = 5000,
     cacheTime = 10000,
@@ -94,6 +95,7 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     debounceInterval,
     throttleInterval,
     pollingWhenHidden,
+    pollingWhenOffline,
     pollingHiddenFlag,
     cacheKey,
     cacheTime,
@@ -235,11 +237,16 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     });
   }
 
+  const limitRefresh = limitTrigger(latestQuery.value.refresh, focusTimespan);
   // subscribe window focus or visible
   if (refreshOnWindowFocus) {
-    const limitRefresh = limitTrigger(latestQuery.value.refresh, focusTimespan);
     subscriber('VISIBLE_LISTENER', limitRefresh);
     subscriber('FOCUS_LISTENER', limitRefresh);
+  }
+
+  // subscribe online when pollingWhenOffline is false
+  if (!pollingWhenOffline) {
+    subscriber('RECONNECT_LISTENER', limitRefresh);
   }
 
   const queryState = {

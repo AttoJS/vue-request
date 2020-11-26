@@ -22,6 +22,7 @@ export type GlobalOptions = {
   loadingDelay?: number;
   pollingInterval?: number;
   pollingWhenHidden?: boolean;
+  pollingWhenOffline?: boolean;
   debounceInterval?: number;
   throttleInterval?: number;
   refreshOnWindowFocus?: boolean;
