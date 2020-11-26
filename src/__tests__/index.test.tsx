@@ -1328,4 +1328,96 @@ describe('useRequest', () => {
       await waitForTime(600);
     }
   });
+
+  test('reset loadingDelay correctly when rerun or refresh', async () => {
+    const { loading, run, refresh } = useRequest(request, {
+      loadingDelay: 500,
+    });
+
+    await waitForTime(300);
+    expect(loading.value).toBeFalsy();
+
+    run();
+    await waitForTime(300);
+    expect(loading.value).toBeFalsy();
+    await waitForTime(200);
+    expect(loading.value).toBeTruthy();
+
+    refresh();
+    await waitForTime(300);
+    expect(loading.value).toBeFalsy();
+    await waitForTime(200);
+    expect(loading.value).toBeTruthy();
+  });
+
+  test('reset polling correctly when rerun or refresh', async () => {
+    const mockedFn = jest.fn();
+
+    const { run, refresh } = useRequest(
+      () => {
+        mockedFn();
+        return request();
+      },
+      {
+        pollingInterval: 500,
+      },
+    );
+
+    await waitForTime(1000);
+    expect(mockedFn).toBeCalledTimes(1);
+
+    run();
+    await waitForTime(200);
+    expect(mockedFn).toBeCalledTimes(2);
+    await waitForTime(800);
+
+    // polling interval
+    await waitForTime(500);
+    expect(mockedFn).toBeCalledTimes(3);
+
+    refresh();
+    await waitForTime(200);
+    expect(mockedFn).toBeCalledTimes(4);
+    await waitForTime(800);
+
+    // polling interval
+    await waitForTime(500);
+    expect(mockedFn).toBeCalledTimes(5);
+  });
+
+  test('reset error retry correctly when rerun or refresh', async () => {
+    const mockedFn = jest.fn();
+
+    const { run, refresh } = useRequest(
+      () => {
+        mockedFn();
+        return failedRequest();
+      },
+      {
+        errorRetryCount: 3,
+        errorRetryInterval: 500,
+      },
+    );
+
+    await waitForTime(1000);
+    expect(mockedFn).toBeCalledTimes(1);
+
+    run();
+    await waitForTime(200);
+    expect(mockedFn).toBeCalledTimes(2);
+    await waitForTime(800);
+
+    // error retry interval
+    await waitForTime(500);
+    expect(mockedFn).toBeCalledTimes(3);
+
+    refresh();
+    await waitForTime(200);
+    expect(mockedFn).toBeCalledTimes(4);
+    await waitForTime(800);
+
+    // error retry interval
+    await waitForTime(500);
+    expect(mockedFn).toBeCalledTimes(5);
+  });
 });
