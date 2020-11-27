@@ -88,7 +88,7 @@ const createQuery = <R, P extends unknown[]>(
   );
 
   // reset retried count
-  const resetRetiredCount = () => {
+  const resetRetriedCount = () => {
     retriedCount = 0;
   };
 
@@ -181,7 +181,7 @@ const createQuery = <R, P extends unknown[]>(
             onSuccess(formattedResult, args);
           }
 
-          resetRetiredCount();
+          resetRetriedCount();
           return formattedResult;
         }
         return resolvedPromise;
@@ -232,7 +232,7 @@ const createQuery = <R, P extends unknown[]>(
       throttledRun(args, cb);
       return resolvedPromise;
     }
-    resetRetiredCount();
+    resetRetriedCount();
 
     return _run(args, cb);
   };
