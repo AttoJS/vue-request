@@ -63,9 +63,9 @@ const createQuery = <R, P extends unknown[]>(
     throttleInterval,
     pollingWhenHidden,
     pollingWhenOffline,
-    pollingHiddenFlag,
     errorRetryCount,
     errorRetryInterval,
+    stopPollingWhenHiddenOrOffline,
     updateCache,
     formatResult,
     onSuccess,
@@ -137,7 +137,7 @@ const createQuery = <R, P extends unknown[]>(
         timerId = setTimeout(pollingFunc, pollingInterval);
       } else {
         // stop polling
-        pollingHiddenFlag.value = true;
+        stopPollingWhenHiddenOrOffline.value = true;
         return;
       }
     }

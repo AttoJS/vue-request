@@ -58,7 +58,7 @@ export type Config<R, P extends unknown[]> = Omit<
   'defaultParams' | 'manual' | 'ready' | 'refreshDeps' | 'queryKey'
 > & {
   formatResult?: (data: any) => R;
-  pollingHiddenFlag: Ref<boolean>;
+  stopPollingWhenHiddenOrOffline: Ref<boolean>;
   initialAutoRunFlag: Ref<boolean>;
   updateCache: (state: State<R, P>) => void;
 };

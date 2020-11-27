@@ -7,7 +7,7 @@ import createQuery, {
   QueryState,
   State,
 } from './createQuery';
-import { unRefObject, resolvedPromise } from './utils';
+import { unRefObject, resolvedPromise, isDocumentVisibilty, isOnline } from './utils';
 import { getCache, setCache } from './utils/cache';
 import limitTrigger from './utils/limitTrigger';
 import subscriber from './utils/listener';
@@ -59,7 +59,7 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     onError,
   } = { ...getGlobalOptions(), ...options };
 
-  const pollingHiddenFlag = ref(false);
+  const stopPollingWhenHiddenOrOffline = ref(false);
   // skip debounce when initail run
   const initialAutoRunFlag = ref(false);
 
@@ -96,7 +96,7 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     throttleInterval,
     pollingWhenHidden,
     pollingWhenOffline,
-    pollingHiddenFlag,
+    stopPollingWhenHiddenOrOffline,
     cacheKey,
     cacheTime,
     staleTime,
@@ -227,14 +227,25 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     });
   }
 
+  const repolling = () => {
+    if (
+      stopPollingWhenHiddenOrOffline.value &&
+      (pollingWhenHidden || isDocumentVisibilty()) &&
+      (pollingWhenOffline || isOnline())
+    ) {
+      latestQuery.value.refresh();
+      stopPollingWhenHiddenOrOffline.value = false;
+    }
+  };
+
   // subscribe polling
   if (!pollingWhenHidden) {
-    subscriber('VISIBLE_LISTENER', () => {
-      if (pollingHiddenFlag.value) {
-        pollingHiddenFlag.value = false;
-        latestQuery.value.refresh();
-      }
-    });
+    subscriber('VISIBLE_LISTENER', repolling);
+  }
+
+  // subscribe online when pollingWhenOffline is false
+  if (!pollingWhenOffline) {
+    subscriber('RECONNECT_LISTENER', repolling);
   }
 
   const limitRefresh = limitTrigger(latestQuery.value.refresh, focusTimespan);
@@ -242,11 +253,6 @@ function useAsyncQuery<R, P extends unknown[], FR>(
   if (refreshOnWindowFocus) {
     subscriber('VISIBLE_LISTENER', limitRefresh);
     subscriber('FOCUS_LISTENER', limitRefresh);
-  }
-
-  // subscribe online when pollingWhenOffline is false
-  if (!pollingWhenOffline) {
-    subscriber('RECONNECT_LISTENER', limitRefresh);
   }
 
   const queryState = {
