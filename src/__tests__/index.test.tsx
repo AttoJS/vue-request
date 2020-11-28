@@ -6,7 +6,6 @@ import { useRequest } from '../index';
 import { clearGlobalOptions, setGlobalOptions } from '../core/config';
 import { clearCache } from '../core/utils/cache';
 import { waitForAll, waitForTime } from './utils';
-import rewire from 'rewire';
 declare let jsdom: any;
 
 describe('useRequest', () => {
@@ -1408,13 +1407,15 @@ describe('useRequest', () => {
     // auto run
     await waitForTime(1000);
 
-    // wait for polling
-    await waitForTime(500);
+    for (let index = 1; index <= 100; index++) {
+      // wait for polling
+      await waitForTime(500);
 
-    // request complete
-    await waitForTime(1000);
-    expectCount(runCountRef, 1);
-    expectCount(pollingCountRef, 1);
+      // request complete
+      await waitForTime(1000);
+      expectCount(runCountRef, 1);
+      expectCount(pollingCountRef, index);
+    }
 
     // polling is pending
     await waitForTime(200);
@@ -1423,11 +1424,21 @@ describe('useRequest', () => {
     await waitForTime(1000);
 
     expectCount(runCountRef, 2);
-    expectCount(pollingCountRef, 1);
+    expectCount(pollingCountRef, 100);
+
+    for (let index = 1; index <= 100; index++) {
+      // wait for polling
+      await waitForTime(500);
+
+      // request complete
+      await waitForTime(1000);
+      expectCount(pollingCountRef, index + 100);
+    }
 
     /* ------------------------------------- refresh ------------------------------------- */
+    expectCount(runCountRef, 2);
     expectCount(refreshCountRef, 0);
-    expectCount(pollingCountRef, 1);
+    expectCount(pollingCountRef, 200);
 
     // polling is pending
     await waitForTime(200);
@@ -1435,15 +1446,23 @@ describe('useRequest', () => {
     triggerWithCorrectType(refresh, RequestType.refresh);
 
     expectCount(refreshCountRef, 1);
-    expectCount(pollingCountRef, 1);
+    expectCount(pollingCountRef, 200);
 
     // refresh complete
     await waitForTime(1000);
-    // wait for polling
-    await waitForTime(500);
 
+    for (let index = 1; index <= 100; index++) {
+      // wait for polling
+      await waitForTime(500);
+
+      // request complete
+      await waitForTime(1000);
+      expectCount(pollingCountRef, index + 200);
+    }
+
+    expectCount(runCountRef, 2);
     expectCount(refreshCountRef, 1);
-    expectCount(pollingCountRef, 2);
+    expectCount(pollingCountRef, 300);
   });
 
   test('reset error retry correctly when rerun or refresh', async () => {
@@ -1467,7 +1486,7 @@ describe('useRequest', () => {
       source();
     };
 
-    const { run, refresh } = useRequest(
+    const { run, refresh, error } = useRequest(
       () => {
         switch (requestTypeRef.value) {
           case RequestType.errorRetry:
@@ -1499,9 +1518,13 @@ describe('useRequest', () => {
     /* ------------------------------------- run ------------------------------------- */
     expectCount(runCountRef, 1);
     expectCount(errorRetryCountRef, 0);
+    expect(error.value).toBeUndefined();
 
     // wait for request
     await waitForTime(1000);
+
+    // receive a errored result
+    expect(error.value).not.toBeUndefined();
     // wait for error retry
     await waitForTime(500);
 
@@ -1546,10 +1569,18 @@ describe('useRequest', () => {
     expectCount(refreshCountRef, 2);
     expectCount(errorRetryCountRef, 3);
 
+    // receive a errored result
     await waitForTime(1000);
-    await waitForTime(500);
 
+    // start error retry
+    for (let index = 0; index < 100; index++) {
+      await waitForTime(1000);
+      await waitForTime(500);
+    }
+
+    expectCount(runCountRef, 2);
     expectCount(refreshCountRef, 2);
-    expectCount(errorRetryCountRef, 4);
+    // 5 times is the retry count
+    expectCount(errorRetryCountRef, 3 + 5);
   });
 });
