@@ -1,11 +1,12 @@
 import FakeTimers from '@sinonjs/fake-timers';
 import { mount, shallowMount } from '@vue/test-utils';
 import fetchMock from 'fetch-mock';
-import { defineComponent, ref } from 'vue';
+import { defineComponent, Ref, ref } from 'vue';
 import { useRequest } from '../index';
 import { clearGlobalOptions, setGlobalOptions } from '../core/config';
 import { clearCache } from '../core/utils/cache';
 import { waitForAll, waitForTime } from './utils';
+import rewire from 'rewire';
 declare let jsdom: any;
 
 describe('useRequest', () => {
@@ -1351,11 +1352,47 @@ describe('useRequest', () => {
   });
 
   test('reset polling correctly when rerun or refresh', async () => {
-    const mockedFn = jest.fn();
+    enum RequestType {
+      run,
+      refresh,
+      polling,
+    }
+    const requestTypeRef = ref<RequestType>(RequestType.run);
+
+    const runCountRef = ref(0);
+    const refreshCountRef = ref(0);
+    const pollingCountRef = ref(0);
+
+    const expectCount = (param: Ref<number>, value: number) => {
+      expect(param.value).toBe(value);
+    };
+
+    const triggerWithCorrectType = (source: Function, type: RequestType) => {
+      requestTypeRef.value = type;
+      source();
+    };
 
     const { run, refresh } = useRequest(
       () => {
-        mockedFn();
+        switch (requestTypeRef.value) {
+          case RequestType.polling:
+            pollingCountRef.value += 1;
+            break;
+          case RequestType.run:
+            runCountRef.value += 1;
+            break;
+          case RequestType.refresh:
+            refreshCountRef.value += 1;
+            break;
+        }
+
+        if (
+          requestTypeRef.value === RequestType.run ||
+          requestTypeRef.value === RequestType.refresh
+        ) {
+          requestTypeRef.value = RequestType.polling;
+        }
+
         return request();
       },
       {
@@ -1363,61 +1400,156 @@ describe('useRequest', () => {
       },
     );
 
+    /* ------------------------------------- run ------------------------------------- */
+
+    expectCount(runCountRef, 1);
+    expectCount(pollingCountRef, 0);
+
+    // auto run
     await waitForTime(1000);
-    expect(mockedFn).toBeCalledTimes(1);
 
-    run();
-    await waitForTime(200);
-    expect(mockedFn).toBeCalledTimes(2);
-    await waitForTime(800);
-
-    // polling interval
+    // wait for polling
     await waitForTime(500);
-    expect(mockedFn).toBeCalledTimes(3);
 
-    refresh();
+    // request complete
+    await waitForTime(1000);
+    expectCount(runCountRef, 1);
+    expectCount(pollingCountRef, 1);
+
+    // polling is pending
     await waitForTime(200);
-    expect(mockedFn).toBeCalledTimes(4);
-    await waitForTime(800);
 
-    // polling interval
+    triggerWithCorrectType(run, RequestType.run);
+    await waitForTime(1000);
+
+    expectCount(runCountRef, 2);
+    expectCount(pollingCountRef, 1);
+
+    /* ------------------------------------- refresh ------------------------------------- */
+    expectCount(refreshCountRef, 0);
+    expectCount(pollingCountRef, 1);
+
+    // polling is pending
+    await waitForTime(200);
+
+    triggerWithCorrectType(refresh, RequestType.refresh);
+
+    expectCount(refreshCountRef, 1);
+    expectCount(pollingCountRef, 1);
+
+    // refresh complete
+    await waitForTime(1000);
+    // wait for polling
     await waitForTime(500);
-    expect(mockedFn).toBeCalledTimes(5);
+
+    expectCount(refreshCountRef, 1);
+    expectCount(pollingCountRef, 2);
   });
 
   test('reset error retry correctly when rerun or refresh', async () => {
-    const mockedFn = jest.fn();
+    enum RequestType {
+      run,
+      refresh,
+      errorRetry,
+    }
+    const requestTypeRef = ref<RequestType>(RequestType.run);
+
+    const runCountRef = ref(0);
+    const refreshCountRef = ref(0);
+    const errorRetryCountRef = ref(0);
+
+    const expectCount = (param: Ref<number>, value: number) => {
+      expect(param.value).toBe(value);
+    };
+
+    const triggerWithCorrectType = (source: Function, type: RequestType) => {
+      requestTypeRef.value = type;
+      source();
+    };
 
     const { run, refresh } = useRequest(
       () => {
-        mockedFn();
+        switch (requestTypeRef.value) {
+          case RequestType.errorRetry:
+            errorRetryCountRef.value += 1;
+            break;
+          case RequestType.run:
+            runCountRef.value += 1;
+            break;
+          case RequestType.refresh:
+            refreshCountRef.value += 1;
+            break;
+        }
+
+        if (
+          requestTypeRef.value === RequestType.run ||
+          requestTypeRef.value === RequestType.refresh
+        ) {
+          requestTypeRef.value = RequestType.errorRetry;
+        }
+
         return failedRequest();
       },
       {
-        errorRetryCount: 3,
+        errorRetryCount: 5,
         errorRetryInterval: 500,
       },
     );
 
+    /* ------------------------------------- run ------------------------------------- */
+    expectCount(runCountRef, 1);
+    expectCount(errorRetryCountRef, 0);
+
+    // wait for request
     await waitForTime(1000);
-    expect(mockedFn).toBeCalledTimes(1);
-
-    run();
-    await waitForTime(200);
-    expect(mockedFn).toBeCalledTimes(2);
-    await waitForTime(800);
-
-    // error retry interval
+    // wait for error retry
     await waitForTime(500);
-    expect(mockedFn).toBeCalledTimes(3);
 
-    refresh();
-    await waitForTime(200);
-    expect(mockedFn).toBeCalledTimes(4);
-    await waitForTime(800);
+    expectCount(runCountRef, 1);
+    expectCount(errorRetryCountRef, 1);
 
-    // error retry interval
+    await waitForTime(1000);
+    // error retry is pending
+    await waitForTime(300);
+
+    triggerWithCorrectType(run, RequestType.run);
+    expectCount(runCountRef, 2);
+    expectCount(errorRetryCountRef, 1);
+
+    await waitForTime(1000);
     await waitForTime(500);
-    expect(mockedFn).toBeCalledTimes(5);
+
+    expectCount(runCountRef, 2);
+    expectCount(errorRetryCountRef, 2);
+
+    /* ------------------------------------- refresh ------------------------------------- */
+    await waitForTime(1000);
+
+    expectCount(runCountRef, 2);
+    expectCount(errorRetryCountRef, 2);
+
+    triggerWithCorrectType(refresh, RequestType.refresh);
+    expectCount(refreshCountRef, 1);
+    expectCount(errorRetryCountRef, 2);
+
+    await waitForTime(1000);
+    await waitForTime(500);
+
+    expectCount(refreshCountRef, 1);
+    expectCount(errorRetryCountRef, 3);
+
+    await waitForTime(1000);
+    // error retry is pending
+    await waitForTime(300);
+
+    triggerWithCorrectType(refresh, RequestType.refresh);
+    expectCount(refreshCountRef, 2);
+    expectCount(errorRetryCountRef, 3);
+
+    await waitForTime(1000);
+    await waitForTime(500);
+
+    expectCount(refreshCountRef, 2);
+    expectCount(errorRetryCountRef, 4);
   });
 });
