@@ -1,4 +1,4 @@
-import { computed, ref, shallowReactive, watch, watchEffect } from 'vue';
+import { computed, onUnmounted, ref, shallowReactive, watch, watchEffect } from 'vue';
 import { BaseOptions, Config, getGlobalOptions, MixinOptions, FormatOptions } from './config';
 import createQuery, {
   InnerQueryState,
@@ -62,6 +62,12 @@ function useAsyncQuery<R, P extends unknown[], FR>(
   const stopPollingWhenHiddenOrOffline = ref(false);
   // skip debounce when initail run
   const initialAutoRunFlag = ref(false);
+
+  // collect subscribers, in order to unsubscribe when the component unmounted
+  const unsubscribeList: (() => void)[] = [];
+  const addUnsubscribeList = (event?: () => void) => {
+    event && unsubscribeList.push(event);
+  };
 
   const updateCache = (state: State<R, P>) => {
     if (!cacheKey) return;
@@ -240,20 +246,24 @@ function useAsyncQuery<R, P extends unknown[], FR>(
 
   // subscribe polling
   if (!pollingWhenHidden) {
-    subscriber('VISIBLE_LISTENER', repolling);
+    addUnsubscribeList(subscriber('VISIBLE_LISTENER', repolling));
   }
 
   // subscribe online when pollingWhenOffline is false
   if (!pollingWhenOffline) {
-    subscriber('RECONNECT_LISTENER', repolling);
+    addUnsubscribeList(subscriber('RECONNECT_LISTENER', repolling));
   }
 
   const limitRefresh = limitTrigger(latestQuery.value.refresh, focusTimespan);
   // subscribe window focus or visible
   if (refreshOnWindowFocus) {
-    subscriber('VISIBLE_LISTENER', limitRefresh);
-    subscriber('FOCUS_LISTENER', limitRefresh);
+    addUnsubscribeList(subscriber('VISIBLE_LISTENER', limitRefresh));
+    addUnsubscribeList(subscriber('FOCUS_LISTENER', limitRefresh));
   }
+
+  onUnmounted(() => {
+    unsubscribeList.forEach(unsubscribe => unsubscribe());
+  });
 
   const queryState = {
     loading,

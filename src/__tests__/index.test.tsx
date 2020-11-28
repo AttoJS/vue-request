@@ -6,6 +6,7 @@ import { useRequest } from '../index';
 import { clearGlobalOptions, setGlobalOptions } from '../core/config';
 import { clearCache } from '../core/utils/cache';
 import { waitForAll, waitForTime } from './utils';
+import { RECONNECT_LISTENER, FOCUS_LISTENER, VISIBLE_LISTENER } from '../core/utils/listener';
 declare let jsdom: any;
 
 describe('useRequest', () => {
@@ -31,6 +32,11 @@ describe('useRequest', () => {
     clearCache();
     // clear global options
     clearGlobalOptions();
+
+    // clear listner
+    RECONNECT_LISTENER.clear();
+    FOCUS_LISTENER.clear();
+    VISIBLE_LISTENER.clear();
   });
 
   afterEach(() => {
@@ -1741,5 +1747,30 @@ describe('useRequest', () => {
       expect(wrapper.text()).toBe(`${1001 + index + 1}`);
       await waitForTime(500);
     }
+  });
+
+  test('listener should unsubscribe when the component was unmounted', async () => {
+    let count = 0;
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { data, loading } = useRequest(() => request((count += 1)), {
+            pollingInterval: 500,
+          });
+          return () => <button>{`${loading.value || data.value}`}</button>;
+        },
+      }),
+    );
+
+    for (let index = 0; index < 1000; index++) {
+      expect(wrapper.text()).toBe('true');
+      await waitForTime(1000);
+      expect(wrapper.text()).toBe(`${index + 1}`);
+      await waitForTime(500);
+    }
+
+    expect(RECONNECT_LISTENER.size).toBe(1);
+    wrapper.unmount();
+    expect(RECONNECT_LISTENER.size).toBe(0);
   });
 });

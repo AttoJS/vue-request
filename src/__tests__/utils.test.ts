@@ -8,13 +8,24 @@ import {
   isString,
 } from '../core/utils';
 import limitTrigger from '../core/utils/limitTrigger';
-import subscriber from '../core/utils/listener';
+import subscriber, {
+  FOCUS_LISTENER,
+  RECONNECT_LISTENER,
+  VISIBLE_LISTENER,
+} from '../core/utils/listener';
 import { waitForTime } from './utils';
 declare let jsdom: any;
 
 describe('utils', () => {
   beforeAll(() => {
     jest.useFakeTimers();
+  });
+
+  beforeEach(() => {
+    // make sure *_LISTENER is empty
+    FOCUS_LISTENER.clear();
+    RECONNECT_LISTENER.clear();
+    VISIBLE_LISTENER.clear();
   });
 
   test('isString should work', () => {
@@ -102,5 +113,28 @@ describe('utils', () => {
       writable: true,
     });
     expect(isOnline()).toBeFalsy();
+  });
+
+  test('unsubscribe listener should work', () => {
+    const mockFn1 = () => 0;
+    const mockFn2 = () => 0;
+    const mockFn3 = () => 0;
+    const eventList: (() => void)[] = [];
+    const unmountedEvent = (event?: () => void) => {
+      if (event) {
+        eventList.push(event);
+      }
+    };
+    for (let index = 0; index < 100; index++) {
+      unmountedEvent(subscriber('FOCUS_LISTENER', mockFn1));
+      unmountedEvent(subscriber('FOCUS_LISTENER', mockFn2));
+      unmountedEvent(subscriber('FOCUS_LISTENER', mockFn3));
+    }
+    expect(FOCUS_LISTENER.size).toBe(3);
+    expect(eventList.length).toBe(3);
+    eventList.forEach(unsubscribe => {
+      unsubscribe();
+    });
+    expect(FOCUS_LISTENER.size).toBe(0);
   });
 });
