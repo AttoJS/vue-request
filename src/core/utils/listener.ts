@@ -2,7 +2,10 @@ import { isDocumentVisibilty } from './index';
 
 type EventFunc = () => void;
 type ListenersSet = Set<EventFunc>;
-type ListenerType = 'FOCUS_LISTENER' | 'VISIBLE_LISTENER' | 'RECONNECT_LISTENER';
+type ListenerType =
+  | 'FOCUS_LISTENER'
+  | 'VISIBLE_LISTENER'
+  | 'RECONNECT_LISTENER';
 export const FOCUS_LISTENER: ListenersSet = new Set();
 export const VISIBLE_LISTENER: ListenersSet = new Set();
 export const RECONNECT_LISTENER: ListenersSet = new Set();

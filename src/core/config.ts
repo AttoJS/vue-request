@@ -51,7 +51,9 @@ export type FormatOptions<R, P extends unknown[], FR> = {
   formatResult: (data: R) => FR;
 } & BaseOptions<FR, P>;
 
-export type MixinOptions<R, P extends unknown[], FR> = BaseOptions<R, P> | FormatOptions<R, P, FR>;
+export type MixinOptions<R, P extends unknown[], FR> =
+  | BaseOptions<R, P>
+  | FormatOptions<R, P, FR>;
 
 export type Config<R, P extends unknown[]> = Omit<
   BaseOptions<R, P>,

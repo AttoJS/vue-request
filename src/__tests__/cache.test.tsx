@@ -1,4 +1,9 @@
-import { CacheDataType, clearCache, getCache, setCache } from '../core/utils/cache';
+import {
+  CacheDataType,
+  clearCache,
+  getCache,
+  setCache,
+} from '../core/utils/cache';
 import { waitForTime } from './utils';
 
 describe('utils', () => {

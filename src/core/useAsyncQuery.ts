@@ -1,5 +1,18 @@
-import { computed, onUnmounted, ref, shallowReactive, watch, watchEffect } from 'vue';
-import { BaseOptions, Config, getGlobalOptions, MixinOptions, FormatOptions } from './config';
+import {
+  computed,
+  onUnmounted,
+  ref,
+  shallowReactive,
+  watch,
+  watchEffect,
+} from 'vue';
+import {
+  BaseOptions,
+  Config,
+  getGlobalOptions,
+  MixinOptions,
+  FormatOptions,
+} from './config';
 import createQuery, {
   InnerQueryState,
   InnerRunReturn,
@@ -7,12 +20,20 @@ import createQuery, {
   QueryState,
   State,
 } from './createQuery';
-import { unRefObject, resolvedPromise, isDocumentVisibilty, isOnline } from './utils';
+import {
+  unRefObject,
+  resolvedPromise,
+  isDocumentVisibilty,
+  isOnline,
+} from './utils';
 import { getCache, setCache } from './utils/cache';
 import limitTrigger from './utils/limitTrigger';
 import subscriber from './utils/listener';
 
-export type BaseResult<R, P extends unknown[]> = Omit<QueryState<R, P>, 'run'> & {
+export type BaseResult<R, P extends unknown[]> = Omit<
+  QueryState<R, P>,
+  'run'
+> & {
   run: (...arg: P) => InnerRunReturn<R>;
 };
 
@@ -75,7 +96,8 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     const cacheData = getCache<R, P>(cacheKey)?.data;
     const cacheQueries = cacheData?.queries;
     const queryData = unRefObject(state);
-    const currentQueryKey = queryKey?.(...state.params.value) ?? QUERY_DEFAULT_KEY;
+    const currentQueryKey =
+      queryKey?.(...state.params.value) ?? QUERY_DEFAULT_KEY;
 
     setCache<R, P>(
       cacheKey,
@@ -193,7 +215,8 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     const cacheQueries = cache?.data.queries ?? {};
 
     const isFresh =
-      cache && (staleTime === -1 || cache.cacheTime + staleTime > new Date().getTime());
+      cache &&
+      (staleTime === -1 || cache.cacheTime + staleTime > new Date().getTime());
 
     const hasCacheQueries = Object.keys(cacheQueries).length > 0;
 

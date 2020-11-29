@@ -19,7 +19,9 @@ export type CacheDataType<R, P extends unknown[]> = {
 type GetCacheReturn<R, P extends unknown[]> =
   | Omit<CacheResultType<CacheDataType<R, P>>, 'timer'>
   | undefined;
-export const getCache = <R, P extends unknown[]>(cacheKey: CacheKey): GetCacheReturn<R, P> => {
+export const getCache = <R, P extends unknown[]>(
+  cacheKey: CacheKey,
+): GetCacheReturn<R, P> => {
   if (isNil(cacheKey)) return;
   const data = CACHE_MAP.get(cacheKey);
   if (!data) return;

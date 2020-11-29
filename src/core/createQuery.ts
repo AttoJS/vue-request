@@ -3,7 +3,13 @@ import throttle from 'lodash/throttle';
 import { nextTick, Ref, ref } from 'vue';
 import { Config } from './config';
 import { Queries } from './useAsyncQuery';
-import { isDocumentVisibilty, isFunction, isNil, isOnline, resolvedPromise } from './utils';
+import {
+  isDocumentVisibilty,
+  isFunction,
+  isNil,
+  isOnline,
+  resolvedPromise,
+} from './utils';
 import { UnWrapRefObject } from './utils/types';
 type MutateData<R> = (newData: R) => void;
 type MutateFunction<R> = (arg: (oldData: R) => R) => void;
@@ -30,7 +36,10 @@ export type QueryState<R, P extends unknown[]> = State<R, P> & {
   mutate: Mutate<R>;
 };
 
-export type InnerQueryState<R, P extends unknown[]> = Omit<QueryState<R, P>, 'run' | 'queries'> & {
+export type InnerQueryState<R, P extends unknown[]> = Omit<
+  QueryState<R, P>,
+  'run' | 'queries'
+> & {
   run: (args: P, cb?: () => void) => InnerRunReturn<R>;
 };
 
@@ -38,7 +47,10 @@ const setStateBind = <R, P extends unknown[], T extends State<R, P>>(
   oldState: T,
   publicCb?: Array<(state: T) => void>,
 ) => {
-  return (newState: Partial<UnWrapRefObject<State<R, P>>>, cb?: (state: T) => void) => {
+  return (
+    newState: Partial<UnWrapRefObject<State<R, P>>>,
+    cb?: (state: T) => void,
+  ) => {
     Object.keys(newState).forEach(key => {
       oldState[key].value = newState[key];
     });
@@ -133,7 +145,10 @@ const createQuery = <R, P extends unknown[]>(
 
     let timerId: number;
     if (!isNil(pollingInterval) && pollingInterval! >= 0) {
-      if ((pollingWhenHidden || isDocumentVisibilty()) && (pollingWhenOffline || isOnline())) {
+      if (
+        (pollingWhenHidden || isDocumentVisibilty()) &&
+        (pollingWhenOffline || isOnline())
+      ) {
         timerId = setTimeout(pollingFunc, pollingInterval);
       } else {
         // stop polling
@@ -219,8 +234,10 @@ const createQuery = <R, P extends unknown[]>(
       });
   };
 
-  const debouncedRun = !isNil(debounceInterval) && debounce(_run, debounceInterval);
-  const throttledRun = !isNil(throttleInterval) && throttle(_run, throttleInterval);
+  const debouncedRun =
+    !isNil(debounceInterval) && debounce(_run, debounceInterval);
+  const throttledRun =
+    !isNil(throttleInterval) && throttle(_run, throttleInterval);
 
   const run = (args: P, cb?: () => void) => {
     clearAllTimer();

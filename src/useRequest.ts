@@ -21,7 +21,9 @@ async function requestProxy(...args: [url: string, ...rest: any[]]) {
   throw new Error(res.statusText);
 }
 
-function useRequest<R, P extends unknown[] = any>(service: IService<R, P>): BaseResult<R, P>;
+function useRequest<R, P extends unknown[] = any>(
+  service: IService<R, P>,
+): BaseResult<R, P>;
 function useRequest<R, P extends unknown[] = any, FR = any>(
   service: IService<R, P>,
   options: FormatOptions<R, P, FR>,

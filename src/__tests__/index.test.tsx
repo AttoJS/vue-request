@@ -6,7 +6,11 @@ import { useRequest } from '../index';
 import { clearGlobalOptions, setGlobalOptions } from '../core/config';
 import { clearCache } from '../core/utils/cache';
 import { waitForAll, waitForTime } from './utils';
-import { RECONNECT_LISTENER, FOCUS_LISTENER, VISIBLE_LISTENER } from '../core/utils/listener';
+import {
+  RECONNECT_LISTENER,
+  FOCUS_LISTENER,
+  VISIBLE_LISTENER,
+} from '../core/utils/listener';
 declare let jsdom: any;
 
 describe('useRequest', () => {
@@ -136,7 +140,9 @@ describe('useRequest', () => {
         setup() {
           const { data, run } = useRequest(request, { manual: true });
 
-          return () => <button onClick={() => run()}>{`data:${data.value}`}</button>;
+          return () => (
+            <button onClick={() => run()}>{`data:${data.value}`}</button>
+          );
         },
       }),
     );
@@ -183,7 +189,9 @@ describe('useRequest', () => {
           const { data, run } = useRequest(request);
 
           return () => (
-            <button onClick={() => run('hello', 'world')}>{`data:${data.value}`}</button>
+            <button
+              onClick={() => run('hello', 'world')}
+            >{`data:${data.value}`}</button>
           );
         },
       }),
@@ -201,7 +209,9 @@ describe('useRequest', () => {
         setup() {
           const { data, mutate } = useRequest(request);
 
-          return () => <button onClick={() => mutate('ok')}>{`data:${data.value}`}</button>;
+          return () => (
+            <button onClick={() => mutate('ok')}>{`data:${data.value}`}</button>
+          );
         },
       }),
     );
@@ -217,7 +227,11 @@ describe('useRequest', () => {
         setup() {
           const { data, mutate } = useRequest(request);
 
-          return () => <button onClick={() => mutate(() => 'ok')}>{`data:${data.value}`}</button>;
+          return () => (
+            <button
+              onClick={() => mutate(() => 'ok')}
+            >{`data:${data.value}`}</button>
+          );
         },
       }),
     );
@@ -233,7 +247,11 @@ describe('useRequest', () => {
         setup() {
           const { refresh, loading } = useRequest(request);
 
-          return () => <button onClick={() => refresh()}>{`loading:${loading.value}`}</button>;
+          return () => (
+            <button
+              onClick={() => refresh()}
+            >{`loading:${loading.value}`}</button>
+          );
         },
       }),
     );
@@ -551,7 +569,11 @@ describe('useRequest', () => {
             loadingDelay: 800,
           });
 
-          return () => <button onClick={() => cancel()}>{`loading:${loading.value}`}</button>;
+          return () => (
+            <button
+              onClick={() => cancel()}
+            >{`loading:${loading.value}`}</button>
+          );
         },
       }),
     );
@@ -627,7 +649,11 @@ describe('useRequest', () => {
             pollingInterval: 500,
           });
 
-          return () => <button onClick={() => cancel()}>{`loading:${loading.value}`}</button>;
+          return () => (
+            <button
+              onClick={() => cancel()}
+            >{`loading:${loading.value}`}</button>
+          );
         },
       }),
     );
@@ -652,7 +678,11 @@ describe('useRequest', () => {
             pollingInterval: -0.1,
           });
 
-          return () => <button onClick={() => cancel()}>{`loading:${loading.value}`}</button>;
+          return () => (
+            <button
+              onClick={() => cancel()}
+            >{`loading:${loading.value}`}</button>
+          );
         },
       }),
     );
@@ -756,7 +786,9 @@ describe('useRequest', () => {
             refreshOnWindowFocus: true,
           });
 
-          return () => <button onClick={() => run()}>{`data:${data.value}`}</button>;
+          return () => (
+            <button onClick={() => run()}>{`data:${data.value}`}</button>
+          );
         },
       }),
     );
@@ -791,7 +823,9 @@ describe('useRequest', () => {
             focusTimespan: 3000,
           });
 
-          return () => <button onClick={() => run()}>{`data:${data.value}`}</button>;
+          return () => (
+            <button onClick={() => run()}>{`data:${data.value}`}</button>
+          );
         },
       }),
     );
@@ -908,7 +942,9 @@ describe('useRequest', () => {
           cacheKey: 'cacheKey',
           cacheTime: 10000,
         });
-        return () => <button onClick={() => run((count += 1))}>{data.value}</button>;
+        return () => (
+          <button onClick={() => run((count += 1))}>{data.value}</button>
+        );
       },
     });
 
@@ -951,7 +987,9 @@ describe('useRequest', () => {
           cacheKey: 'cacheKey',
           staleTime: 5000,
         });
-        return () => <button onClick={() => run((count += 1))}>{data.value}</button>;
+        return () => (
+          <button onClick={() => run((count += 1))}>{data.value}</button>
+        );
       },
     });
     let wrapper = shallowMount(TestComponent);
@@ -1062,8 +1100,14 @@ describe('useRequest', () => {
               <div id="loading">{loading.value.toString()}</div>
               <ul>
                 {users.map(item => (
-                  <li key={item.id} id={item.username} onClick={() => run(item.id)}>
-                    {queries[item.id]?.loading.value ? 'loading' : item.username}
+                  <li
+                    key={item.id}
+                    id={item.username}
+                    onClick={() => run(item.id)}
+                  >
+                    {queries[item.id]?.loading.value
+                      ? 'loading'
+                      : item.username}
                   </li>
                 ))}
               </ul>
@@ -1110,7 +1154,11 @@ describe('useRequest', () => {
           <div>
             <ul id="child">
               {users.map(item => (
-                <li key={item.id} id={item.username} onClick={() => run(item.id)}>
+                <li
+                  key={item.id}
+                  id={item.username}
+                  onClick={() => run(item.id)}
+                >
                   {queries[item.id]?.loading.value ? 'loading' : item.username}
                 </li>
               ))}
@@ -1183,7 +1231,9 @@ describe('useRequest', () => {
             errorRetryInterval: 1000,
           });
           const handleClick = () => run();
-          return () => <button onClick={handleClick}>{`${loading.value}`}</button>;
+          return () => (
+            <button onClick={handleClick}>{`${loading.value}`}</button>
+          );
         },
       }),
     );
@@ -1216,7 +1266,9 @@ describe('useRequest', () => {
             errorRetryCount: 3,
             errorRetryInterval: 1000,
           });
-          return () => <button onClick={() => cancel()}>{`${loading.value}`}</button>;
+          return () => (
+            <button onClick={() => cancel()}>{`${loading.value}`}</button>
+          );
         },
       }),
     );
@@ -1261,7 +1313,11 @@ describe('useRequest', () => {
             errorRetryInterval: 600,
             pollingInterval: 500,
           });
-          return () => <button>{`${loading.value || data.value || error.value?.message}`}</button>;
+          return () => (
+            <button>{`${
+              loading.value || data.value || error.value?.message
+            }`}</button>
+          );
         },
       }),
     );
@@ -1300,7 +1356,9 @@ describe('useRequest', () => {
           const { loading, error } = useRequest(failedRequest, {
             pollingInterval: 1000,
           });
-          return () => <button>{`${loading.value || error.value?.message}`}</button>;
+          return () => (
+            <button>{`${loading.value || error.value?.message}`}</button>
+          );
         },
       }),
     );
@@ -1322,7 +1380,9 @@ describe('useRequest', () => {
             pollingInterval: 500,
             errorRetryInterval: 600,
           });
-          return () => <button>{`${loading.value || error.value?.message}`}</button>;
+          return () => (
+            <button>{`${loading.value || error.value?.message}`}</button>
+          );
         },
       }),
     );
