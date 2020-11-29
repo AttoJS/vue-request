@@ -22,6 +22,7 @@ export type GlobalOptions = {
   loadingDelay?: number;
   pollingInterval?: number;
   pollingWhenHidden?: boolean;
+  pollingWhenOffline?: boolean;
   debounceInterval?: number;
   throttleInterval?: number;
   refreshOnWindowFocus?: boolean;
@@ -57,7 +58,7 @@ export type Config<R, P extends unknown[]> = Omit<
   'defaultParams' | 'manual' | 'ready' | 'refreshDeps' | 'queryKey'
 > & {
   formatResult?: (data: any) => R;
-  pollingHiddenFlag: Ref<boolean>;
+  stopPollingWhenHiddenOrOffline: Ref<boolean>;
   initialAutoRunFlag: Ref<boolean>;
   updateCache: (state: State<R, P>) => void;
 };

@@ -1,17 +1,23 @@
+import { isDocumentVisibilty } from './index';
+
 type EventFunc = () => void;
 type ListenersSet = Set<EventFunc>;
-type ListenerType = 'FOCUS_LISTENER' | 'VISIBLE_LISTENER';
-const FOCUS_LISTENER: ListenersSet = new Set();
-const VISIBLE_LISTENER: ListenersSet = new Set();
+type ListenerType = 'FOCUS_LISTENER' | 'VISIBLE_LISTENER' | 'RECONNECT_LISTENER';
+export const FOCUS_LISTENER: ListenersSet = new Set();
+export const VISIBLE_LISTENER: ListenersSet = new Set();
+export const RECONNECT_LISTENER: ListenersSet = new Set();
 
 const subscriber = (listenerType: ListenerType, event: EventFunc) => {
-  let listeners;
+  let listeners: ListenersSet;
   switch (listenerType) {
     case 'FOCUS_LISTENER':
       listeners = FOCUS_LISTENER;
       break;
 
-    default:
+    case 'RECONNECT_LISTENER':
+      listeners = RECONNECT_LISTENER;
+      break;
+
     case 'VISIBLE_LISTENER':
       listeners = VISIBLE_LISTENER;
       break;
@@ -19,6 +25,9 @@ const subscriber = (listenerType: ListenerType, event: EventFunc) => {
 
   if (listeners.has(event)) return;
   listeners.add(event);
+  return () => {
+    listeners.delete(event);
+  };
 };
 
 const observer = (listeners: ListenersSet) => {
@@ -27,17 +36,20 @@ const observer = (listeners: ListenersSet) => {
   });
 };
 
-if (window && window.addEventListener) {
+/* istanbul ignore else */
+if (window?.addEventListener) {
   window.addEventListener(
     'visibilitychange',
     () => {
-      if (document.visibilityState === 'visible') {
+      /* istanbul ignore else */
+      if (isDocumentVisibilty()) {
         observer(VISIBLE_LISTENER);
       }
     },
     false,
   );
   window.addEventListener('focus', () => observer(FOCUS_LISTENER), false);
+  window.addEventListener('online', () => observer(RECONNECT_LISTENER), false);
 }
 
 export default subscriber;

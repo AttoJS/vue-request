@@ -1,4 +1,4 @@
-import { computed, ref, shallowReactive, watch, watchEffect } from 'vue';
+import { computed, onUnmounted, ref, shallowReactive, watch, watchEffect } from 'vue';
 import { BaseOptions, Config, getGlobalOptions, MixinOptions, FormatOptions } from './config';
 import createQuery, {
   InnerQueryState,
@@ -7,7 +7,7 @@ import createQuery, {
   QueryState,
   State,
 } from './createQuery';
-import { unRefObject, resolvedPromise } from './utils';
+import { unRefObject, resolvedPromise, isDocumentVisibilty, isOnline } from './utils';
 import { getCache, setCache } from './utils/cache';
 import limitTrigger from './utils/limitTrigger';
 import subscriber from './utils/listener';
@@ -46,6 +46,7 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     refreshDeps = [],
     loadingDelay = 0,
     pollingWhenHidden = false,
+    pollingWhenOffline = false,
     refreshOnWindowFocus = false,
     focusTimespan = 5000,
     cacheTime = 10000,
@@ -58,9 +59,15 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     onError,
   } = { ...getGlobalOptions(), ...options };
 
-  const pollingHiddenFlag = ref(false);
+  const stopPollingWhenHiddenOrOffline = ref(false);
   // skip debounce when initail run
   const initialAutoRunFlag = ref(false);
+
+  // collect subscribers, in order to unsubscribe when the component unmounted
+  const unsubscribeList: (() => void)[] = [];
+  const addUnsubscribeList = (event?: () => void) => {
+    event && unsubscribeList.push(event);
+  };
 
   const updateCache = (state: State<R, P>) => {
     if (!cacheKey) return;
@@ -94,7 +101,8 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     debounceInterval,
     throttleInterval,
     pollingWhenHidden,
-    pollingHiddenFlag,
+    pollingWhenOffline,
+    stopPollingWhenHiddenOrOffline,
     cacheKey,
     cacheTime,
     staleTime,
@@ -225,22 +233,37 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     });
   }
 
+  const repolling = () => {
+    if (
+      stopPollingWhenHiddenOrOffline.value &&
+      (pollingWhenHidden || isDocumentVisibilty()) &&
+      (pollingWhenOffline || isOnline())
+    ) {
+      latestQuery.value.refresh();
+      stopPollingWhenHiddenOrOffline.value = false;
+    }
+  };
+
   // subscribe polling
   if (!pollingWhenHidden) {
-    subscriber('VISIBLE_LISTENER', () => {
-      if (pollingHiddenFlag.value) {
-        pollingHiddenFlag.value = false;
-        latestQuery.value.refresh();
-      }
-    });
+    addUnsubscribeList(subscriber('VISIBLE_LISTENER', repolling));
   }
 
+  // subscribe online when pollingWhenOffline is false
+  if (!pollingWhenOffline) {
+    addUnsubscribeList(subscriber('RECONNECT_LISTENER', repolling));
+  }
+
+  const limitRefresh = limitTrigger(latestQuery.value.refresh, focusTimespan);
   // subscribe window focus or visible
   if (refreshOnWindowFocus) {
-    const limitRefresh = limitTrigger(latestQuery.value.refresh, focusTimespan);
-    subscriber('VISIBLE_LISTENER', limitRefresh);
-    subscriber('FOCUS_LISTENER', limitRefresh);
+    addUnsubscribeList(subscriber('VISIBLE_LISTENER', limitRefresh));
+    addUnsubscribeList(subscriber('FOCUS_LISTENER', limitRefresh));
   }
+
+  onUnmounted(() => {
+    unsubscribeList.forEach(unsubscribe => unsubscribe());
+  });
 
   const queryState = {
     loading,

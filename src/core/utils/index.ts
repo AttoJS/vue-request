@@ -16,6 +16,8 @@ export const isNil = (val: unknown) => val === null || val === undefined;
 
 export const isDocumentVisibilty = () => window?.document?.visibilityState === 'visible';
 
+export const isOnline = () => window?.navigator?.onLine ?? true;
+
 export const unRefObject = <T extends RefObject>(val: T) => {
   const obj = {};
 
