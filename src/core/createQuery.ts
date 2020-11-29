@@ -3,7 +3,13 @@ import throttle from 'lodash/throttle';
 import { nextTick, Ref, ref } from 'vue';
 import { Config } from './config';
 import { Queries } from './useAsyncQuery';
-import { isDocumentVisibilty, isFunction, isNil, resolvedPromise } from './utils';
+import {
+  isDocumentVisibilty,
+  isFunction,
+  isNil,
+  isOnline,
+  resolvedPromise,
+} from './utils';
 import { UnWrapRefObject } from './utils/types';
 type MutateData<R> = (newData: R) => void;
 type MutateFunction<R> = (arg: (oldData: R) => R) => void;
@@ -30,7 +36,10 @@ export type QueryState<R, P extends unknown[]> = State<R, P> & {
   mutate: Mutate<R>;
 };
 
-export type InnerQueryState<R, P extends unknown[]> = Omit<QueryState<R, P>, 'run' | 'queries'> & {
+export type InnerQueryState<R, P extends unknown[]> = Omit<
+  QueryState<R, P>,
+  'run' | 'queries'
+> & {
   run: (args: P, cb?: () => void) => InnerRunReturn<R>;
 };
 
@@ -38,7 +47,10 @@ const setStateBind = <R, P extends unknown[], T extends State<R, P>>(
   oldState: T,
   publicCb?: Array<(state: T) => void>,
 ) => {
-  return (newState: Partial<UnWrapRefObject<State<R, P>>>, cb?: (state: T) => void) => {
+  return (
+    newState: Partial<UnWrapRefObject<State<R, P>>>,
+    cb?: (state: T) => void,
+  ) => {
     Object.keys(newState).forEach(key => {
       oldState[key].value = newState[key];
     });
@@ -62,9 +74,10 @@ const createQuery = <R, P extends unknown[]>(
     debounceInterval,
     throttleInterval,
     pollingWhenHidden,
-    pollingHiddenFlag,
+    pollingWhenOffline,
     errorRetryCount,
     errorRetryInterval,
+    stopPollingWhenHiddenOrOffline,
     updateCache,
     formatResult,
     onSuccess,
@@ -132,12 +145,16 @@ const createQuery = <R, P extends unknown[]>(
 
     let timerId: number;
     if (!isNil(pollingInterval) && pollingInterval! >= 0) {
-      // stop polling
-      if (!isDocumentVisibilty() && !pollingWhenHidden) {
-        pollingHiddenFlag.value = true;
+      if (
+        (pollingWhenHidden || isDocumentVisibilty()) &&
+        (pollingWhenOffline || isOnline())
+      ) {
+        timerId = setTimeout(pollingFunc, pollingInterval);
+      } else {
+        // stop polling
+        stopPollingWhenHiddenOrOffline.value = true;
         return;
       }
-      timerId = setTimeout(pollingFunc, pollingInterval);
     }
 
     return () => timerId && clearTimeout(timerId);
@@ -146,7 +163,7 @@ const createQuery = <R, P extends unknown[]>(
   const errorRetryHooks = (retryFunc: () => void) => {
     let timerId: number;
     const isInfiniteRetry = errorRetryCount === -1;
-    const hasRetryCount = retriedCount < errorRetryCount!;
+    const hasRetryCount = retriedCount < errorRetryCount;
 
     // if errorRetryCount is -1, it will retry the request until it success
     if (error.value && (isInfiniteRetry || hasRetryCount)) {
@@ -217,8 +234,10 @@ const createQuery = <R, P extends unknown[]>(
       });
   };
 
-  const debouncedRun = !isNil(debounceInterval) && debounce(_run, debounceInterval);
-  const throttledRun = !isNil(throttleInterval) && throttle(_run, throttleInterval);
+  const debouncedRun =
+    !isNil(debounceInterval) && debounce(_run, debounceInterval);
+  const throttledRun =
+    !isNil(throttleInterval) && throttle(_run, throttleInterval);
 
   const run = (args: P, cb?: () => void) => {
     clearAllTimer();

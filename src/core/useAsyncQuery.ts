@@ -1,5 +1,21 @@
-import { computed, ref, shallowReactive, watch, watchEffect } from 'vue';
-import { BaseOptions, Config, getGlobalOptions, MixinOptions, FormatOptions } from './config';
+import {
+  computed,
+  inject,
+  onUnmounted,
+  ref,
+  shallowReactive,
+  watch,
+  watchEffect,
+} from 'vue';
+import {
+  BaseOptions,
+  Config,
+  FormatOptions,
+  getGlobalOptions,
+  GlobalOptions,
+  GLOBAL_OPTIONS_PROVIDE_KEY,
+  MixinOptions,
+} from './config';
 import createQuery, {
   InnerQueryState,
   InnerRunReturn,
@@ -7,12 +23,20 @@ import createQuery, {
   QueryState,
   State,
 } from './createQuery';
-import { unRefObject, resolvedPromise } from './utils';
+import {
+  isDocumentVisibilty,
+  isOnline,
+  resolvedPromise,
+  unRefObject,
+} from './utils';
 import { getCache, setCache } from './utils/cache';
 import limitTrigger from './utils/limitTrigger';
 import subscriber from './utils/listener';
 
-export type BaseResult<R, P extends unknown[]> = Omit<QueryState<R, P>, 'run'> & {
+export type BaseResult<R, P extends unknown[]> = Omit<
+  QueryState<R, P>,
+  'run'
+> & {
   run: (...arg: P) => InnerRunReturn<R>;
 };
 
@@ -34,6 +58,12 @@ function useAsyncQuery<R, P extends unknown[], FR>(
   query: Query<R, P>,
   options: MixinOptions<R, P, FR>,
 ) {
+  const injectedGlobalOptions = inject<GlobalOptions>(
+    GLOBAL_OPTIONS_PROVIDE_KEY,
+    () => ({}),
+    true,
+  );
+
   const {
     initialData,
     pollingInterval,
@@ -46,6 +76,7 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     refreshDeps = [],
     loadingDelay = 0,
     pollingWhenHidden = false,
+    pollingWhenOffline = false,
     refreshOnWindowFocus = false,
     focusTimespan = 5000,
     cacheTime = 10000,
@@ -56,11 +87,17 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     formatResult,
     onSuccess,
     onError,
-  } = { ...getGlobalOptions(), ...options };
+  } = { ...getGlobalOptions(), ...injectedGlobalOptions, ...options };
 
-  const pollingHiddenFlag = ref(false);
+  const stopPollingWhenHiddenOrOffline = ref(false);
   // skip debounce when initail run
   const initialAutoRunFlag = ref(false);
+
+  // collect subscribers, in order to unsubscribe when the component unmounted
+  const unsubscribeList: (() => void)[] = [];
+  const addUnsubscribeList = (event?: () => void) => {
+    event && unsubscribeList.push(event);
+  };
 
   const updateCache = (state: State<R, P>) => {
     if (!cacheKey) return;
@@ -68,7 +105,8 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     const cacheData = getCache<R, P>(cacheKey)?.data;
     const cacheQueries = cacheData?.queries;
     const queryData = unRefObject(state);
-    const currentQueryKey = queryKey?.(...state.params.value) ?? QUERY_DEFAULT_KEY;
+    const currentQueryKey =
+      queryKey?.(...state.params.value) ?? QUERY_DEFAULT_KEY;
 
     setCache<R, P>(
       cacheKey,
@@ -94,10 +132,9 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     debounceInterval,
     throttleInterval,
     pollingWhenHidden,
-    pollingHiddenFlag,
+    pollingWhenOffline,
+    stopPollingWhenHiddenOrOffline,
     cacheKey,
-    cacheTime,
-    staleTime,
     errorRetryCount,
     errorRetryInterval,
     updateCache,
@@ -185,7 +222,8 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     const cacheQueries = cache?.data.queries ?? {};
 
     const isFresh =
-      cache && (staleTime === -1 || cache.cacheTime + staleTime > new Date().getTime());
+      cache &&
+      (staleTime === -1 || cache.cacheTime + staleTime > new Date().getTime());
 
     const hasCacheQueries = Object.keys(cacheQueries).length > 0;
 
@@ -225,22 +263,37 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     });
   }
 
+  const repolling = () => {
+    if (
+      stopPollingWhenHiddenOrOffline.value &&
+      (pollingWhenHidden || isDocumentVisibilty()) &&
+      (pollingWhenOffline || isOnline())
+    ) {
+      latestQuery.value.refresh();
+      stopPollingWhenHiddenOrOffline.value = false;
+    }
+  };
+
   // subscribe polling
   if (!pollingWhenHidden) {
-    subscriber('VISIBLE_LISTENER', () => {
-      if (pollingHiddenFlag.value) {
-        pollingHiddenFlag.value = false;
-        latestQuery.value.refresh();
-      }
-    });
+    addUnsubscribeList(subscriber('VISIBLE_LISTENER', repolling));
   }
 
+  // subscribe online when pollingWhenOffline is false
+  if (!pollingWhenOffline) {
+    addUnsubscribeList(subscriber('RECONNECT_LISTENER', repolling));
+  }
+
+  const limitRefresh = limitTrigger(latestQuery.value.refresh, focusTimespan);
   // subscribe window focus or visible
   if (refreshOnWindowFocus) {
-    const limitRefresh = limitTrigger(latestQuery.value.refresh, focusTimespan);
-    subscriber('VISIBLE_LISTENER', limitRefresh);
-    subscriber('FOCUS_LISTENER', limitRefresh);
+    addUnsubscribeList(subscriber('VISIBLE_LISTENER', limitRefresh));
+    addUnsubscribeList(subscriber('FOCUS_LISTENER', limitRefresh));
   }
+
+  onUnmounted(() => {
+    unsubscribeList.forEach(unsubscribe => unsubscribe());
+  });
 
   const queryState = {
     loading,
