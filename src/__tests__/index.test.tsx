@@ -1,7 +1,7 @@
 import FakeTimers from '@sinonjs/fake-timers';
 import { mount, shallowMount } from '@vue/test-utils';
 import fetchMock from 'fetch-mock';
-import { defineComponent, ref } from 'vue';
+import { defineComponent, Ref, ref } from 'vue';
 import { useRequest } from '../index';
 import { clearGlobalOptions, setGlobalOptions } from '../core/config';
 import { clearCache } from '../core/utils/cache';
@@ -452,11 +452,8 @@ describe('useRequest', () => {
             <button
               onClick={async () => {
                 readyRef.value = !readyRef.value;
-
-                // setTimeout(() => {
                 count.value += 1;
                 run(count.value);
-                // }, 50);
               }}
             >{`data:${data.value}`}</button>
           );
@@ -1168,5 +1165,422 @@ describe('useRequest', () => {
 
       expect(Parent.find(`#${userName}`).text()).toBe(userName);
     }
+  });
+
+  test('errorRetry should work. case 1', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { run, loading } = useRequest(failedRequest, {
+            manual: true,
+            errorRetryCount: 2,
+            errorRetryInterval: 1000,
+          });
+          const handleClick = () => run();
+          return () => <button onClick={handleClick}>{`${loading.value}`}</button>;
+        },
+      }),
+    );
+
+    for (let oIndex = 0; oIndex < 10; oIndex++) {
+      await wrapper.find('button').trigger('click');
+      expect(wrapper.text()).toBe('true');
+      await waitForTime(1000);
+      expect(wrapper.text()).toBe('false');
+
+      // retrying
+      for (let index = 0; index < 2; index++) {
+        await waitForTime(1000);
+        expect(wrapper.text()).toBe('true');
+        await waitForTime(1000);
+        expect(wrapper.text()).toBe('false');
+      }
+
+      // stop retry
+      await waitForTime(1000);
+      expect(wrapper.text()).toBe('false');
+    }
+  });
+
+  test('errorRetry should work. case 2', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { loading, cancel } = useRequest(failedRequest, {
+            errorRetryCount: 3,
+            errorRetryInterval: 1000,
+          });
+          return () => <button onClick={() => cancel()}>{`${loading.value}`}</button>;
+        },
+      }),
+    );
+    expect(wrapper.text()).toBe('true');
+    await waitForTime(1000);
+    expect(wrapper.text()).toBe('false');
+    // first retry
+    await waitForTime(1000);
+    expect(wrapper.text()).toBe('true');
+    await waitForTime(1000);
+    expect(wrapper.text()).toBe('false');
+
+    // second retry
+    await waitForTime(1000);
+    expect(wrapper.text()).toBe('true');
+
+    // trigger cancel
+    await wrapper.find('button').trigger('click');
+    expect(wrapper.text()).toBe('false');
+    await waitForTime(1000);
+    expect(wrapper.text()).toBe('false');
+  });
+
+  test('errorRetry should work with pollingInterval', async () => {
+    let flag = true;
+    const mixinRequest = () => {
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          if (flag) {
+            resolve('success');
+          } else {
+            reject(new Error('fail'));
+          }
+        }, 1000);
+      });
+    };
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { loading, error, data } = useRequest(mixinRequest, {
+            errorRetryCount: 3,
+            errorRetryInterval: 600,
+            pollingInterval: 500,
+          });
+          return () => <button>{`${loading.value || data.value || error.value?.message}`}</button>;
+        },
+      }),
+    );
+
+    // normal API request
+    for (let index = 0; index < 1000; index++) {
+      expect(wrapper.text()).toBe('true');
+      await waitForTime(1000);
+      expect(wrapper.text()).toBe('success');
+      await waitForTime(500);
+    }
+
+    // mock API errored request
+    flag = false;
+
+    // retrying
+    for (let index = 0; index < 3; index++) {
+      expect(wrapper.text()).toBe('true');
+      await waitForTime(1000);
+      expect(wrapper.text()).toBe('fail');
+      await waitForTime(600);
+    }
+
+    // stop retry
+    expect(wrapper.text()).toBe('true');
+    await waitForTime(1000);
+    expect(wrapper.text()).toBe('fail');
+    await waitForTime(600);
+    expect(wrapper.text()).toBe('fail');
+  });
+
+  test('pollingInterval always receive a errored request', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { loading, error } = useRequest(failedRequest, {
+            pollingInterval: 1000,
+          });
+          return () => <button>{`${loading.value || error.value?.message}`}</button>;
+        },
+      }),
+    );
+
+    for (let index = 0; index < 1000; index++) {
+      expect(wrapper.text()).toBe('true');
+      await waitForTime(1000);
+      expect(wrapper.text()).toBe('fail');
+      await waitForTime(1000);
+    }
+  });
+
+  test('pollingInterval always receive a errored request and errorRetryCount is -1', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { loading, error } = useRequest(failedRequest, {
+            errorRetryCount: -1,
+            pollingInterval: 500,
+            errorRetryInterval: 600,
+          });
+          return () => <button>{`${loading.value || error.value?.message}`}</button>;
+        },
+      }),
+    );
+
+    for (let index = 0; index < 1000; index++) {
+      expect(wrapper.text()).toBe('true');
+      await waitForTime(1000);
+      expect(wrapper.text()).toBe('fail');
+      await waitForTime(600);
+    }
+  });
+
+  test('reset loadingDelay correctly when rerun or refresh', async () => {
+    const { loading, run, refresh } = useRequest(request, {
+      loadingDelay: 500,
+    });
+
+    await waitForTime(300);
+    expect(loading.value).toBeFalsy();
+
+    run();
+    await waitForTime(300);
+    expect(loading.value).toBeFalsy();
+    await waitForTime(200);
+    expect(loading.value).toBeTruthy();
+
+    refresh();
+    await waitForTime(300);
+    expect(loading.value).toBeFalsy();
+    await waitForTime(200);
+    expect(loading.value).toBeTruthy();
+  });
+
+  test('reset polling correctly when rerun or refresh', async () => {
+    enum RequestType {
+      run,
+      refresh,
+      polling,
+    }
+    const requestTypeRef = ref<RequestType>(RequestType.run);
+
+    const runCountRef = ref(0);
+    const refreshCountRef = ref(0);
+    const pollingCountRef = ref(0);
+
+    const expectCount = (param: Ref<number>, value: number) => {
+      expect(param.value).toBe(value);
+    };
+
+    const triggerWithCorrectType = (source: Function, type: RequestType) => {
+      requestTypeRef.value = type;
+      source();
+    };
+
+    const { run, refresh } = useRequest(
+      () => {
+        switch (requestTypeRef.value) {
+          case RequestType.polling:
+            pollingCountRef.value += 1;
+            break;
+          case RequestType.run:
+            runCountRef.value += 1;
+            break;
+          case RequestType.refresh:
+            refreshCountRef.value += 1;
+            break;
+        }
+
+        if (
+          requestTypeRef.value === RequestType.run ||
+          requestTypeRef.value === RequestType.refresh
+        ) {
+          requestTypeRef.value = RequestType.polling;
+        }
+
+        return request();
+      },
+      {
+        pollingInterval: 500,
+      },
+    );
+
+    /* ------------------------------------- run ------------------------------------- */
+
+    expectCount(runCountRef, 1);
+    expectCount(pollingCountRef, 0);
+
+    // auto run
+    await waitForTime(1000);
+
+    for (let index = 1; index <= 100; index++) {
+      // wait for polling
+      await waitForTime(500);
+
+      // request complete
+      await waitForTime(1000);
+      expectCount(runCountRef, 1);
+      expectCount(pollingCountRef, index);
+    }
+
+    // polling is pending
+    await waitForTime(200);
+
+    triggerWithCorrectType(run, RequestType.run);
+    await waitForTime(1000);
+
+    expectCount(runCountRef, 2);
+    expectCount(pollingCountRef, 100);
+
+    for (let index = 1; index <= 100; index++) {
+      // wait for polling
+      await waitForTime(500);
+
+      // request complete
+      await waitForTime(1000);
+      expectCount(pollingCountRef, index + 100);
+    }
+
+    /* ------------------------------------- refresh ------------------------------------- */
+    expectCount(runCountRef, 2);
+    expectCount(refreshCountRef, 0);
+    expectCount(pollingCountRef, 200);
+
+    // polling is pending
+    await waitForTime(200);
+
+    triggerWithCorrectType(refresh, RequestType.refresh);
+
+    expectCount(refreshCountRef, 1);
+    expectCount(pollingCountRef, 200);
+
+    // refresh complete
+    await waitForTime(1000);
+
+    for (let index = 1; index <= 100; index++) {
+      // wait for polling
+      await waitForTime(500);
+
+      // request complete
+      await waitForTime(1000);
+      expectCount(pollingCountRef, index + 200);
+    }
+
+    expectCount(runCountRef, 2);
+    expectCount(refreshCountRef, 1);
+    expectCount(pollingCountRef, 300);
+  });
+
+  test('reset error retry correctly when rerun or refresh', async () => {
+    enum RequestType {
+      run,
+      refresh,
+      errorRetry,
+    }
+    const requestTypeRef = ref<RequestType>(RequestType.run);
+
+    const runCountRef = ref(0);
+    const refreshCountRef = ref(0);
+    const errorRetryCountRef = ref(0);
+
+    const expectCount = (param: Ref<number>, value: number) => {
+      expect(param.value).toBe(value);
+    };
+
+    const triggerWithCorrectType = (source: Function, type: RequestType) => {
+      requestTypeRef.value = type;
+      source();
+    };
+
+    const { run, refresh, error } = useRequest(
+      () => {
+        switch (requestTypeRef.value) {
+          case RequestType.errorRetry:
+            errorRetryCountRef.value += 1;
+            break;
+          case RequestType.run:
+            runCountRef.value += 1;
+            break;
+          case RequestType.refresh:
+            refreshCountRef.value += 1;
+            break;
+        }
+
+        if (
+          requestTypeRef.value === RequestType.run ||
+          requestTypeRef.value === RequestType.refresh
+        ) {
+          requestTypeRef.value = RequestType.errorRetry;
+        }
+
+        return failedRequest();
+      },
+      {
+        errorRetryCount: 5,
+        errorRetryInterval: 500,
+      },
+    );
+
+    /* ------------------------------------- run ------------------------------------- */
+    expectCount(runCountRef, 1);
+    expectCount(errorRetryCountRef, 0);
+    expect(error.value).toBeUndefined();
+
+    // wait for request
+    await waitForTime(1000);
+
+    // receive a errored result
+    expect(error.value).not.toBeUndefined();
+    // wait for error retry
+    await waitForTime(500);
+
+    expectCount(runCountRef, 1);
+    expectCount(errorRetryCountRef, 1);
+
+    await waitForTime(1000);
+    // error retry is pending
+    await waitForTime(300);
+
+    triggerWithCorrectType(run, RequestType.run);
+    expectCount(runCountRef, 2);
+    expectCount(errorRetryCountRef, 1);
+
+    await waitForTime(1000);
+    await waitForTime(500);
+
+    expectCount(runCountRef, 2);
+    expectCount(errorRetryCountRef, 2);
+
+    /* ------------------------------------- refresh ------------------------------------- */
+    await waitForTime(1000);
+
+    expectCount(runCountRef, 2);
+    expectCount(errorRetryCountRef, 2);
+
+    triggerWithCorrectType(refresh, RequestType.refresh);
+    expectCount(refreshCountRef, 1);
+    expectCount(errorRetryCountRef, 2);
+
+    await waitForTime(1000);
+    await waitForTime(500);
+
+    expectCount(refreshCountRef, 1);
+    expectCount(errorRetryCountRef, 3);
+
+    await waitForTime(1000);
+    // error retry is pending
+    await waitForTime(300);
+
+    triggerWithCorrectType(refresh, RequestType.refresh);
+    expectCount(refreshCountRef, 2);
+    expectCount(errorRetryCountRef, 3);
+
+    // receive a errored result
+    await waitForTime(1000);
+
+    // start error retry
+    for (let index = 0; index < 100; index++) {
+      await waitForTime(1000);
+      await waitForTime(500);
+    }
+
+    expectCount(runCountRef, 2);
+    expectCount(refreshCountRef, 2);
+    // 5 times is the retry count
+    expectCount(errorRetryCountRef, 3 + 5);
   });
 });

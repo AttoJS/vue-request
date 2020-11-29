@@ -63,12 +63,15 @@ const createQuery = <R, P extends unknown[]>(
     throttleInterval,
     pollingWhenHidden,
     pollingHiddenFlag,
+    errorRetryCount,
+    errorRetryInterval,
     updateCache,
     formatResult,
     onSuccess,
     onError,
   } = config;
 
+  let retriedCount = 0;
   const loading = ref(initialState?.loading ?? false);
   const data = ref(initialState?.data ?? initialData) as Ref<R>;
   const error = ref(initialState?.error ?? undefined);
@@ -84,9 +87,32 @@ const createQuery = <R, P extends unknown[]>(
     [state => updateCache(state)],
   );
 
+  // reset retried count
+  const resetRetriedCount = () => {
+    retriedCount = 0;
+  };
+
   const count = ref(0);
   const pollingTimer = ref();
+  const retryTimer = ref();
   const delayLoadingTimer = ref();
+
+  const clearAllTimer = () => {
+    // clear pollingTimer
+    if (pollingTimer.value) {
+      pollingTimer.value();
+    }
+
+    // clear delayLoadingTimer
+    if (delayLoadingTimer.value) {
+      delayLoadingTimer.value();
+    }
+
+    // clear retryTimer
+    if (retryTimer.value) {
+      retryTimer.value();
+    }
+  };
 
   const delayLoading = () => {
     let timerId: number;
@@ -101,6 +127,9 @@ const createQuery = <R, P extends unknown[]>(
   };
 
   const polling = (pollingFunc: () => void) => {
+    // if errorRetry is enabled, then skip this method
+    if (error.value && errorRetryCount !== 0) return;
+
     let timerId: number;
     if (!isNil(pollingInterval) && pollingInterval! >= 0) {
       // stop polling
@@ -111,6 +140,19 @@ const createQuery = <R, P extends unknown[]>(
       timerId = setTimeout(pollingFunc, pollingInterval);
     }
 
+    return () => timerId && clearTimeout(timerId);
+  };
+
+  const errorRetryHooks = (retryFunc: () => void) => {
+    let timerId: number;
+    const isInfiniteRetry = errorRetryCount === -1;
+    const hasRetryCount = retriedCount < errorRetryCount!;
+
+    // if errorRetryCount is -1, it will retry the request until it success
+    if (error.value && (isInfiniteRetry || hasRetryCount)) {
+      if (!isInfiniteRetry) retriedCount += 1;
+      timerId = setTimeout(retryFunc, errorRetryInterval);
+    }
     return () => timerId && clearTimeout(timerId);
   };
 
@@ -139,6 +181,7 @@ const createQuery = <R, P extends unknown[]>(
             onSuccess(formattedResult, args);
           }
 
+          resetRetriedCount();
           return formattedResult;
         }
         return resolvedPromise;
@@ -164,6 +207,10 @@ const createQuery = <R, P extends unknown[]>(
 
           // clear delayLoadingTimer
           delayLoadingTimer.value();
+
+          // retry
+          retryTimer.value = errorRetryHooks(() => _run(args, cb));
+
           // run for polling
           pollingTimer.value = polling(() => _run(args, cb));
         }
@@ -174,6 +221,7 @@ const createQuery = <R, P extends unknown[]>(
   const throttledRun = !isNil(throttleInterval) && throttle(_run, throttleInterval);
 
   const run = (args: P, cb?: () => void) => {
+    clearAllTimer();
     // initial auto run should not debounce
     if (!initialAutoRunFlag.value && debouncedRun) {
       debouncedRun(args, cb);
@@ -184,6 +232,7 @@ const createQuery = <R, P extends unknown[]>(
       throttledRun(args, cb);
       return resolvedPromise;
     }
+    resetRetriedCount();
 
     return _run(args, cb);
   };
@@ -199,15 +248,7 @@ const createQuery = <R, P extends unknown[]>(
       throttledRun.cancel();
     }
 
-    // clear pollingTimer
-    if (pollingTimer.value) {
-      pollingTimer.value();
-    }
-
-    // clear delayLoadingTimer
-    if (delayLoadingTimer.value) {
-      delayLoadingTimer.value();
-    }
+    clearAllTimer();
   };
 
   const refresh = () => {
