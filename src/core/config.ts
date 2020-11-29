@@ -30,9 +30,6 @@ export type GlobalOptions = {
   // -1 means the cache is always valid
   staleTime?: number;
   manual?: boolean;
-  // error retry
-  errorRetryCount?: number;
-  errorRetryInterval?: number;
 };
 
 export type BaseOptions<R, P extends unknown[]> = GlobalOptions & {
