@@ -38,25 +38,19 @@ export type QueryState<R, P extends unknown[]> = State<R, P> & {
 
 export type InnerQueryState<R, P extends unknown[]> = Omit<
   QueryState<R, P>,
-  'run' | 'queries'
-> & {
-  run: (args: P, cb?: () => void) => InnerRunReturn<R>;
-};
+  'queries'
+>;
 
 const setStateBind = <R, P extends unknown[], T extends State<R, P>>(
   oldState: T,
-  publicCb?: Array<(state: T) => void>,
+  publicCb: Array<(state: T) => void>,
 ) => {
-  return (
-    newState: Partial<UnWrapRefObject<State<R, P>>>,
-    cb?: (state: T) => void,
-  ) => {
+  return (newState: Partial<UnWrapRefObject<State<R, P>>>) => {
     Object.keys(newState).forEach(key => {
       oldState[key].value = newState[key];
     });
     nextTick(() => {
-      cb?.(oldState);
-      publicCb?.forEach(fun => fun(oldState));
+      publicCb.forEach(fun => fun(oldState));
     });
   };
 };
@@ -87,7 +81,7 @@ const createQuery = <R, P extends unknown[]>(
   let retriedCount = 0;
   const loading = ref(initialState?.loading ?? false);
   const data = ref(initialState?.data ?? initialData) as Ref<R>;
-  const error = ref(initialState?.error ?? undefined);
+  const error = ref(initialState?.error);
   const params = ref(initialState?.params ?? []) as Ref<P>;
 
   const setState = setStateBind(
@@ -173,7 +167,7 @@ const createQuery = <R, P extends unknown[]>(
     return () => timerId && clearTimeout(timerId);
   };
 
-  const _run = (args: P, cb?: () => void) => {
+  const _run = (...args: P) => {
     setState({
       loading: !loadingDelay,
       params: args,
@@ -220,16 +214,14 @@ const createQuery = <R, P extends unknown[]>(
       })
       .finally(() => {
         if (currentCount === count.value) {
-          cb?.();
-
           // clear delayLoadingTimer
           delayLoadingTimer.value();
 
           // retry
-          retryTimer.value = errorRetryHooks(() => _run(args, cb));
+          retryTimer.value = errorRetryHooks(() => _run(...args));
 
           // run for polling
-          pollingTimer.value = polling(() => _run(args, cb));
+          pollingTimer.value = polling(() => _run(...args));
         }
       });
   };
@@ -239,21 +231,21 @@ const createQuery = <R, P extends unknown[]>(
   const throttledRun =
     !isNil(throttleInterval) && throttle(_run, throttleInterval);
 
-  const run = (args: P, cb?: () => void) => {
+  const run = (...args: P) => {
     clearAllTimer();
     // initial auto run should not debounce
     if (!initialAutoRunFlag.value && debouncedRun) {
-      debouncedRun(args, cb);
+      debouncedRun(...args);
       return resolvedPromise;
     }
 
     if (throttledRun) {
-      throttledRun(args, cb);
+      throttledRun(...args);
       return resolvedPromise;
     }
     resetRetriedCount();
 
-    return _run(args, cb);
+    return _run(...args);
   };
 
   const cancel = () => {
@@ -271,7 +263,7 @@ const createQuery = <R, P extends unknown[]>(
   };
 
   const refresh = () => {
-    return run(params.value);
+    return run(...params.value);
   };
 
   const mutate: Mutate<R> = (

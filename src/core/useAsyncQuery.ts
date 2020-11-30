@@ -109,7 +109,7 @@ function useAsyncQuery<R, P extends unknown[], FR>(
             ...queryData,
           },
         },
-        latestQueriesKey: currentQueryKey ?? cacheData?.latestQueriesKey,
+        latestQueriesKey: currentQueryKey,
       },
       cacheTime,
     );
@@ -167,18 +167,16 @@ function useAsyncQuery<R, P extends unknown[], FR>(
 
     if (cache?.data?.queries) {
       Object.keys(cache.data.queries).forEach(key => {
-        const cacheQuery = cache.data.queries?.[key];
+        const cacheQuery = cache.data.queries![key];
 
-        if (cacheQuery) {
-          queries[key] = createQuery(query, config, {
-            loading: cacheQuery.loading,
-            params: cacheQuery.params,
-            data: cacheQuery.data,
-            error: cacheQuery.error,
-          });
-        }
+        queries[key] = createQuery(query, config, {
+          loading: cacheQuery.loading,
+          params: cacheQuery.params,
+          data: cacheQuery.data,
+          error: cacheQuery.error,
+        });
       });
-
+      /* istanbul ignore else */
       if (cache.data.latestQueriesKey) {
         latestQueriesKey.value = cache.data.latestQueriesKey;
       }
@@ -201,7 +199,7 @@ function useAsyncQuery<R, P extends unknown[], FR>(
 
     latestQueriesKey.value = newKey;
 
-    return latestQuery.value.run(args);
+    return latestQuery.value.run(...args);
   };
 
   // initial run
