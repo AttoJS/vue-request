@@ -963,6 +963,51 @@ describe('useRequest', () => {
     expect(mockFn).toHaveBeenCalledTimes(2);
   });
 
+  test('debounceInterval should work with cancel', async () => {
+    const mockFn = jest.fn();
+
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { run, cancel } = useRequest(
+            () => {
+              mockFn();
+              return request();
+            },
+            {
+              debounceInterval: 100,
+              manual: true,
+            },
+          );
+          return () => (
+            <div>
+              <button id="run" onClick={() => run()} />
+              <button id="cancel" onClick={() => cancel()} />
+            </div>
+          );
+        },
+      }),
+    );
+    const run = () => wrapper.find('#run').trigger('click');
+    const cancel = () => wrapper.find('#cancel').trigger('click');
+    for (let index = 0; index < 100; index++) {
+      await run();
+      await waitForTime(50);
+    }
+    await cancel();
+    await waitForTime(100);
+    expect(mockFn).toHaveBeenCalledTimes(0);
+
+    for (let index = 0; index < 100; index++) {
+      await run();
+      await waitForTime(50);
+    }
+
+    await cancel();
+    await waitForTime(100);
+    expect(mockFn).toHaveBeenCalledTimes(0);
+  });
+
   test('initial auto run should skip debounce', async () => {
     const mockFn = jest.fn();
 
@@ -1025,6 +1070,57 @@ describe('useRequest', () => {
     // have been call 3 times
     // because the function will invoking on the leading edge and trailing edge of the timeout
     expect(mockFn).toHaveBeenCalledTimes(3);
+  });
+
+  test('throttleInterval should work with cancel', async () => {
+    const mockFn = jest.fn();
+
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { run, cancel } = useRequest(
+            () => {
+              mockFn();
+              return request();
+            },
+            {
+              throttleInterval: 100,
+              manual: true,
+            },
+          );
+          return () => (
+            <div>
+              <button id="run" onClick={() => run()} />
+              <button id="cancel" onClick={() => cancel()} />
+            </div>
+          );
+        },
+      }),
+    );
+    const run = () => wrapper.find('#run').trigger('click');
+    const cancel = () => wrapper.find('#cancel').trigger('click');
+    await run();
+    // trigger by leading
+    expect(mockFn).toHaveBeenCalledTimes(1);
+    await waitForTime(10);
+    await cancel();
+
+    await run();
+    // trigger by leading
+    expect(mockFn).toHaveBeenCalledTimes(2);
+    await waitForTime(10);
+    await cancel();
+
+    await run();
+    // trigger by leading
+    expect(mockFn).toHaveBeenCalledTimes(3);
+    await waitForTime(50);
+    await run();
+    await run();
+
+    await waitForAll();
+    // trigger by trailing
+    expect(mockFn).toHaveBeenCalledTimes(4);
   });
 
   test('cache should work', async () => {
