@@ -1,7 +1,13 @@
 import { BaseOptions, FormatOptions, MixinOptions } from './core/config';
 import { Query } from './core/createQuery';
 import useAsyncQuery, { BaseResult } from './core/useAsyncQuery';
-import { isFunction, isPlainObject, isPromise, isString } from './core/utils';
+import {
+  isFunction,
+  isPlainObject,
+  isPromise,
+  isString,
+  requestProxy,
+} from './core/utils';
 
 export type ServiceObject = {
   [key: string]: any;
@@ -12,14 +18,6 @@ export type IService<R, P extends unknown[]> =
   | ((...args: P) => ServiceParams)
   | ServiceParams
   | Query<R, P>;
-
-async function requestProxy(...args: [url: string, ...rest: any[]]) {
-  const res = await fetch(...args);
-  if (res.ok) {
-    return res.json();
-  }
-  throw new Error(res.statusText);
-}
 
 function useRequest<R, P extends unknown[] = any>(
   service: IService<R, P>,

@@ -6,8 +6,10 @@ import {
   isPlainObject,
   isPromise,
   isString,
+  requestProxy,
 } from '../core/utils';
 import limitTrigger from '../core/utils/limitTrigger';
+import fetchMock from 'fetch-mock';
 import subscriber, {
   FOCUS_LISTENER,
   RECONNECT_LISTENER,
@@ -136,5 +138,21 @@ describe('utils', () => {
       unsubscribe();
     });
     expect(FOCUS_LISTENER.size).toBe(0);
+  });
+
+  test('requestProxy should work', async () => {
+    const successApi = 'http://example.com/200';
+    const failApi = 'http://example.com/404';
+    // mock fetch
+    fetchMock.get(successApi, { data: 'success' });
+    fetchMock.get(failApi, 404);
+
+    const successRes = await requestProxy(successApi);
+    expect(successRes).toEqual({ data: 'success' });
+    try {
+      await requestProxy(failApi);
+    } catch (error) {
+      expect(error.message).toBe('Not Found');
+    }
   });
 });
