@@ -1,4 +1,3 @@
-import FakeTimers from '@sinonjs/fake-timers';
 import { mount, shallowMount } from '@vue/test-utils';
 import fetchMock from 'fetch-mock';
 import { defineComponent, Ref, ref } from 'vue';
@@ -66,57 +65,116 @@ describe('useRequest', () => {
   });
 
   test('should use string service', async () => {
-    const { data } = useRequest(successApi);
-    await waitForAll();
-    expect(data.value).toEqual({ data: 'success' });
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { data } = useRequest<{ data: string }>(successApi);
+          return () => <button>{`${data.value?.data}`}</button>;
+        },
+      }),
+    );
+    expect(wrapper.text()).toBe('undefined');
+    await waitForTime(1000);
+    expect(wrapper.text()).toBe('success');
   });
 
   test('should throw error when service error', async () => {
-    const { error, run } = useRequest(failApi, {
-      manual: true,
-    });
-    run().catch(() => {});
-    await waitForAll();
-    expect(error.value?.message).toBe('Not Found');
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { error } = useRequest(failApi);
+          return () => <button>{`${error.value?.message}`}</button>;
+        },
+      }),
+    );
+    expect(wrapper.text()).toBe('undefined');
+    await waitForTime(1000);
+    expect(wrapper.text()).toBe('Not Found');
   });
 
   test('should use object service', async () => {
-    const { data } = useRequest({ test: 'value', url: successApi });
-    await waitForAll();
-    expect(data.value).toEqual({ data: 'success' });
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { data } = useRequest<{ data: string }>({
+            test: 'value',
+            url: successApi,
+          });
+          return () => <button>{`${data.value?.data}`}</button>;
+        },
+      }),
+    );
+    expect(wrapper.text()).toBe('undefined');
+    await waitForTime(1000);
+    expect(wrapper.text()).toBe('success');
   });
 
   test('should use function service that will return string', async () => {
-    const { data } = useRequest(serviceWillReturnString);
-    await waitForAll();
-    expect(data.value).toEqual({ data: 'success' });
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { data } = useRequest<{ data: string }>(
+            serviceWillReturnString,
+          );
+          return () => <button>{`${data.value?.data}`}</button>;
+        },
+      }),
+    );
+    expect(wrapper.text()).toBe('undefined');
+    await waitForTime(1000);
+    expect(wrapper.text()).toBe('success');
   });
 
   test('should use function service that will return object', async () => {
-    const { data } = useRequest(serviceWillReturnObject);
-    await waitForAll();
-    expect(data.value).toEqual({ data: 'success' });
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { data } = useRequest<{ data: string }>(
+            serviceWillReturnObject,
+          );
+          return () => <button>{`${data.value?.data}`}</button>;
+        },
+      }),
+    );
+    expect(wrapper.text()).toBe('undefined');
+    await waitForTime(1000);
+    expect(wrapper.text()).toBe('success');
   });
 
   test('should use function service that will return unknow type', () => {
     const fn = jest.fn();
-    try {
-      useRequest(serviceWillReturnUnknow as any);
-    } catch (error) {
-      expect(error.message).toBe('Unknown service type');
-      fn();
-    }
+    shallowMount(
+      defineComponent({
+        setup() {
+          try {
+            useRequest(serviceWillReturnUnknow as any);
+          } catch (error) {
+            expect(error.message).toBe('Unknown service type');
+            fn();
+          }
+          return () => <div />;
+        },
+      }),
+    );
+
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
   test('should throw error when use unkonw service', () => {
     const fn = jest.fn();
-    try {
-      useRequest(unkonwService as any);
-    } catch (error) {
-      expect(error.message).toBe('Unknown service type');
-      fn();
-    }
+    shallowMount(
+      defineComponent({
+        setup() {
+          try {
+            useRequest(unkonwService as any);
+          } catch (error) {
+            expect(error.message).toBe('Unknown service type');
+            fn();
+          }
+          return () => <div />;
+        },
+      }),
+    );
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
@@ -154,16 +212,26 @@ describe('useRequest', () => {
   });
 
   test('params should work', async () => {
-    const { params, run } = useRequest(request, {
-      defaultParams: ['hello', 'world'],
-    });
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { run, params } = useRequest(request, {
+            defaultParams: ['hello', 'world'],
+          });
+          return () => (
+            <button onClick={() => run('hi there')}>
+              {params.value?.join(',')}
+            </button>
+          );
+        },
+      }),
+    );
 
-    await waitForAll();
-    expect(params.value).toEqual(['hello', 'world']);
-
-    run('hey');
-    await waitForAll();
-    expect(params.value).toEqual(['hey']);
+    await waitForTime(1000);
+    expect(wrapper.text()).toBe('hello,world');
+    await wrapper.find('button').trigger('click');
+    await waitForTime(1000);
+    expect(wrapper.text()).toEqual('hi there');
   });
 
   test('defaultParams should work', async () => {
@@ -189,9 +257,9 @@ describe('useRequest', () => {
           const { data, run } = useRequest(request);
 
           return () => (
-            <button
-              onClick={() => run('hello', 'world')}
-            >{`data:${data.value}`}</button>
+            <button onClick={() => run('hello', 'world')}>
+              {`data:${data.value}`}
+            </button>
           );
         },
       }),
@@ -228,9 +296,9 @@ describe('useRequest', () => {
           const { data, mutate } = useRequest(request);
 
           return () => (
-            <button
-              onClick={() => mutate(() => 'ok')}
-            >{`data:${data.value}`}</button>
+            <button onClick={() => mutate(() => 'ok')}>
+              {`data:${data.value}`}
+            </button>
           );
         },
       }),
@@ -248,9 +316,9 @@ describe('useRequest', () => {
           const { refresh, loading } = useRequest(request);
 
           return () => (
-            <button
-              onClick={() => refresh()}
-            >{`loading:${loading.value}`}</button>
+            <button onClick={() => refresh()}>
+              {`loading:${loading.value}`}
+            </button>
           );
         },
       }),
@@ -351,7 +419,9 @@ describe('useRequest', () => {
               onClick={() => {
                 readyRef.value = true;
               }}
-            >{`data:${data.value}`}</button>
+            >
+              {`data:${data.value}`}
+            </button>
           );
         },
       }),
@@ -449,7 +519,9 @@ describe('useRequest', () => {
                 count.value += 1;
                 run(count.value);
               }}
-            >{`data:${data.value}`}</button>
+            >
+              {`data:${data.value}`}
+            </button>
           );
         },
       }),
@@ -479,7 +551,9 @@ describe('useRequest', () => {
                 count.value += 1;
                 run(count.value);
               }}
-            >{`data:${data.value}`}</button>
+            >
+              {`data:${data.value}`}
+            </button>
           );
         },
       }),
@@ -528,7 +602,9 @@ describe('useRequest', () => {
               onClick={() => {
                 refreshRef.value++;
               }}
-            >{`loading:${loading.value}`}</button>
+            >
+              {`loading:${loading.value}`}
+            </button>
           );
         },
       }),
@@ -570,9 +646,9 @@ describe('useRequest', () => {
           });
 
           return () => (
-            <button
-              onClick={() => cancel()}
-            >{`loading:${loading.value}`}</button>
+            <button onClick={() => cancel()}>
+              {`loading:${loading.value}`}
+            </button>
           );
         },
       }),
@@ -650,9 +726,9 @@ describe('useRequest', () => {
           });
 
           return () => (
-            <button
-              onClick={() => cancel()}
-            >{`loading:${loading.value}`}</button>
+            <button onClick={() => cancel()}>
+              {`loading:${loading.value}`}
+            </button>
           );
         },
       }),
@@ -679,9 +755,9 @@ describe('useRequest', () => {
           });
 
           return () => (
-            <button
-              onClick={() => cancel()}
-            >{`loading:${loading.value}`}</button>
+            <button onClick={() => cancel()}>
+              {`loading:${loading.value}`}
+            </button>
           );
         },
       }),
@@ -853,84 +929,101 @@ describe('useRequest', () => {
   test('debounceInterval should work', async () => {
     const mockFn = jest.fn();
 
-    const { run } = useRequest(
-      () => {
-        mockFn();
-        return request();
-      },
-      {
-        debounceInterval: 100,
-        manual: true,
-      },
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { run } = useRequest(
+            () => {
+              mockFn();
+              return request();
+            },
+            {
+              debounceInterval: 100,
+              manual: true,
+            },
+          );
+          return () => <button onClick={() => run()} />;
+        },
+      }),
     );
+    for (let index = 0; index < 100; index++) {
+      await wrapper.find('button').trigger('click');
+      await waitForTime(50);
+    }
 
-    run();
-    await waitForTime(50);
-    run();
-    await waitForTime(50);
-    run();
-    await waitForTime(50);
-    run();
-
-    await waitForAll();
+    await waitForTime(100);
     expect(mockFn).toHaveBeenCalledTimes(1);
 
-    run();
-    await waitForTime(50);
-    run();
-    await waitForTime(50);
-    run();
-    await waitForTime(50);
-    run();
+    for (let index = 0; index < 100; index++) {
+      await wrapper.find('button').trigger('click');
+      await waitForTime(50);
+    }
 
-    await waitForAll();
+    await waitForTime(100);
     expect(mockFn).toHaveBeenCalledTimes(2);
   });
 
   test('initial auto run should skip debounce', async () => {
     const mockFn = jest.fn();
 
-    const { run } = useRequest(
-      () => {
-        mockFn();
-        return request();
-      },
-      {
-        debounceInterval: 100,
-      },
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { run } = useRequest(
+            () => {
+              mockFn();
+              return request();
+            },
+            {
+              debounceInterval: 100,
+            },
+          );
+          return () => <button onClick={() => run()} />;
+        },
+      }),
     );
-
     expect(mockFn).toHaveBeenCalledTimes(1);
 
-    run();
+    await wrapper.find('button').trigger('click');
     await waitForTime(50);
     expect(mockFn).toHaveBeenCalledTimes(1);
 
-    await waitForAll();
+    await waitForTime(100);
     expect(mockFn).toHaveBeenCalledTimes(2);
   });
 
   test('throttleInterval should work', async () => {
     const mockFn = jest.fn();
 
-    const { run } = useRequest(
-      () => {
-        mockFn();
-        return request();
-      },
-      {
-        throttleInterval: 100,
-        manual: true,
-      },
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { run } = useRequest(
+            () => {
+              mockFn();
+              return request();
+            },
+            {
+              throttleInterval: 100,
+              manual: true,
+            },
+          );
+          return () => <button onClick={() => run()} />;
+        },
+      }),
     );
 
-    run();
+    await wrapper.find('button').trigger('click');
+
     await waitForTime(50);
-    run();
+    await wrapper.find('button').trigger('click');
+
     await waitForTime(50);
-    run();
+    await wrapper.find('button').trigger('click');
 
     await waitForAll();
+    // have been call 3 times
+    // because the function will invoking on the leading edge and trailing edge of the timeout
     expect(mockFn).toHaveBeenCalledTimes(3);
   });
 
@@ -979,7 +1072,6 @@ describe('useRequest', () => {
   });
 
   test('cache staleTime should work', async () => {
-    const clock = FakeTimers.install({ toFake: ['Date'] });
     let count = 0;
     const TestComponent = defineComponent({
       setup() {
@@ -1015,14 +1107,13 @@ describe('useRequest', () => {
     expect(wrapper.find('button').text()).toBe('10');
     wrapper.unmount();
     // waiting for stale timeout
-    clock.setSystemTime(new Date().getTime() + 5000);
+    jest.setSystemTime(new Date().getTime() + 5000);
 
     // remount component
     wrapper = shallowMount(TestComponent);
     expect(wrapper.find('button').text()).toBe('10');
     await waitForTime(1000);
     expect(wrapper.find('button').text()).toBe('10');
-    clock.uninstall();
   });
 
   test('global options should work', async () => {
@@ -1067,16 +1158,29 @@ describe('useRequest', () => {
   });
 
   test('queryKey should work : case 1', async () => {
-    // auto run with no params
-    const { loading, params, data } = useRequest(request, {
-      queryKey: id => id,
-    });
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          // auto run with empty params
+          const { loading, params, data } = useRequest(request, {
+            queryKey: id => id,
+          });
+          return () => (
+            <div>
+              <div id="loading">{`${loading.value}`}</div>
+              <div id="data">{`${data.value}`}</div>
+              <div id="params">{`${params.value.length}`}</div>
+            </div>
+          );
+        },
+      }),
+    );
 
-    expect(loading.value).toBe(true);
-    await waitForAll();
-    expect(loading.value).toBe(false);
-    expect(data.value).toBe('success');
-    expect(params.value).toEqual([]);
+    expect(wrapper.find('#loading').text()).toBe('true');
+    await waitForTime(1000);
+    expect(wrapper.find('#loading').text()).toBe('false');
+    expect(wrapper.find('#data').text()).toBe('success');
+    expect(wrapper.find('#params').text()).toBe('0');
   });
 
   test('queryKey should work : case 2', async () => {
@@ -1314,9 +1418,9 @@ describe('useRequest', () => {
             pollingInterval: 500,
           });
           return () => (
-            <button>{`${
-              loading.value || data.value || error.value?.message
-            }`}</button>
+            <button>
+              {`${loading.value || data.value || error.value?.message}`}
+            </button>
           );
         },
       }),
@@ -1396,24 +1500,49 @@ describe('useRequest', () => {
   });
 
   test('reset loadingDelay correctly when rerun or refresh', async () => {
-    const { loading, run, refresh } = useRequest(request, {
-      loadingDelay: 500,
-    });
-
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { loading, run, refresh } = useRequest(request, {
+            loadingDelay: 500,
+          });
+          return () => (
+            <div>
+              <div id="loading">{`${loading.value}`}</div>
+              <button
+                id="run"
+                onClick={() => {
+                  run();
+                }}
+              />
+              <button
+                id="refresh"
+                onClick={() => {
+                  refresh();
+                }}
+              />
+            </div>
+          );
+        },
+      }),
+    );
+    const loadingRes = () => wrapper.find('#loading').text();
+    const run = () => wrapper.find('#run').trigger('click');
+    const refresh = () => wrapper.find('#refresh').trigger('click');
     await waitForTime(300);
-    expect(loading.value).toBeFalsy();
+    expect(loadingRes()).toBe('false');
 
     run();
     await waitForTime(300);
-    expect(loading.value).toBeFalsy();
+    expect(loadingRes()).toBe('false');
     await waitForTime(200);
-    expect(loading.value).toBeTruthy();
+    expect(loadingRes()).toBe('true');
 
     refresh();
     await waitForTime(300);
-    expect(loading.value).toBeFalsy();
+    expect(loadingRes()).toBe('false');
     await waitForTime(200);
-    expect(loading.value).toBeTruthy();
+    expect(loadingRes()).toBe('true');
   });
 
   test('reset polling correctly when rerun or refresh', async () => {
@@ -1436,35 +1565,58 @@ describe('useRequest', () => {
       requestTypeRef.value = type;
       source();
     };
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { run, refresh } = useRequest(
+            () => {
+              switch (requestTypeRef.value) {
+                case RequestType.polling:
+                  pollingCountRef.value += 1;
+                  break;
+                case RequestType.run:
+                  runCountRef.value += 1;
+                  break;
+                case RequestType.refresh:
+                  refreshCountRef.value += 1;
+                  break;
+              }
 
-    const { run, refresh } = useRequest(
-      () => {
-        switch (requestTypeRef.value) {
-          case RequestType.polling:
-            pollingCountRef.value += 1;
-            break;
-          case RequestType.run:
-            runCountRef.value += 1;
-            break;
-          case RequestType.refresh:
-            refreshCountRef.value += 1;
-            break;
-        }
+              if (
+                requestTypeRef.value === RequestType.run ||
+                requestTypeRef.value === RequestType.refresh
+              ) {
+                requestTypeRef.value = RequestType.polling;
+              }
 
-        if (
-          requestTypeRef.value === RequestType.run ||
-          requestTypeRef.value === RequestType.refresh
-        ) {
-          requestTypeRef.value = RequestType.polling;
-        }
-
-        return request();
-      },
-      {
-        pollingInterval: 500,
-      },
+              return request();
+            },
+            {
+              pollingInterval: 500,
+            },
+          );
+          return () => (
+            <div>
+              <button
+                id="run"
+                onClick={() => {
+                  run();
+                }}
+              />
+              <button
+                id="refresh"
+                onClick={() => {
+                  refresh();
+                }}
+              />
+            </div>
+          );
+        },
+      }),
     );
 
+    const run = () => wrapper.find('#run').trigger('click');
+    const refresh = () => wrapper.find('#refresh').trigger('click');
     /* ------------------------------------- run ------------------------------------- */
 
     expectCount(runCountRef, 1);
@@ -1552,45 +1704,70 @@ describe('useRequest', () => {
       source();
     };
 
-    const { run, refresh, error } = useRequest(
-      () => {
-        switch (requestTypeRef.value) {
-          case RequestType.errorRetry:
-            errorRetryCountRef.value += 1;
-            break;
-          case RequestType.run:
-            runCountRef.value += 1;
-            break;
-          case RequestType.refresh:
-            refreshCountRef.value += 1;
-            break;
-        }
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { run, refresh, error } = useRequest(
+            () => {
+              switch (requestTypeRef.value) {
+                case RequestType.errorRetry:
+                  errorRetryCountRef.value += 1;
+                  break;
+                case RequestType.run:
+                  runCountRef.value += 1;
+                  break;
+                case RequestType.refresh:
+                  refreshCountRef.value += 1;
+                  break;
+              }
 
-        if (
-          requestTypeRef.value === RequestType.run ||
-          requestTypeRef.value === RequestType.refresh
-        ) {
-          requestTypeRef.value = RequestType.errorRetry;
-        }
+              if (
+                requestTypeRef.value === RequestType.run ||
+                requestTypeRef.value === RequestType.refresh
+              ) {
+                requestTypeRef.value = RequestType.errorRetry;
+              }
 
-        return failedRequest();
-      },
-      {
-        errorRetryCount: 5,
-        errorRetryInterval: 500,
-      },
+              return failedRequest();
+            },
+            {
+              errorRetryCount: 5,
+              errorRetryInterval: 500,
+            },
+          );
+          return () => (
+            <div>
+              <div id="error">{`${error.value?.message}`}</div>
+              <button
+                id="run"
+                onClick={() => {
+                  run();
+                }}
+              />
+              <button
+                id="refresh"
+                onClick={() => {
+                  refresh();
+                }}
+              />
+            </div>
+          );
+        },
+      }),
     );
-
+    const errorRes = () => wrapper.find('#error').text();
+    const run = () => wrapper.find('#run').trigger('click');
+    const refresh = () => wrapper.find('#refresh').trigger('click');
     /* ------------------------------------- run ------------------------------------- */
     expectCount(runCountRef, 1);
     expectCount(errorRetryCountRef, 0);
-    expect(error.value).toBeUndefined();
+    expect(errorRes()).toBe('undefined');
 
     // wait for request
     await waitForTime(1000);
 
     // receive a errored result
-    expect(error.value).not.toBeUndefined();
+    expect(errorRes()).not.toBe('undefined');
     // wait for error retry
     await waitForTime(500);
 
