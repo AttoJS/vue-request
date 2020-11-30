@@ -163,7 +163,7 @@ const createQuery = <R, P extends unknown[]>(
   const errorRetryHooks = (retryFunc: () => void) => {
     let timerId: number;
     const isInfiniteRetry = errorRetryCount === -1;
-    const hasRetryCount = retriedCount < errorRetryCount!;
+    const hasRetryCount = retriedCount < errorRetryCount;
 
     // if errorRetryCount is -1, it will retry the request until it success
     if (error.value && (isInfiniteRetry || hasRetryCount)) {

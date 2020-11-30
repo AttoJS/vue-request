@@ -126,8 +126,6 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     pollingWhenOffline,
     stopPollingWhenHiddenOrOffline,
     cacheKey,
-    cacheTime,
-    staleTime,
     errorRetryCount,
     errorRetryInterval,
     updateCache,

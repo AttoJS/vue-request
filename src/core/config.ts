@@ -57,10 +57,25 @@ export type MixinOptions<R, P extends unknown[], FR> =
 
 export type Config<R, P extends unknown[]> = Omit<
   BaseOptions<R, P>,
-  'defaultParams' | 'manual' | 'ready' | 'refreshDeps' | 'queryKey'
+  | 'defaultParams'
+  | 'manual'
+  | 'ready'
+  | 'refreshDeps'
+  | 'queryKey'
+  | 'loadingDelay'
+  | 'pollingWhenHidden'
+  | 'pollingWhenOffline'
+  | 'errorRetryCount'
+  | 'errorRetryInterval'
 > & {
-  formatResult?: (data: any) => R;
+  loadingDelay: number;
+  pollingWhenHidden: boolean;
+  pollingWhenOffline: boolean;
+  refreshOnWindowFocus: boolean;
+  errorRetryCount: number;
+  errorRetryInterval: number;
   stopPollingWhenHiddenOrOffline: Ref<boolean>;
   initialAutoRunFlag: Ref<boolean>;
+  formatResult?: (data: any) => R;
   updateCache: (state: State<R, P>) => void;
 };
