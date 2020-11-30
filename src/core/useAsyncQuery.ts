@@ -60,8 +60,7 @@ function useAsyncQuery<R, P extends unknown[], FR>(
 ) {
   const injectedGlobalOptions = inject<GlobalOptions>(
     GLOBAL_OPTIONS_PROVIDE_KEY,
-    () => ({}),
-    true,
+    {},
   );
 
   const {
