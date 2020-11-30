@@ -1,15 +1,16 @@
 import { mount, shallowMount } from '@vue/test-utils';
 import fetchMock from 'fetch-mock';
 import { defineComponent, Ref, ref } from 'vue';
-import { useRequest } from '../index';
 import { clearGlobalOptions, setGlobalOptions } from '../core/config';
 import { clearCache } from '../core/utils/cache';
-import { waitForAll, waitForTime } from './utils';
 import {
-  RECONNECT_LISTENER,
   FOCUS_LISTENER,
+  RECONNECT_LISTENER,
   VISIBLE_LISTENER,
 } from '../core/utils/listener';
+import { useRequest, RequestConfig } from '../index';
+import { waitForAll, waitForTime } from './utils';
+import { failedRequest, request } from './utils/request';
 declare let jsdom: any;
 
 describe('useRequest', () => {
@@ -45,20 +46,6 @@ describe('useRequest', () => {
   afterEach(() => {
     console.error = originalError;
   });
-
-  const request = (...args: any[]) =>
-    new Promise<string>(resolve => {
-      setTimeout(() => {
-        resolve(args.join(',') || 'success');
-      }, 1000);
-    });
-
-  const failedRequest = () =>
-    new Promise<Error>((_, reject) => {
-      setTimeout(() => {
-        reject(new Error('fail'));
-      }, 1000);
-    });
 
   test('should be defined', () => {
     expect(useRequest).toBeDefined();
@@ -1212,47 +1199,6 @@ describe('useRequest', () => {
     expect(wrapper.find('button').text()).toBe('10');
   });
 
-  test('global options should work', async () => {
-    const ComponentA = defineComponent({
-      setup() {
-        const { data, run } = useRequest(request);
-        return () => <button onClick={() => run()}>{data.value}</button>;
-      },
-    });
-    const ComponentB = defineComponent({
-      setup() {
-        const { data, run } = useRequest(request);
-        return () => <button onClick={() => run()}>{data.value}</button>;
-      },
-    });
-
-    setGlobalOptions({ manual: true });
-    let wrapperA = shallowMount(ComponentA);
-    let wrapperB = shallowMount(ComponentB);
-
-    expect(wrapperA.find('button').text()).toBe('');
-    expect(wrapperB.find('button').text()).toBe('');
-    await waitForTime(1000);
-    expect(wrapperA.find('button').text()).toBe('');
-    expect(wrapperB.find('button').text()).toBe('');
-    await wrapperA.find('button').trigger('click');
-    await wrapperB.find('button').trigger('click');
-    await waitForTime(1000);
-    expect(wrapperA.find('button').text()).toBe('success');
-    expect(wrapperB.find('button').text()).toBe('success');
-
-    // clear global options
-    clearGlobalOptions();
-    wrapperA = shallowMount(ComponentA);
-    wrapperB = shallowMount(ComponentB);
-
-    expect(wrapperA.find('button').text()).toBe('');
-    expect(wrapperB.find('button').text()).toBe('');
-    await waitForTime(1000);
-    expect(wrapperA.find('button').text()).toBe('success');
-    expect(wrapperB.find('button').text()).toBe('success');
-  });
-
   test('queryKey should work : case 1', async () => {
     const wrapper = shallowMount(
       defineComponent({
@@ -2105,5 +2051,129 @@ describe('useRequest', () => {
     expect(RECONNECT_LISTENER.size).toBe(1);
     wrapper.unmount();
     expect(RECONNECT_LISTENER.size).toBe(0);
+  });
+
+  test('global options should work', async () => {
+    const ComponentA = defineComponent({
+      setup() {
+        const { data, run } = useRequest(request);
+        return () => <button onClick={() => run()}>{data.value}</button>;
+      },
+    });
+    const ComponentB = defineComponent({
+      setup() {
+        const { data, run } = useRequest(request);
+        return () => <button onClick={() => run()}>{data.value}</button>;
+      },
+    });
+
+    setGlobalOptions({ manual: true });
+    let wrapperA = shallowMount(ComponentA);
+    let wrapperB = shallowMount(ComponentB);
+
+    expect(wrapperA.find('button').text()).toBe('');
+    expect(wrapperB.find('button').text()).toBe('');
+    await waitForTime(1000);
+    expect(wrapperA.find('button').text()).toBe('');
+    expect(wrapperB.find('button').text()).toBe('');
+    await wrapperA.find('button').trigger('click');
+    await wrapperB.find('button').trigger('click');
+    await waitForTime(1000);
+    expect(wrapperA.find('button').text()).toBe('success');
+    expect(wrapperB.find('button').text()).toBe('success');
+
+    // clear global options
+    clearGlobalOptions();
+    wrapperA = shallowMount(ComponentA);
+    wrapperB = shallowMount(ComponentB);
+
+    expect(wrapperA.find('button').text()).toBe('');
+    expect(wrapperB.find('button').text()).toBe('');
+    await waitForTime(1000);
+    expect(wrapperA.find('button').text()).toBe('success');
+    expect(wrapperB.find('button').text()).toBe('success');
+  });
+
+  test('RequestConfig sholud work', async () => {
+    const createComponent = (id: string) =>
+      defineComponent({
+        setup() {
+          const { loading, run } = useRequest(request);
+
+          return () => (
+            <button id={id} onClick={run}>
+              {`${loading.value}`}
+            </button>
+          );
+        },
+      });
+
+    const ComponentA = createComponent('A');
+    const ComponentB = createComponent('B');
+    const ComponentC = createComponent('C');
+
+    setGlobalOptions({
+      manual: true,
+      loadingDelay: 500,
+    });
+
+    const Wrapper = defineComponent({
+      setup() {
+        return () => (
+          <div id="root">
+            <RequestConfig config={{ loadingDelay: 0 }}>
+              <ComponentA />
+            </RequestConfig>
+
+            <RequestConfig config={{ manual: false }}>
+              <ComponentB />
+            </RequestConfig>
+
+            <ComponentC />
+          </div>
+        );
+      },
+    });
+
+    const wrapperA = mount(Wrapper);
+
+    expect(wrapperA.find('#A').text()).toBe('false');
+    expect(wrapperA.find('#B').text()).toBe('false');
+    expect(wrapperA.find('#C').text()).toBe('false');
+
+    await wrapperA.find('#A').trigger('click');
+    await wrapperA.find('#C').trigger('click');
+
+    expect(wrapperA.find('#A').text()).toBe('true');
+    expect(wrapperA.find('#B').text()).toBe('false');
+    expect(wrapperA.find('#C').text()).toBe('false');
+
+    await waitForTime(500);
+
+    expect(wrapperA.find('#A').text()).toBe('true');
+    expect(wrapperA.find('#B').text()).toBe('true');
+    expect(wrapperA.find('#C').text()).toBe('true');
+
+    await waitForTime(500);
+
+    expect(wrapperA.find('#A').text()).toBe('false');
+    expect(wrapperA.find('#B').text()).toBe('false');
+    expect(wrapperA.find('#C').text()).toBe('false');
+
+    wrapperA.unmount();
+
+    // clear global options
+    clearGlobalOptions();
+    const wrapperB = mount(Wrapper);
+
+    expect(wrapperB.find('#A').text()).toBe('true');
+    expect(wrapperB.find('#B').text()).toBe('true');
+    expect(wrapperB.find('#C').text()).toBe('true');
+
+    await waitForTime(1000);
+
+    expect(wrapperB.find('#A').text()).toBe('false');
+    expect(wrapperB.find('#B').text()).toBe('false');
+    expect(wrapperB.find('#C').text()).toBe('false');
   });
 });
