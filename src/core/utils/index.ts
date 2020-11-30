@@ -35,3 +35,11 @@ export const unRefObject = <T extends RefObject>(val: T) => {
 };
 
 export const resolvedPromise = Promise.resolve(null);
+
+export const requestProxy = async (...args: [url: string, ...rest: any[]]) => {
+  const res = await fetch(...args);
+  if (res.ok) {
+    return res.json();
+  }
+  throw new Error(res.statusText);
+};
