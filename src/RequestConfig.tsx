@@ -12,7 +12,7 @@ const RequestConfig = defineComponent({
   setup(props, { slots }) {
     const { config } = props;
 
-    provide(GLOBAL_OPTIONS_PROVIDE_KEY, config ?? {});
+    provide(GLOBAL_OPTIONS_PROVIDE_KEY, config);
 
     return () => slots.default?.();
   },
