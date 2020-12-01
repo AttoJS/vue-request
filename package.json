@@ -15,7 +15,7 @@
     "clean": "rimraf dist/*",
     "test": "jest --coverage",
     "lint": "eslint -c ./.eslintrc.js './{src,scripts,build}/**/*.{js,ts,tsx}'",
-    "prettier": "prettier -w '**/*.ts?(x)'"
+    "format": "prettier -w '**/*.ts?(x)'"
   },
   "husky": {
     "hooks": {

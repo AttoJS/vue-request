@@ -1,5 +1,6 @@
 import {
   computed,
+  inject,
   onUnmounted,
   ref,
   shallowReactive,
@@ -9,9 +10,11 @@ import {
 import {
   BaseOptions,
   Config,
-  getGlobalOptions,
-  MixinOptions,
   FormatOptions,
+  getGlobalOptions,
+  GlobalOptions,
+  GLOBAL_OPTIONS_PROVIDE_KEY,
+  MixinOptions,
 } from './config';
 import createQuery, {
   InnerQueryState,
@@ -21,10 +24,10 @@ import createQuery, {
   State,
 } from './createQuery';
 import {
-  unRefObject,
-  resolvedPromise,
   isDocumentVisibilty,
   isOnline,
+  resolvedPromise,
+  unRefObject,
 } from './utils';
 import { getCache, setCache } from './utils/cache';
 import limitTrigger from './utils/limitTrigger';
@@ -55,6 +58,11 @@ function useAsyncQuery<R, P extends unknown[], FR>(
   query: Query<R, P>,
   options: MixinOptions<R, P, FR>,
 ) {
+  const injectedGlobalOptions = inject<GlobalOptions>(
+    GLOBAL_OPTIONS_PROVIDE_KEY,
+    {},
+  );
+
   const {
     initialData,
     pollingInterval,
@@ -78,7 +86,7 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     formatResult,
     onSuccess,
     onError,
-  } = { ...getGlobalOptions(), ...options };
+  } = { ...getGlobalOptions(), ...injectedGlobalOptions, ...options };
 
   const stopPollingWhenHiddenOrOffline = ref(false);
   // skip debounce when initail run
