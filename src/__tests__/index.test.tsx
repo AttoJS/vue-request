@@ -1,7 +1,11 @@
 import { mount, shallowMount } from '@vue/test-utils';
 import fetchMock from 'fetch-mock';
 import { defineComponent, Ref, ref } from 'vue';
-import { clearGlobalOptions, setGlobalOptions } from '../core/config';
+import {
+  clearGlobalOptions,
+  GlobalOptions,
+  setGlobalOptions,
+} from '../core/config';
 import { clearCache } from '../core/utils/cache';
 import {
   FOCUS_LISTENER,
@@ -2095,10 +2099,10 @@ describe('useRequest', () => {
   });
 
   test('RequestConfig should work', async () => {
-    const createComponent = (id: string) =>
+    const createComponent = (id: string, requestOptions: GlobalOptions = {}) =>
       defineComponent({
         setup() {
-          const { loading, run } = useRequest(request);
+          const { loading, run } = useRequest(request, requestOptions);
 
           return () => (
             <button id={id} onClick={run}>
@@ -2112,6 +2116,7 @@ describe('useRequest', () => {
     const ComponentB = createComponent('B');
     const ComponentC = createComponent('C');
     const ComponentD = createComponent('D');
+    const ComponentE = createComponent('E', { loadingDelay: 800 });
 
     setGlobalOptions({
       manual: true,
@@ -2128,6 +2133,8 @@ describe('useRequest', () => {
 
             <RequestConfig config={{ manual: false }}>
               <ComponentB />
+
+              <ComponentE />
 
               {/* nested */}
               <RequestConfig config={{ manual: true, loadingDelay: 200 }}>
@@ -2147,6 +2154,7 @@ describe('useRequest', () => {
     expect(wrapperA.find('#B').text()).toBe('false');
     expect(wrapperA.find('#C').text()).toBe('false');
     expect(wrapperA.find('#D').text()).toBe('false');
+    expect(wrapperA.find('#E').text()).toBe('false');
 
     await wrapperA.find('#A').trigger('click');
     await wrapperA.find('#C').trigger('click');
@@ -2156,6 +2164,7 @@ describe('useRequest', () => {
     expect(wrapperA.find('#B').text()).toBe('false');
     expect(wrapperA.find('#C').text()).toBe('false');
     expect(wrapperA.find('#D').text()).toBe('false');
+    expect(wrapperA.find('#E').text()).toBe('false');
 
     await waitForTime(200);
 
@@ -2163,6 +2172,7 @@ describe('useRequest', () => {
     expect(wrapperA.find('#B').text()).toBe('false');
     expect(wrapperA.find('#C').text()).toBe('true');
     expect(wrapperA.find('#D').text()).toBe('false');
+    expect(wrapperA.find('#E').text()).toBe('false');
 
     await waitForTime(300);
 
@@ -2170,13 +2180,23 @@ describe('useRequest', () => {
     expect(wrapperA.find('#B').text()).toBe('true');
     expect(wrapperA.find('#C').text()).toBe('true');
     expect(wrapperA.find('#D').text()).toBe('true');
+    expect(wrapperA.find('#E').text()).toBe('false');
 
-    await waitForTime(500);
+    await waitForTime(300);
+
+    expect(wrapperA.find('#A').text()).toBe('true');
+    expect(wrapperA.find('#B').text()).toBe('true');
+    expect(wrapperA.find('#C').text()).toBe('true');
+    expect(wrapperA.find('#D').text()).toBe('true');
+    expect(wrapperA.find('#E').text()).toBe('true');
+
+    await waitForTime(200);
 
     expect(wrapperA.find('#A').text()).toBe('false');
     expect(wrapperA.find('#B').text()).toBe('false');
     expect(wrapperA.find('#C').text()).toBe('false');
     expect(wrapperA.find('#D').text()).toBe('false');
+    expect(wrapperA.find('#E').text()).toBe('false');
 
     wrapperA.unmount();
 
@@ -2188,6 +2208,7 @@ describe('useRequest', () => {
     expect(wrapperB.find('#B').text()).toBe('true');
     expect(wrapperB.find('#C').text()).toBe('false');
     expect(wrapperB.find('#D').text()).toBe('true');
+    expect(wrapperB.find('#E').text()).toBe('false');
 
     await wrapperB.find('#C').trigger('click');
 
@@ -2197,12 +2218,22 @@ describe('useRequest', () => {
     expect(wrapperB.find('#B').text()).toBe('true');
     expect(wrapperB.find('#C').text()).toBe('true');
     expect(wrapperB.find('#D').text()).toBe('true');
+    expect(wrapperB.find('#E').text()).toBe('false');
 
-    await waitForTime(1000);
+    await waitForTime(600);
+
+    expect(wrapperB.find('#A').text()).toBe('true');
+    expect(wrapperB.find('#B').text()).toBe('true');
+    expect(wrapperB.find('#C').text()).toBe('true');
+    expect(wrapperB.find('#D').text()).toBe('true');
+    expect(wrapperB.find('#E').text()).toBe('true');
+
+    await waitForTime(200);
 
     expect(wrapperB.find('#A').text()).toBe('false');
     expect(wrapperB.find('#B').text()).toBe('false');
     expect(wrapperB.find('#C').text()).toBe('false');
     expect(wrapperB.find('#D').text()).toBe('false');
+    expect(wrapperB.find('#E').text()).toBe('false');
   });
 });
