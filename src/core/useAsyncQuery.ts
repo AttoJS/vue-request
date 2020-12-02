@@ -24,7 +24,7 @@ import createQuery, {
   State,
 } from './createQuery';
 import {
-  isDocumentVisibilty,
+  isDocumentVisibility,
   isOnline,
   resolvedPromise,
   unRefObject,
@@ -260,10 +260,10 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     });
   }
 
-  const repolling = () => {
+  const rePolling = () => {
     if (
       stopPollingWhenHiddenOrOffline.value &&
-      (pollingWhenHidden || isDocumentVisibilty()) &&
+      (pollingWhenHidden || isDocumentVisibility()) &&
       (pollingWhenOffline || isOnline())
     ) {
       latestQuery.value.refresh();
@@ -273,12 +273,12 @@ function useAsyncQuery<R, P extends unknown[], FR>(
 
   // subscribe polling
   if (!pollingWhenHidden) {
-    addUnsubscribeList(subscriber('VISIBLE_LISTENER', repolling));
+    addUnsubscribeList(subscriber('VISIBLE_LISTENER', rePolling));
   }
 
   // subscribe online when pollingWhenOffline is false
   if (!pollingWhenOffline) {
-    addUnsubscribeList(subscriber('RECONNECT_LISTENER', repolling));
+    addUnsubscribeList(subscriber('RECONNECT_LISTENER', rePolling));
   }
 
   const limitRefresh = limitTrigger(latestQuery.value.refresh, focusTimespan);

@@ -1,6 +1,6 @@
 import {
   isOnline,
-  isDocumentVisibilty,
+  isDocumentVisibility,
   isFunction,
   isNil,
   isPlainObject,
@@ -99,13 +99,13 @@ describe('utils', () => {
     expect(mockFn).toBeCalledTimes(1);
   });
 
-  test('isDocumentVisibilty should work', () => {
-    expect(isDocumentVisibilty()).toBeTruthy();
+  test('isDocumentVisibility should work', () => {
+    expect(isDocumentVisibility()).toBeTruthy();
     Object.defineProperty(document, 'visibilityState', {
       value: 'hidden',
       writable: true,
     });
-    expect(isDocumentVisibilty()).toBeFalsy();
+    expect(isDocumentVisibility()).toBeFalsy();
   });
 
   test('isOnline should work', () => {

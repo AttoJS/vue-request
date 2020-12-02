@@ -1,4 +1,4 @@
-import { isDocumentVisibilty } from './index';
+import { isDocumentVisibility } from './index';
 
 type EventFunc = () => void;
 type ListenersSet = Set<EventFunc>;
@@ -45,7 +45,7 @@ if (window?.addEventListener) {
     'visibilitychange',
     () => {
       /* istanbul ignore else */
-      if (isDocumentVisibilty()) {
+      if (isDocumentVisibility()) {
         observer(VISIBLE_LISTENER);
       }
     },

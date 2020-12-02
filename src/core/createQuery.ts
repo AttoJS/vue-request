@@ -4,7 +4,7 @@ import { nextTick, Ref, ref } from 'vue';
 import { Config } from './config';
 import { Queries } from './useAsyncQuery';
 import {
-  isDocumentVisibilty,
+  isDocumentVisibility,
   isFunction,
   isNil,
   isOnline,
@@ -25,7 +25,7 @@ export type State<R, P extends unknown[]> = {
   params: Ref<P>;
 };
 
-// common run resutl | debounce and throttle result
+// common run result | debounce and throttle result
 export type InnerRunReturn<R> = Promise<R | null>;
 
 export type QueryState<R, P extends unknown[]> = State<R, P> & {
@@ -140,7 +140,7 @@ const createQuery = <R, P extends unknown[]>(
     let timerId: number;
     if (!isNil(pollingInterval) && pollingInterval! >= 0) {
       if (
-        (pollingWhenHidden || isDocumentVisibilty()) &&
+        (pollingWhenHidden || isDocumentVisibility()) &&
         (pollingWhenOffline || isOnline())
       ) {
         timerId = setTimeout(pollingFunc, pollingInterval);

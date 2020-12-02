@@ -17,7 +17,7 @@ export const isFunction = (fn: unknown): fn is Function =>
 
 export const isNil = (val: unknown) => val === null || val === undefined;
 
-export const isDocumentVisibilty = () =>
+export const isDocumentVisibility = () =>
   window?.document?.visibilityState === 'visible';
 
 export const isOnline = () => window?.navigator?.onLine ?? true;

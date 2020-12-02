@@ -28,10 +28,10 @@ describe('useRequest', () => {
   fetchMock.get(successApi, { data: 'success' });
   fetchMock.get(failApi, 404);
 
-  const unkonwService = 1;
+  const unknownService = 1;
   const serviceWillReturnString = () => successApi;
   const serviceWillReturnObject = () => ({ url: successApi });
-  const serviceWillReturnUnknow = () => unkonwService;
+  const serviceWillReturnUnknown = () => unknownService;
 
   const originalError = console.error;
   beforeEach(() => {
@@ -41,7 +41,7 @@ describe('useRequest', () => {
     // clear global options
     clearGlobalOptions();
 
-    // clear listner
+    // clear listener
     RECONNECT_LISTENER.clear();
     FOCUS_LISTENER.clear();
     VISIBLE_LISTENER.clear();
@@ -132,13 +132,13 @@ describe('useRequest', () => {
     expect(wrapper.text()).toBe('success');
   });
 
-  test('should use function service that will return unknow type', () => {
+  test('should use function service that will return unknown type', () => {
     const fn = jest.fn();
     shallowMount(
       defineComponent({
         setup() {
           try {
-            useRequest(serviceWillReturnUnknow as any);
+            useRequest(serviceWillReturnUnknown as any);
           } catch (error) {
             expect(error.message).toBe('Unknown service type');
             fn();
@@ -151,13 +151,13 @@ describe('useRequest', () => {
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
-  test('should throw error when use unkonw service', () => {
+  test('should throw error when use unknown service', () => {
     const fn = jest.fn();
     shallowMount(
       defineComponent({
         setup() {
           try {
-            useRequest(unkonwService as any);
+            useRequest(unknownService as any);
           } catch (error) {
             expect(error.message).toBe('Unknown service type');
             fn();
@@ -1480,7 +1480,7 @@ describe('useRequest', () => {
       await waitForTime(500);
     }
 
-    // mock API errored request
+    // mock API error request
     flag = false;
 
     // retrying
@@ -1499,7 +1499,7 @@ describe('useRequest', () => {
     expect(wrapper.text()).toBe('fail');
   });
 
-  test('pollingInterval always receive a errored request', async () => {
+  test('pollingInterval always receive a error request', async () => {
     const wrapper = shallowMount(
       defineComponent({
         setup() {
@@ -1521,7 +1521,7 @@ describe('useRequest', () => {
     }
   });
 
-  test('pollingInterval always receive a errored request and errorRetryCount is -1', async () => {
+  test('pollingInterval always receive a error request and errorRetryCount is -1', async () => {
     const wrapper = shallowMount(
       defineComponent({
         setup() {
@@ -1812,7 +1812,7 @@ describe('useRequest', () => {
     // wait for request
     await waitForTime(1000);
 
-    // receive a errored result
+    // receive a error result
     expect(errorRes()).not.toBe('undefined');
     // wait for error retry
     await waitForTime(500);
@@ -1858,7 +1858,7 @@ describe('useRequest', () => {
     expectCount(refreshCountRef, 2);
     expectCount(errorRetryCountRef, 3);
 
-    // receive a errored result
+    // receive a error result
     await waitForTime(1000);
 
     // start error retry
