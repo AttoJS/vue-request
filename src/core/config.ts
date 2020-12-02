@@ -31,7 +31,7 @@ export type GlobalOptions = {
   debounceInterval?: number;
   throttleInterval?: number;
   refreshOnWindowFocus?: boolean;
-  focusTimespan?: number;
+  refocusTimespan?: number;
   cacheTime?: number;
   // -1 means the cache is always valid
   staleTime?: number;

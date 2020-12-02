@@ -77,7 +77,7 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     pollingWhenHidden = false,
     pollingWhenOffline = false,
     refreshOnWindowFocus = false,
-    focusTimespan = 5000,
+    refocusTimespan = 5000,
     cacheTime = 10000,
     staleTime = 0,
     errorRetryCount = 0,
@@ -281,7 +281,7 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     addUnsubscribeList(subscriber('RECONNECT_LISTENER', rePolling));
   }
 
-  const limitRefresh = limitTrigger(latestQuery.value.refresh, focusTimespan);
+  const limitRefresh = limitTrigger(latestQuery.value.refresh, refocusTimespan);
   // subscribe window focus or visible
   if (refreshOnWindowFocus) {
     addUnsubscribeList(subscriber('VISIBLE_LISTENER', limitRefresh));

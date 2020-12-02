@@ -880,14 +880,14 @@ describe('useRequest', () => {
     expect(wrapper.vm.$el.textContent).toBe('data:4');
   });
 
-  test('focusTimespan should work', async () => {
+  test('refocusTimespan should work', async () => {
     let count = 0;
     const wrapper = shallowMount(
       defineComponent({
         setup() {
           const { data, run } = useRequest(() => request((count += 1)), {
             refreshOnWindowFocus: true,
-            focusTimespan: 3000,
+            refocusTimespan: 3000,
           });
 
           return () => (
