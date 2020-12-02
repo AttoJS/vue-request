@@ -48,6 +48,7 @@ const WebpackConfig = {
   devServer: {
     open: true,
     overlay: true,
+    host: '0.0.0.0',
   },
 };
 
