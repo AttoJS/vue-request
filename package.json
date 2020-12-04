@@ -1,6 +1,6 @@
 {
   "name": "vue-request",
-  "version": "0.1.0",
+  "version": "1.0.0-beta.1",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
   "unpkg": "dist/vue-request.min.js",
@@ -14,6 +14,8 @@
     "dev": "webpack serve --config ./build/webpack.config.js",
     "clean": "rimraf dist/*",
     "test": "jest --coverage",
+    "publish": "np --preview",
+    "release": "yarn build && yarn publish",
     "lint": "eslint -c ./.eslintrc.js './{src,scripts,build}/**/*.{js,ts,tsx}'",
     "format": "prettier -w '**/*.ts?(x)'"
   },
@@ -63,6 +65,7 @@
     "lint-staged": "^10.5.2",
     "lodash": "^4.17.20",
     "node-fetch": "^2.6.1",
+    "np": "^7.0.0",
     "prettier": "^2.2.0",
     "rimraf": "^3.0.2",
     "rollup": "^2.33.1",
