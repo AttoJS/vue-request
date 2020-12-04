@@ -1,6 +1,6 @@
 import { mount, shallowMount } from '@vue/test-utils';
 import fetchMock from 'fetch-mock';
-import { defineComponent, Ref, ref } from 'vue';
+import { defineComponent, reactive, Ref, ref } from 'vue';
 import {
   clearGlobalOptions,
   GlobalOptions,
@@ -583,29 +583,50 @@ describe('useRequest', () => {
       defineComponent({
         setup() {
           const refreshRef = ref(0);
-
+          const refreshReactive = reactive({
+            count: 0,
+          });
           const { loading } = useRequest(request, {
-            refreshDeps: [refreshRef],
+            refreshDeps: [refreshRef, () => refreshReactive.count],
           });
 
           return () => (
-            <button
-              onClick={() => {
-                refreshRef.value++;
-              }}
-            >
-              {`loading:${loading.value}`}
-            </button>
+            <div>
+              <div id="data">{String(loading.value)}</div>
+              <button
+                id="ref"
+                onClick={() => {
+                  refreshRef.value++;
+                }}
+              />
+              <button
+                id="reactive"
+                onClick={() => {
+                  refreshReactive.count++;
+                }}
+              />
+            </div>
           );
         },
       }),
     );
-    await waitForAll();
-    expect(wrapper.vm.$el.textContent).toBe('loading:false');
-    await wrapper.find('button').trigger('click');
-    expect(wrapper.vm.$el.textContent).toBe('loading:true');
-    await waitForAll();
-    expect(wrapper.vm.$el.textContent).toBe('loading:false');
+
+    await waitForTime(1000);
+    expect(wrapper.find('#data').text()).toBe('false');
+
+    for (let index = 0; index < 100; index++) {
+      await wrapper.find('#ref').trigger('click');
+      expect(wrapper.find('#data').text()).toBe('true');
+      await waitForTime(1000);
+      expect(wrapper.find('#data').text()).toBe('false');
+    }
+
+    for (let index = 0; index < 100; index++) {
+      await wrapper.find('#reactive').trigger('click');
+      expect(wrapper.find('#data').text()).toBe('true');
+      await waitForTime(1000);
+      expect(wrapper.find('#data').text()).toBe('false');
+    }
   });
 
   test('loadingDelay should work', async () => {

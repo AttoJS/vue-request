@@ -1,4 +1,4 @@
-import { InjectionKey, Ref } from 'vue';
+import { InjectionKey, Ref, WatchSource } from 'vue';
 import { State } from './createQuery';
 
 const GLOBAL_OPTIONS: GlobalOptions = {};
@@ -45,7 +45,7 @@ export type BaseOptions<R, P extends unknown[]> = GlobalOptions & {
   defaultParams?: P;
   ready?: Ref<boolean>;
   initialData?: R;
-  refreshDeps?: Ref<any>[];
+  refreshDeps?: WatchSource<any>[];
   cacheKey?: string;
   queryKey?: (...args: P) => string;
   onSuccess?: (data: R, params: P) => void;
