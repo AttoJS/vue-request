@@ -1,4 +1,4 @@
-English | [简体中文](README-zh_CN.md)
+[English](./README.md) | 简体中文
 
 <p align="center">
   <img
@@ -9,7 +9,7 @@ English | [简体中文](README-zh_CN.md)
 </p>
 <h1 align="center">VueRequest</h1>
 <div align="center">
-  <p align="center">⚡️ A request library for Vue 3.</p>
+  <p align="center">⚡️ 一个很酷的 Vue3 的请求库</p>
   <a href="https://codecov.io/github/attojs/vue-request?branch=master">
     <img
       src="https://img.shields.io/codecov/c/github/attojs/vue-request?token=NW2XVQWGPP"
@@ -30,20 +30,20 @@ English | [简体中文](README-zh_CN.md)
   </a>
 </div>
 
-# Status: Beta
+# 当前状态: Beta
 
-## Features
+## 特性
 
-- 🚀 All data is reactive
-- 🔄 Interval polling
-- 🤖 Automatic error retry
-- 🗄 Built-in cache
-- 📠 Written in TypeScript
-- 🍃 Lightweight
-- 📦 Out of the box
-- 🔥 Interactive docs
+- 🚀 所有数据都具有响应式
+- 🔄 轮询请求
+- 🤖 自动处理错误重试
+- 🗄 内置请求缓存
+- 📠 完全使用 Typescript 编写，具有强大的类型提示
+- 🍃 轻量化
+- 📦 开箱即用
+- 🔥 有趣的可交互文档
 
-## Install
+## 安装
 
 ```bash
 npm install vue-request
@@ -58,9 +58,9 @@ yarn add vue-request
 <script src="https://unpkg.com/vue-request"></script>
 ```
 
-It will be exposed to global as `window.VueRequest.useRequest`
+它将以 `window.VueRequest.useRequest` 的形式在暴露在全局
 
-## Usage
+## 使用
 
 ```tsx
 import { useRequest } from 'vue-request';
@@ -73,23 +73,23 @@ export default {
 };
 ```
 
-## TODO List
+## TODO 列表
 
-If you have any cool features, please submit an issue for discussion
+如果你有很酷的想法，欢迎提交 issue 以便我们讨论
 
-- [ ] Documentation
-- [ ] Pagination
-- [ ] Load More
-- [ ] Support Vue 2
+- [ ] 文档
+- [ ] 分页扩展
+- [ ] "Load More" 扩展
+- [ ] 支持 Vue 2
 
-## Thanks
+## 致谢
 
-Thank them for inspiring us.
+感谢他们为我们提供了灵感
 
 - [vercel/swr](https://github.com/vercel/swr)
 - [alibaba/hooks](https://ahooks.js.org/hooks/async#userequest)
 
-Thanks to [xiadd](https://github.com/xiadd) for providing the awesome [vue-request](https://www.npmjs.com/package/vue-request) npm package name!
+感谢 [xiadd](https://github.com/xiadd) 为我们提供了 [vue-request](https://www.npmjs.com/package/vue-request) 这个很酷的 NPM 包名！
 
 ## License
 
