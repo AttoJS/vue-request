@@ -1,6 +1,6 @@
 {
   "name": "vue-request",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-beta.0",
   "description": "A request library for Vue 3",
   "license": "MIT",
   "keywords": [
@@ -21,7 +21,7 @@
   "unpkg": "dist/vue-request.min.js",
   "types": "dist/types/index.d.ts",
   "files": [
-    "dist"
+    "dist/**"
   ],
   "scripts": {
     "build": "yarn clean && rollup --config ./build/rollup.config.js",
