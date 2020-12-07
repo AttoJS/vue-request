@@ -28,7 +28,7 @@
   </a>
 </div>
 
-# 🔥 Features
+## Features
 
 - 🚀 All data is reactive
 - 🔄 Interval polling
@@ -39,7 +39,7 @@
 - 📦 Out of the box
 - 🔥 Interactive docs
 
-# 🛠 Install
+## Install
 
 ```bash
 npm install vue-request
@@ -48,7 +48,15 @@ npm install vue-request
 yarn add vue-request
 ```
 
-# 🔌 Usage
+### CDN
+
+```html
+<script src="https://unpkg.com/vue-request"></script>
+```
+
+It will be exposed to global as `window.VueRequest.useRequest`
+
+## Usage
 
 ```tsx
 import { useRequest } from 'vue-request';
@@ -61,15 +69,16 @@ export default {
 };
 ```
 
-# 📋 TODO List
+## TODO List
 
 If you have any cool features, please submit an issue for discussion
 
-- [ ] Built-in Paging
-- [ ] Built-in Infinite Loading
+- [ ] Documentation
+- [ ] Pagination
+- [ ] Load More
 - [ ] Support Vue 2
 
-# 🌸 Thanks
+## Thanks
 
 Thank them for inspiring us.
 
@@ -78,6 +87,6 @@ Thank them for inspiring us.
 
 Thanks to [xiadd](https://github.com/xiadd) for providing the awesome [vue-request](https://www.npmjs.com/package/vue-request) npm package name!
 
-# 📄 License
+## License
 
 [MIT License](https://github.com/AttoJS/vue-request/blob/master/LICENSE) © 2020-present [AttoJS](https://github.com/AttoJS)
