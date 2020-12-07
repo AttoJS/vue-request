@@ -58,9 +58,9 @@ yarn add vue-request
 <script src="https://unpkg.com/vue-request"></script>
 ```
 
-它将以 `window.VueRequest.useRequest` 的形式在暴露在全局
+它将以 `window.VueRequest.useRequest` 暴露在全局
 
-## 使用
+## 用例
 
 ```tsx
 import { useRequest } from 'vue-request';
@@ -78,8 +78,8 @@ export default {
 如果你有很酷的想法，欢迎提交 issue 以便我们讨论
 
 - [ ] 文档
-- [ ] 分页扩展
-- [ ] "Load More" 扩展
+- [ ] 分页
+- [ ] 加载更多
 - [ ] 支持 Vue 2
 
 ## 致谢
