@@ -28,8 +28,8 @@
     "dev": "webpack serve --config ./build/webpack.config.js",
     "clean": "rimraf dist/*",
     "test": "jest --coverage",
-    "publish": "np --preview",
-    "release": "yarn build && yarn publish",
+    "publishing": "np",
+    "release": "yarn build && yarn publishing",
     "lint": "eslint -c ./.eslintrc.js './{src,scripts,build}/**/*.{js,ts,tsx}'",
     "format": "prettier -w '**/*.ts?(x)'"
   },
