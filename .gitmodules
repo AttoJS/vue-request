@@ -1,3 +1,0 @@
-[submodule "docs"]
-	path = docs
-	url = https://github.com/AttoJS/vue-request-docs.git
