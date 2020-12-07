@@ -28,11 +28,7 @@
   </a>
 </div>
 
-# Introduction
-
-Vue Composition-API library for data fetching
-
-# Features
+# 🔥 Features
 
 - 🚀 All data is reactive
 - 🔄 Interval polling
@@ -43,13 +39,16 @@ Vue Composition-API library for data fetching
 - 📦 Out of the box
 - 🔥 Interactive docs
 
-# Install
+# 🛠 Install
 
-`npm install vue-request`
+```bash
+npm install vue-request
 
-`yarn add vue-request`
+# or with yarn
+yarn add vue-request
+```
 
-# Usage
+# 🔌 Usage
 
 ```tsx
 import { useRequest } from 'vue-request';
@@ -62,7 +61,7 @@ export default {
 };
 ```
 
-# TODO
+# 📋 TODO List
 
 If you have any cool features, please submit an issue for discussion
 
@@ -70,7 +69,7 @@ If you have any cool features, please submit an issue for discussion
 - [ ] Built-in Infinite Loading
 - [ ] Support Vue 2
 
-# Thanks
+# 🌸 Thanks
 
 Thank them for inspiring us.
 
@@ -78,3 +77,7 @@ Thank them for inspiring us.
 - [alibaba/hooks](https://ahooks.js.org/hooks/async#userequest)
 
 Thanks to [xiadd](https://github.com/xiadd) for providing the awesome [vue-request](https://www.npmjs.com/package/vue-request) npm package name!
+
+# 📄 License
+
+[MIT License](https://github.com/AttoJS/vue-request/blob/master/LICENSE) © 2020-present [AttoJS](https://github.com/AttoJS)
