@@ -46,16 +46,16 @@
 ## 安装
 
 ```bash
-npm install vue-request
+npm install vue-request@beta
 
 # or with yarn
-yarn add vue-request
+yarn add vue-request@beta
 ```
 
 ### CDN
 
 ```html
-<script src="https://unpkg.com/vue-request"></script>
+<script src="https://unpkg.com/vue-request@beta"></script>
 ```
 
 它将以 `window.VueRequest.useRequest` 暴露在全局

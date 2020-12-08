@@ -46,16 +46,16 @@ English | [简体中文](README-zh_CN.md)
 ## Install
 
 ```bash
-npm install vue-request
+npm install vue-request@beta
 
 # or with yarn
-yarn add vue-request
+yarn add vue-request@beta
 ```
 
 ### CDN
 
 ```html
-<script src="https://unpkg.com/vue-request"></script>
+<script src="https://unpkg.com/vue-request@beta"></script>
 ```
 
 It will be exposed to global as `window.VueRequest.useRequest`
