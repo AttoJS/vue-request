@@ -42,7 +42,7 @@ const RollUpConfig = {
       useTsconfigDeclarationDir: true,
     }),
     babel({
-      extensions: ['js', 'ts'],
+      extensions: ['js', 'ts', 'tsx'],
       babelHelpers: 'runtime',
       configFile: './babel.config.js',
       exclude: [/core-js/],
