@@ -78,7 +78,7 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     pollingWhenOffline = false,
     refreshOnWindowFocus = false,
     refocusTimespan = 5000,
-    cacheTime = 10000,
+    cacheTime = 600000,
     staleTime = 0,
     errorRetryCount = 0,
     errorRetryInterval = 0,
