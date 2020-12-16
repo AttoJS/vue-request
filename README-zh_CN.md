@@ -43,6 +43,11 @@
 - 📦 开箱即用
 - 🔥 有趣的可交互文档
 
+## 文档
+
+- [English](https://attojs.github.io/vue-request-docs/) WIP
+- [中文](https://attojs.github.io/vue-request-docs/zh/)
+
 ## 安装
 
 ```bash

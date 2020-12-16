@@ -43,6 +43,11 @@ English | [简体中文](README-zh_CN.md)
 - 📦 Out of the box
 - 🔥 Interactive docs
 
+## Documentation
+
+- [English](https://attojs.github.io/vue-request-docs/) WIP
+- [中文](https://attojs.github.io/vue-request-docs/zh/)
+
 ## Install
 
 ```bash
