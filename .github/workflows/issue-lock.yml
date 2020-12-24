@@ -1,0 +1,16 @@
+name: Lock Issue
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  lock-issue:
+    runs-on: ubuntu-latest
+    if: github.event.label.name == 'invalid'
+    steps:
+      - name: Lock issue
+        uses: actions-cool/issues-helper@v1
+        with:
+          actions: 'lock-issue'
+          issue-number: ${{ github.event.issue.number }}
