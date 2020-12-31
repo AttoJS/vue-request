@@ -17,10 +17,12 @@ export const isFunction = (fn: unknown): fn is Function =>
 
 export const isNil = (val: unknown) => val === null || val === undefined;
 
-export const isDocumentVisibility = () =>
-  window?.document?.visibilityState === 'visible';
+export const isServer = typeof window === 'undefined';
 
-export const isOnline = () => window?.navigator?.onLine ?? true;
+export const isDocumentVisibility = () =>
+  !isServer && window?.document?.visibilityState === 'visible';
+
+export const isOnline = () => (!isServer && window?.navigator?.onLine) ?? true;
 
 export const unRefObject = <T extends RefObject>(val: T) => {
   const obj = {};

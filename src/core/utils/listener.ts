@@ -1,4 +1,4 @@
-import { isDocumentVisibility } from './index';
+import { isDocumentVisibility, isServer } from './index';
 
 type EventFunc = () => void;
 type ListenersSet = Set<EventFunc>;
@@ -40,7 +40,7 @@ const observer = (listeners: ListenersSet) => {
 };
 
 /* istanbul ignore else */
-if (window?.addEventListener) {
+if (!isServer && window?.addEventListener) {
   window.addEventListener(
     'visibilitychange',
     () => {
