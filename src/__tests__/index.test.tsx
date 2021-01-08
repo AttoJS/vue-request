@@ -1463,6 +1463,42 @@ describe('useRequest', () => {
     expect(wrapper.text()).toBe('false');
   });
 
+  test('errorRetry should work. case 3', async () => {
+    const mockFn = jest.fn();
+
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { run, loading } = useRequest(failedRequest, {
+            manual: true,
+            errorRetryCount: 10,
+            onError: () => mockFn(),
+          });
+          const handleClick = () => run();
+          return () => (
+            <button onClick={handleClick}>{`${loading.value}`}</button>
+          );
+        },
+      }),
+    );
+
+    await wrapper.find('button').trigger('click');
+    expect(wrapper.text()).toBe('true');
+    await waitForTime(1000);
+    expect(wrapper.text()).toBe('false');
+
+    // retrying
+    for (let index = 0; index < 10; index++) {
+      await waitForAll();
+      expect(wrapper.text()).toBe('false');
+    }
+
+    // stop retry
+    await waitForAll();
+    expect(wrapper.text()).toBe('false');
+    expect(mockFn).toHaveBeenCalledTimes(11);
+  });
+
   test('errorRetry should work with pollingInterval', async () => {
     let flag = true;
     const mixinRequest = () => {
