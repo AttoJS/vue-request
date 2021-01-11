@@ -1,6 +1,6 @@
 import debounce from 'lodash/debounce';
 import throttle from 'lodash/throttle';
-import { nextTick, Ref, ref } from 'vue';
+import { computed, nextTick, Ref, ref } from 'vue';
 import { Config } from './config';
 import { Queries } from './useAsyncQuery';
 import {
@@ -78,7 +78,7 @@ const createQuery = <R, P extends unknown[]>(
     onError,
   } = config;
 
-  let retriedCount = 0;
+  const retriedCount = ref(0);
   const loading = ref(initialState?.loading ?? false);
   const data = ref(initialState?.data ?? initialData) as Ref<R>;
   const error = ref(initialState?.error);
@@ -96,7 +96,7 @@ const createQuery = <R, P extends unknown[]>(
 
   // reset retried count
   const resetRetriedCount = () => {
-    retriedCount = 0;
+    retriedCount.value = 0;
   };
 
   const count = ref(0);
@@ -154,15 +154,29 @@ const createQuery = <R, P extends unknown[]>(
     return () => timerId && clearTimeout(timerId);
   };
 
+  const actualErrorRetryInterval = computed(() => {
+    if (errorRetryInterval) return errorRetryInterval;
+    const baseTime = 1000;
+    const minCoefficient = 1;
+    const maxCoefficient = 9;
+    // When retrying for the first time, in order to avoid the coefficient being 0
+    // so replace 0 with 2, the coefficient range will become 1 - 2
+    const coefficient = Math.floor(
+      Math.random() * 2 ** Math.min(retriedCount.value, maxCoefficient) +
+        minCoefficient,
+    );
+    return baseTime * coefficient;
+  });
+
   const errorRetryHooks = (retryFunc: () => void) => {
     let timerId: number;
     const isInfiniteRetry = errorRetryCount === -1;
-    const hasRetryCount = retriedCount < errorRetryCount;
+    const hasRetryCount = retriedCount.value < errorRetryCount;
 
     // if errorRetryCount is -1, it will retry the request until it success
     if (error.value && (isInfiniteRetry || hasRetryCount)) {
-      if (!isInfiniteRetry) retriedCount += 1;
-      timerId = setTimeout(retryFunc, errorRetryInterval);
+      if (!isInfiniteRetry) retriedCount.value += 1;
+      timerId = setTimeout(retryFunc, actualErrorRetryInterval.value);
     }
     return () => timerId && clearTimeout(timerId);
   };
