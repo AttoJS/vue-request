@@ -46,7 +46,7 @@ English | [简体中文](README-zh_CN.md)
 ## Documentation
 
 - [English](https://attojs.github.io/vue-request-docs/) WIP
-- [中文](https://attojs.github.io/vue-request-docs/zh/)
+- [中文](https://attojs.gitee.io/vue-request-docs/zh/)
 
 ## Install
 
