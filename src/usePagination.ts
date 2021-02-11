@@ -75,6 +75,7 @@ function usePagination<R, P extends unknown[], FR>(
       currentKey = 'current',
       pageSizeKey = 'pageSize',
       totalKey = 'total',
+      totalPageKey = 'totalPage',
     },
     ...restOptions
   } = (options ?? {}) as any;
@@ -105,6 +106,10 @@ function usePagination<R, P extends unknown[], FR>(
   const current = computed(() => params.value?.[0]?.[currentKey] || 1);
   // @ts-ignore
   const pageSize = computed(() => params.value?.[0]?.[pageSizeKey] || 10);
+  // @ts-ignore
+  const totalPage = computed(() =>
+    get(data.value, totalPageKey, Math.ceil(total.value / pageSize.value)),
+  );
 
   // changeCurrent	change current page	(current: number) => void
   const changeCurrent = (current: number) => {
@@ -125,6 +130,7 @@ function usePagination<R, P extends unknown[], FR>(
     current,
     pageSize,
     total,
+    totalPage,
     ...rest,
   };
 }
