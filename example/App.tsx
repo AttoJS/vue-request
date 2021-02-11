@@ -1,23 +1,70 @@
-import { defineComponent } from 'vue';
-import { useRequest } from 'vue-request';
+import axios from 'axios';
+import { defineComponent, watchEffect } from 'vue';
+import { usePagination } from 'vue-request';
 
-function testService() {
-  return new Promise<string>(resolve => {
-    setTimeout(() => {
-      resolve('success');
-    }, 1000);
-  });
-}
+type APIParams = {
+  results: number;
+  page?: number;
+  sortField?: string;
+  sortOrder?: number;
+  [key: string]: any;
+};
+type APIResult = {
+  results: {
+    gender: 'female' | 'male';
+    name: string;
+    email: string;
+  }[];
+};
 
+const queryData = (params: APIParams) => {
+  return axios.get<APIResult>('https://randomuser.me/api', { params: params });
+};
+
+let index = 1;
 export default defineComponent({
   name: 'App',
   setup() {
-    const { run, data, loading } = useRequest(testService);
+    const {
+      // @ts-ignore
+      changeCurrent,
+      // @ts-ignore
+      changePageSize,
+      data,
+      loading,
+      // @ts-ignore
+      current,
+      // @ts-ignore
+      pageSize,
+      // @ts-ignore
+      total,
+      // @ts-ignore
+    } = usePagination(queryData, {
+      formatResult: data => data.data,
+      pagination: {
+        // @ts-ignore
+        currentKey: 'page',
+        pageSizeKey: 'results',
+        totalKey: 'results.0.dob.age',
+      },
+    });
+    watchEffect(() => {
+      console.log(data.value);
+    });
     return () => (
       <div>
-        <button onClick={() => run()}>run</button>
+        <button onClick={() => changeCurrent((index += 1))}>
+          changeCurrent
+        </button>
+        <button onClick={() => changePageSize((index += 1))}>
+          changePageSize
+        </button>
         <br />
-        {loading.value ? 'loading...' : data.value}
+        current: {current.value}, pageSize: {pageSize.value}, total:{' '}
+        {total.value}
+        <br />
+        <br />
+        {loading.value ? 'loading...' : JSON.stringify(data.value)}
       </div>
     );
   },
