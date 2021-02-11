@@ -39,6 +39,8 @@ export default defineComponent({
       // @ts-ignore
       total,
       // @ts-ignore
+      totalPage,
+      // @ts-ignore
     } = usePagination(queryData, {
       formatResult: data => data.data,
       pagination: {
@@ -46,6 +48,7 @@ export default defineComponent({
         currentKey: 'page',
         pageSizeKey: 'results',
         totalKey: 'results.0.dob.age',
+        totalPageKey: 'results.0.registered.age',
       },
     });
     watchEffect(() => {
@@ -61,7 +64,7 @@ export default defineComponent({
         </button>
         <br />
         current: {current.value}, pageSize: {pageSize.value}, total:{' '}
-        {total.value}
+        {total.value}, totalPage: {totalPage.value}
         <br />
         <br />
         {loading.value ? 'loading...' : JSON.stringify(data.value)}
