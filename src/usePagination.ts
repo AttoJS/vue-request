@@ -1,6 +1,9 @@
+import { computed } from 'vue';
 import { BaseOptions, FormatOptions, MixinOptions } from './core/config';
 import { Query } from './core/createQuery';
 import useAsyncQuery, { BaseResult } from './core/useAsyncQuery';
+import get from 'lodash/get';
+
 import {
   isFunction,
   isPlainObject,
@@ -67,18 +70,26 @@ function usePagination<R, P extends unknown[], FR>(
     throw Error('Unknown service type');
   }
 
+  const {
+    pagination: {
+      currentKey = 'current',
+      pageSizeKey = 'pageSize',
+      totalKey = 'total',
+    },
+    ...restOptions
+  } = (options ?? {}) as any;
+
   const { data, params, run, ...rest } = useAsyncQuery<R, P, FR>(promiseQuery, {
     defaultParams: [
       {
-        current: 1,
-        pageSize: 10,
+        [currentKey]: 1,
+        [pageSizeKey]: 10,
       },
     ],
-    ...((options ?? {}) as any),
+    ...restOptions,
   });
 
-  // onChange	a callback function, executed when changeCurrent or changePageSize is called	(current: number, pageSize: number) => void
-  const doPaginate = (paginationParams: any) => {
+  const paging = (paginationParams: any) => {
     const [oldPaginationParams, ...restParams] = params.value;
     const paginationP = {
       // @ts-ignore
@@ -89,33 +100,20 @@ function usePagination<R, P extends unknown[], FR>(
     run(paginationP, ...restParams);
   };
 
+  const total = computed(() => get(data.value, totalKey, 0));
   // @ts-ignore
-  const total = data?.total || 0;
-  const { current = 1, pageSize = 10 } =
-    params && params[0] ? params[0] : ({} as any);
-
-  const onChange = (c: number, p: number) => {
-    let toCurrent = c <= 0 ? 1 : c;
-    const toPageSize = p <= 0 ? 1 : p;
-
-    const tempTotalPage = Math.ceil(total / toPageSize);
-    if (toCurrent > tempTotalPage) {
-      toCurrent = tempTotalPage;
-    }
-    doPaginate({
-      current: c,
-      pageSize: p,
-    });
-  };
+  const current = computed(() => params.value?.[0]?.[currentKey] || 1);
+  // @ts-ignore
+  const pageSize = computed(() => params.value?.[0]?.[pageSizeKey] || 10);
 
   // changeCurrent	change current page	(current: number) => void
   const changeCurrent = (current: number) => {
-    doPaginate({ current });
+    paging({ [currentKey]: current });
   };
 
   // changePageSize	change pageSize	(pageSize: number) => void
   const changePageSize = (pageSize: number) => {
-    doPaginate({ pageSize });
+    paging({ [pageSizeKey]: pageSize });
   };
 
   return {
@@ -126,6 +124,7 @@ function usePagination<R, P extends unknown[], FR>(
     changePageSize,
     current,
     pageSize,
+    total,
     ...rest,
   };
 }
