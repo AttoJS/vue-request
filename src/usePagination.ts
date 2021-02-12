@@ -22,21 +22,31 @@ export type IService<R, P extends unknown[]> =
   | ServiceParams
   | Query<R, P>;
 
+export interface PaginationResult<R, P extends unknown[]>
+  extends BaseResult<R, P> {
+  current: number;
+  pageSize: number;
+  total: number;
+  totalPage: number;
+  changeCurrent: (current: number) => void;
+  changePageSize: (pageSize: number) => void;
+}
+
 function usePagination<R, P extends unknown[] = any>(
   service: IService<R, P>,
-): BaseResult<R, P>;
+): PaginationResult<R, P>;
 function usePagination<R, P extends unknown[] = any, FR = any>(
   service: IService<R, P>,
   options: FormatOptions<R, P, FR>,
-): BaseResult<FR, P>;
+): PaginationResult<FR, P>;
 function usePagination<R, P extends unknown[] = any>(
   service: IService<R, P>,
   options: BaseOptions<R, P>,
-): BaseResult<R, P>;
+): PaginationResult<R, P>;
 function usePagination<R, P extends unknown[], FR>(
   service: IService<R, P>,
   options?: MixinOptions<R, P, FR>,
-) {
+): any {
   let promiseQuery: (() => Promise<R>) | ((...args: P) => Promise<R>);
 
   if (isFunction(service)) {
