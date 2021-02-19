@@ -3,11 +3,9 @@ import { defineComponent, watchEffect } from 'vue';
 import { usePagination } from 'vue-request';
 
 type APIParams = {
-  results: number;
-  page?: number;
-  sortField?: string;
-  sortOrder?: number;
-  [key: string]: any;
+  // results: number;
+  // page?: number;
+  // [key: string]: any;
 };
 type APIResult = {
   results: {
@@ -26,25 +24,17 @@ export default defineComponent({
   name: 'App',
   setup() {
     const {
-      // @ts-ignore
       changeCurrent,
-      // @ts-ignore
       changePageSize,
       data,
       loading,
-      // @ts-ignore
       current,
-      // @ts-ignore
       pageSize,
-      // @ts-ignore
       total,
-      // @ts-ignore
       totalPage,
-      // @ts-ignore
     } = usePagination(queryData, {
       formatResult: data => data.data,
       pagination: {
-        // @ts-ignore
         currentKey: 'page',
         pageSizeKey: 'results',
         totalKey: 'results.0.dob.age',
