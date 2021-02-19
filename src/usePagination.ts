@@ -1,4 +1,4 @@
-import { computed } from 'vue';
+import { computed, Ref } from 'vue';
 import { BaseOptions, FormatOptions, MixinOptions } from './core/config';
 import { Query } from './core/createQuery';
 import useAsyncQuery, { BaseResult } from './core/useAsyncQuery';
@@ -24,28 +24,48 @@ export type IService<R, P extends unknown[]> =
 
 export interface PaginationResult<R, P extends unknown[]>
   extends BaseResult<R, P> {
-  current: number;
-  pageSize: number;
-  total: number;
-  totalPage: number;
+  current: Ref<number>;
+  pageSize: Ref<number>;
+  total: Ref<number>;
+  totalPage: Ref<number>;
   changeCurrent: (current: number) => void;
   changePageSize: (pageSize: number) => void;
 }
+
+export interface PaginationExtendsOption {
+  pagination?: {
+    currentKey?: string;
+    pageSizeKey?: string;
+    totalKey?: string;
+    totalPageKey?: string;
+  };
+}
+export interface PaginationFormatOptions<R, P extends unknown[], FR>
+  extends FormatOptions<R, P, FR>,
+    PaginationExtendsOption {}
+
+export interface PaginationBaseOptions<R, P extends unknown[]>
+  extends BaseOptions<R, P>,
+    PaginationExtendsOption {}
+
+export type PaginationMixinOptions<R, P extends unknown[], FR> =
+  | PaginationBaseOptions<R, P>
+  | PaginationFormatOptions<R, P, FR>;
 
 function usePagination<R, P extends unknown[] = any>(
   service: IService<R, P>,
 ): PaginationResult<R, P>;
 function usePagination<R, P extends unknown[] = any, FR = any>(
   service: IService<R, P>,
-  options: FormatOptions<R, P, FR>,
+  options: PaginationFormatOptions<R, P, FR>,
 ): PaginationResult<FR, P>;
 function usePagination<R, P extends unknown[] = any>(
   service: IService<R, P>,
-  options: BaseOptions<R, P>,
+  options: PaginationBaseOptions<R, P>,
 ): PaginationResult<R, P>;
 function usePagination<R, P extends unknown[], FR>(
   service: IService<R, P>,
-  options?: MixinOptions<R, P, FR>,
+  options?: PaginationMixinOptions<R, P, FR>,
 ): any {
   let promiseQuery: (() => Promise<R>) | ((...args: P) => Promise<R>);
 
@@ -80,15 +100,19 @@ function usePagination<R, P extends unknown[], FR>(
     throw Error('Unknown service type');
   }
 
-  const {
+  const defaultOptions = {
     pagination: {
-      currentKey = 'current',
-      pageSizeKey = 'pageSize',
-      totalKey = 'total',
-      totalPageKey = 'totalPage',
+      currentKey: 'current',
+      pageSizeKey: 'pageSize',
+      totalKey: 'total',
+      totalPageKey: 'totalPage',
     },
+  };
+
+  const {
+    pagination: { currentKey, pageSizeKey, totalKey, totalPageKey },
     ...restOptions
-  } = (options ?? {}) as any;
+  } = Object.assign(defaultOptions, options ?? ({} as any));
 
   const { data, params, run, ...rest } = useAsyncQuery<R, P, FR>(promiseQuery, {
     defaultParams: [
@@ -101,12 +125,11 @@ function usePagination<R, P extends unknown[], FR>(
   });
 
   const paging = (paginationParams: any) => {
-    const [oldPaginationParams, ...restParams] = params.value;
+    const [oldPaginationParams, ...restParams] = params.value as P[];
     const paginationP = {
-      // @ts-ignore
       ...oldPaginationParams,
       ...paginationParams,
-    } as any;
+    };
     // @ts-ignore
     run(paginationP, ...restParams);
   };
