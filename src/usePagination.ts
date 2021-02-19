@@ -1,26 +1,9 @@
 import { computed, Ref } from 'vue';
-import { BaseOptions, FormatOptions, MixinOptions } from './core/config';
-import { Query } from './core/createQuery';
+import { BaseOptions, FormatOptions } from './core/config';
 import useAsyncQuery, { BaseResult } from './core/useAsyncQuery';
 import get from 'lodash/get';
-
-import {
-  isFunction,
-  isPlainObject,
-  isPromise,
-  isString,
-  requestProxy,
-} from './core/utils';
-
-export type ServiceObject = {
-  [key: string]: any;
-  url: string;
-};
-export type ServiceParams = string | ServiceObject;
-export type IService<R, P extends unknown[]> =
-  | ((...args: P) => ServiceParams)
-  | ServiceParams
-  | Query<R, P>;
+import generateService from './core/utils/generateService';
+import { IService } from './core/utils/types';
 
 export interface PaginationResult<R, P extends unknown[]>
   extends BaseResult<R, P> {
@@ -67,38 +50,7 @@ function usePagination<R, P extends unknown[], FR>(
   service: IService<R, P>,
   options?: PaginationMixinOptions<R, P, FR>,
 ): any {
-  let promiseQuery: (() => Promise<R>) | ((...args: P) => Promise<R>);
-
-  if (isFunction(service)) {
-    promiseQuery = (...args: P) => {
-      const _service = service(...args);
-      let finallyService: Promise<R>;
-      // 是否为普通异步请求
-      if (!isPromise(_service)) {
-        if (isPlainObject(_service)) {
-          const { url, ...rest } = _service;
-          finallyService = requestProxy(url, rest);
-        } else if (isString(_service)) {
-          finallyService = requestProxy(_service);
-        } else {
-          throw new Error('Unknown service type');
-        }
-      } else {
-        finallyService = _service;
-      }
-
-      return new Promise<R>((resolve, reject) => {
-        finallyService.then(resolve).catch(reject);
-      });
-    };
-  } else if (isPlainObject(service)) {
-    const { url, ...rest } = service;
-    promiseQuery = () => requestProxy(url, rest);
-  } else if (isString(service)) {
-    promiseQuery = () => requestProxy(service);
-  } else {
-    throw Error('Unknown service type');
-  }
+  const promiseQuery = generateService<R, P>(service);
 
   const defaultOptions = {
     pagination: {
