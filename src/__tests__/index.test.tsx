@@ -28,11 +28,6 @@ describe('useRequest', () => {
   fetchMock.get(successApi, { data: 'success' });
   fetchMock.get(failApi, 404);
 
-  const unknownService = 1;
-  const serviceWillReturnString = () => successApi;
-  const serviceWillReturnObject = () => ({ url: successApi });
-  const serviceWillReturnUnknown = () => unknownService;
-
   const originalError = console.error;
   beforeEach(() => {
     console.error = jest.fn();
@@ -53,120 +48,6 @@ describe('useRequest', () => {
 
   test('should be defined', () => {
     expect(useRequest).toBeDefined();
-  });
-
-  test('should use string service', async () => {
-    const wrapper = shallowMount(
-      defineComponent({
-        setup() {
-          const { data } = useRequest<{ data: string }>(successApi);
-          return () => <button>{`${data.value?.data}`}</button>;
-        },
-      }),
-    );
-    expect(wrapper.text()).toBe('undefined');
-    await waitForTime(1000);
-    expect(wrapper.text()).toBe('success');
-  });
-
-  test('should throw error when service error', async () => {
-    const wrapper = shallowMount(
-      defineComponent({
-        setup() {
-          const { error } = useRequest(failApi);
-          return () => <button>{`${error.value?.message}`}</button>;
-        },
-      }),
-    );
-    expect(wrapper.text()).toBe('undefined');
-    await waitForTime(1000);
-    expect(wrapper.text()).toBe('Not Found');
-  });
-
-  test('should use object service', async () => {
-    const wrapper = shallowMount(
-      defineComponent({
-        setup() {
-          const { data } = useRequest<{ data: string }>({
-            test: 'value',
-            url: successApi,
-          });
-          return () => <button>{`${data.value?.data}`}</button>;
-        },
-      }),
-    );
-    expect(wrapper.text()).toBe('undefined');
-    await waitForTime(1000);
-    expect(wrapper.text()).toBe('success');
-  });
-
-  test('should use function service that will return string', async () => {
-    const wrapper = shallowMount(
-      defineComponent({
-        setup() {
-          const { data } = useRequest<{ data: string }>(
-            serviceWillReturnString,
-          );
-          return () => <button>{`${data.value?.data}`}</button>;
-        },
-      }),
-    );
-    expect(wrapper.text()).toBe('undefined');
-    await waitForTime(1000);
-    expect(wrapper.text()).toBe('success');
-  });
-
-  test('should use function service that will return object', async () => {
-    const wrapper = shallowMount(
-      defineComponent({
-        setup() {
-          const { data } = useRequest<{ data: string }>(
-            serviceWillReturnObject,
-          );
-          return () => <button>{`${data.value?.data}`}</button>;
-        },
-      }),
-    );
-    expect(wrapper.text()).toBe('undefined');
-    await waitForTime(1000);
-    expect(wrapper.text()).toBe('success');
-  });
-
-  test('should use function service that will return unknown type', () => {
-    const fn = jest.fn();
-    shallowMount(
-      defineComponent({
-        setup() {
-          try {
-            useRequest(serviceWillReturnUnknown as any);
-          } catch (error) {
-            expect(error.message).toBe('Unknown service type');
-            fn();
-          }
-          return () => <div />;
-        },
-      }),
-    );
-
-    expect(fn).toHaveBeenCalledTimes(1);
-  });
-
-  test('should throw error when use unknown service', () => {
-    const fn = jest.fn();
-    shallowMount(
-      defineComponent({
-        setup() {
-          try {
-            useRequest(unknownService as any);
-          } catch (error) {
-            expect(error.message).toBe('Unknown service type');
-            fn();
-          }
-          return () => <div />;
-        },
-      }),
-    );
-    expect(fn).toHaveBeenCalledTimes(1);
   });
 
   test('should auto run', async () => {
