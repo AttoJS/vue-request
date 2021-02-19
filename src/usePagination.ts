@@ -23,13 +23,16 @@ export interface PaginationExtendsOption {
     totalPageKey?: string;
   };
 }
-export interface PaginationFormatOptions<R, P extends unknown[], FR>
-  extends FormatOptions<R, P, FR>,
-    PaginationExtendsOption {}
 
-export interface PaginationBaseOptions<R, P extends unknown[]>
-  extends BaseOptions<R, P>,
-    PaginationExtendsOption {}
+export type PaginationFormatOptions<R, P extends unknown[], FR> = FormatOptions<
+  R,
+  P,
+  FR
+> &
+  PaginationExtendsOption;
+
+export type PaginationBaseOptions<R, P extends unknown[]> = BaseOptions<R, P> &
+  PaginationExtendsOption;
 
 export type PaginationMixinOptions<R, P extends unknown[], FR> =
   | PaginationBaseOptions<R, P>
@@ -49,7 +52,7 @@ function usePagination<R, P extends unknown[] = any>(
 function usePagination<R, P extends unknown[], FR>(
   service: IService<R, P>,
   options?: PaginationMixinOptions<R, P, FR>,
-): any {
+) {
   const promiseQuery = generateService<R, P>(service);
 
   const defaultOptions = {
@@ -76,23 +79,24 @@ function usePagination<R, P extends unknown[], FR>(
     ...restOptions,
   });
 
-  const paging = (paginationParams: any) => {
+  const paging = (paginationParams: Record<string, number>) => {
     const [oldPaginationParams, ...restParams] = params.value as P[];
-    const paginationP = {
+    const newPaginationParams = {
       ...oldPaginationParams,
       ...paginationParams,
     };
-    // @ts-ignore
-    run(paginationP, ...restParams);
+    const mergerParams = [newPaginationParams, ...restParams] as any;
+    run(...mergerParams);
   };
 
-  const total = computed(() => get(data.value, totalKey, 0));
-  // @ts-ignore
-  const current = computed(() => params.value?.[0]?.[currentKey] || 1);
-  // @ts-ignore
-  const pageSize = computed(() => params.value?.[0]?.[pageSizeKey] || 10);
-  // @ts-ignore
-  const totalPage = computed(() =>
+  const total = computed<number>(() => get(data.value, totalKey, 0));
+  const current = computed(
+    () => (params.value[0] as Record<string, number>)[currentKey],
+  );
+  const pageSize = computed(
+    () => (params.value[0] as Record<string, number>)[pageSizeKey],
+  );
+  const totalPage = computed<number>(() =>
     get(data.value, totalPageKey, Math.ceil(total.value / pageSize.value)),
   );
 
