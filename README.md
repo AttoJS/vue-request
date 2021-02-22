@@ -45,8 +45,9 @@ English | [简体中文](README-zh_CN.md)
 
 ## Documentation
 
-- [English](https://attojs.github.io/vue-request-docs/) WIP
-- [中文](https://attojs.gitee.io/vue-request-docs/zh/)
+- [English](https://attojs.github.io/vue-request-docs/)
+- [中文](https://attojs.github.io/vue-request-docs/zh/)
+- [国内镜像](https://attojs.gitee.io/vue-request-docs/zh/)
 
 ## Install
 
@@ -82,7 +83,7 @@ export default {
 
 If you have any cool features, please submit an issue for discussion
 
-- [ ] Documentation
+- [x] Documentation
 - [ ] Pagination
 - [ ] Load More
 - [ ] Support Vue 2
@@ -93,8 +94,6 @@ Thank them for inspiring us.
 
 - [vercel/swr](https://github.com/vercel/swr)
 - [alibaba/hooks](https://ahooks.js.org/hooks/async#userequest)
-
-Thanks to [xiadd](https://github.com/xiadd) for providing the awesome [vue-request](https://www.npmjs.com/package/vue-request) npm package name!
 
 ## License
 

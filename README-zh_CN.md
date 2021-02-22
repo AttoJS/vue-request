@@ -45,8 +45,9 @@
 
 ## 文档
 
-- [English](https://attojs.github.io/vue-request-docs/) WIP
-- [中文](https://attojs.gitee.io/vue-request-docs/zh/)
+- [English](https://attojs.github.io/vue-request-docs/)
+- [中文](https://attojs.github.io/vue-request-docs/zh/)
+- [国内镜像](https://attojs.gitee.io/vue-request-docs/zh/)
 
 ## 安装
 
@@ -82,7 +83,7 @@ export default {
 
 如果你有很酷的想法，欢迎提交 issue 以便我们讨论
 
-- [ ] 文档
+- [x] 文档
 - [ ] 分页
 - [ ] 加载更多
 - [ ] 支持 Vue 2
@@ -93,8 +94,6 @@ export default {
 
 - [vercel/swr](https://github.com/vercel/swr)
 - [alibaba/hooks](https://ahooks.js.org/hooks/async#userequest)
-
-感谢 [xiadd](https://github.com/xiadd) 为我们提供了 [vue-request](https://www.npmjs.com/package/vue-request) 这个很酷的 NPM 包名！
 
 ## License
 
