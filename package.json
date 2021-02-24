@@ -29,7 +29,7 @@
     "clean": "rimraf dist/*",
     "test": "jest --coverage",
     "publishing": "np",
-    "changelog": "standard-changelog && standard-changelog -i CHANGELOG.zh-CN.md -o CHANGELOG.zh-CN.md",
+    "changelog": "standard-version && standard-version -i CHANGELOG.zh-CN.md -o CHANGELOG.zh-CN.md",
     "release": "yarn build && yarn publishing",
     "lint": "eslint -c ./.eslintrc.js './{src,scripts,build}/**/*.{js,ts,tsx}'",
     "format": "prettier -w '**/*.ts?(x)'"
@@ -90,7 +90,7 @@
     "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript2": "^0.29.0",
     "simple-git": "^2.21.0",
-    "standard-changelog": "^2.0.27",
+    "standard-version": "^9.1.1",
     "ts-jest": "^26.4.1",
     "ts-loader": "^8.0.11",
     "typescript": "^4.0.5",
