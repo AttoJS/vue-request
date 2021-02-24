@@ -84,7 +84,7 @@ export default {
 If you have any cool features, please submit an issue for discussion
 
 - [x] Documentation
-- [ ] Pagination
+- [x] Pagination
 - [ ] Load More
 - [ ] Support Vue 2
 
