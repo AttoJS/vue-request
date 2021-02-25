@@ -271,4 +271,20 @@ describe('usePagination', () => {
     expect(pageSizeEl.text()).toBe('10');
     expect(totalPageEl.text()).toBe('99');
   });
+
+  test('concurrent request should not work', async () => {
+    const fn = jest.fn();
+    try {
+      usePagination(customPropertyApi, {
+        // @ts-ignore
+        queryKey: () => '1',
+      });
+    } catch (error) {
+      expect(error.message).toBe(
+        'usePagination does not support concurrent request',
+      );
+      fn();
+    }
+    expect(fn).toHaveBeenCalledTimes(1);
+  });
 });

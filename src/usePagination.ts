@@ -6,7 +6,7 @@ import generateService from './core/utils/generateService';
 import { IService } from './core/utils/types';
 
 export interface PaginationResult<R, P extends unknown[]>
-  extends BaseResult<R, P> {
+  extends Omit<BaseResult<R, P>, 'queries'> {
   current: Ref<number>;
   pageSize: Ref<number>;
   total: Ref<number>;
@@ -24,14 +24,16 @@ export interface PaginationExtendsOption {
   };
 }
 
-export type PaginationFormatOptions<R, P extends unknown[], FR> = FormatOptions<
-  R,
-  P,
-  FR
+export type PaginationFormatOptions<R, P extends unknown[], FR> = Omit<
+  FormatOptions<R, P, FR>,
+  'queryKey'
 > &
   PaginationExtendsOption;
 
-export type PaginationBaseOptions<R, P extends unknown[]> = BaseOptions<R, P> &
+export type PaginationBaseOptions<R, P extends unknown[]> = Omit<
+  BaseOptions<R, P>,
+  'queryKey'
+> &
   PaginationExtendsOption;
 
 export type PaginationMixinOptions<R, P extends unknown[], FR> =
@@ -66,18 +68,26 @@ function usePagination<R, P extends unknown[], FR>(
 
   const {
     pagination: { currentKey, pageSizeKey, totalKey, totalPageKey },
+    queryKey,
     ...restOptions
   } = Object.assign(defaultOptions, options ?? ({} as any));
 
-  const { data, params, run, ...rest } = useAsyncQuery<R, P, FR>(promiseQuery, {
-    defaultParams: [
-      {
-        [currentKey]: 1,
-        [pageSizeKey]: 10,
-      },
-    ],
-    ...restOptions,
-  });
+  if (queryKey) {
+    throw new Error('usePagination does not support concurrent request');
+  }
+
+  const { data, params, run, queries, ...rest } = useAsyncQuery<R, P, FR>(
+    promiseQuery,
+    {
+      defaultParams: [
+        {
+          [currentKey]: 1,
+          [pageSizeKey]: 10,
+        },
+      ],
+      ...restOptions,
+    },
+  );
 
   const paging = (paginationParams: Record<string, number>) => {
     const [oldPaginationParams, ...restParams] = params.value as P[];
@@ -113,13 +123,13 @@ function usePagination<R, P extends unknown[], FR>(
   return {
     data,
     params,
-    run,
-    changeCurrent,
-    changePageSize,
     current,
     pageSize,
     total,
     totalPage,
+    run,
+    changeCurrent,
+    changePageSize,
     ...rest,
   };
 }
