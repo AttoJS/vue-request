@@ -99,17 +99,6 @@ function usePagination<R, P extends unknown[], FR>(
     run(...mergerParams);
   };
 
-  const total = computed<number>(() => get(data.value, totalKey, 0));
-  const current = computed(
-    () => (params.value[0] as Record<string, number>)[currentKey],
-  );
-  const pageSize = computed(
-    () => (params.value[0] as Record<string, number>)[pageSizeKey],
-  );
-  const totalPage = computed<number>(() =>
-    get(data.value, totalPageKey, Math.ceil(total.value / pageSize.value)),
-  );
-
   // changeCurrent	change current page	(current: number) => void
   const changeCurrent = (current: number) => {
     paging({ [currentKey]: current });
@@ -119,6 +108,23 @@ function usePagination<R, P extends unknown[], FR>(
   const changePageSize = (pageSize: number) => {
     paging({ [pageSizeKey]: pageSize });
   };
+
+  const total = computed<number>(() => get(data.value, totalKey, 0));
+  const current = computed({
+    get: () => (params.value[0] as Record<string, number>)[currentKey],
+    set: (val: number) => {
+      changeCurrent(val);
+    },
+  });
+  const pageSize = computed({
+    get: () => (params.value[0] as Record<string, number>)[pageSizeKey],
+    set: (val: number) => {
+      changePageSize(val);
+    },
+  });
+  const totalPage = computed<number>(() =>
+    get(data.value, totalPageKey, Math.ceil(total.value / pageSize.value)),
+  );
 
   return {
     data,
