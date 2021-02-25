@@ -32,7 +32,8 @@
     "changelog": "standard-version && standard-version -i CHANGELOG.zh-CN.md -o CHANGELOG.zh-CN.md",
     "release": "yarn build && yarn publishing",
     "lint": "eslint -c ./.eslintrc.js './{src,scripts,build}/**/*.{js,ts,tsx}'",
-    "format": "prettier -w '**/*.ts?(x)'"
+    "format": "prettier -w '**/*.ts?(x)'",
+    "version": "yarn changelog"
   },
   "husky": {
     "hooks": {
