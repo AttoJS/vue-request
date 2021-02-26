@@ -58,8 +58,8 @@ describe('usePagination', () => {
     myTotalPage: { a: { b: { totalPage: 99 } } },
   });
 
-  fetchMock.get(normalApi, normalMockData);
-  fetchMock.get(customPropertyApi, customPropertyMockData);
+  fetchMock.get(normalApi, normalMockData, { delay: 1000 });
+  fetchMock.get(customPropertyApi, customPropertyMockData, { delay: 1000 });
 
   const originalError = console.error;
   beforeEach(() => {
@@ -230,21 +230,17 @@ describe('usePagination', () => {
     const wrapper = shallowMount(
       defineComponent({
         setup() {
-          const {
-            data,
-            total,
-            params,
-            current,
-            pageSize,
-            totalPage,
-          } = usePagination(customPropertyApi, {
-            pagination: {
-              currentKey: 'myCurrent',
-              pageSizeKey: 'myPageSize',
-              totalKey: 'myTotal.a.b.total',
-              totalPageKey: 'myTotalPage.a.b.totalPage',
+          const { total, params, current, pageSize, totalPage } = usePagination(
+            customPropertyApi,
+            {
+              pagination: {
+                currentKey: 'myCurrent',
+                pageSizeKey: 'myPageSize',
+                totalKey: 'myTotal.a.b.total',
+                totalPageKey: 'myTotalPage.a.b.totalPage',
+              },
             },
-          });
+          );
           return () => (
             <div>
               <div class="params">{JSON.stringify(params.value)}</div>
@@ -286,5 +282,66 @@ describe('usePagination', () => {
       fn();
     }
     expect(fn).toHaveBeenCalledTimes(1);
+  });
+
+  test('`current` and `pageSize` `current` and `pageSize` can modify and can trigger request', async () => {
+    let _current = 1;
+    let _pageSize = 10;
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { loading, current, pageSize, params } = usePagination(
+            normalApi,
+          );
+          return () => (
+            <div>
+              <button
+                class="currentBtn"
+                onClick={() => (_current = ++current.value)}
+              />
+              <button
+                class="pageSizeBtn"
+                onClick={() => (_pageSize = ++pageSize.value)}
+              />
+              <div class="current">{current.value}</div>
+              <div class="pageSize">{pageSize.value}</div>
+              <div class="loading">{`${loading.value}`}</div>
+              <div class="params">{JSON.stringify(params.value)}</div>
+            </div>
+          );
+        },
+      }),
+    );
+
+    const currentBtn = wrapper.find('.currentBtn');
+    const pageSizeBtn = wrapper.find('.pageSizeBtn');
+    const currentEl = wrapper.find('.current');
+    const paramsEl = wrapper.find('.params');
+    const pageSizeEl = wrapper.find('.pageSize');
+    const loadingEl = wrapper.find('.loading');
+
+    for (let index = 0; index < 100; index++) {
+      await currentBtn.trigger('click');
+      expect(loadingEl.text()).toBe('true');
+      await waitForTime(1000);
+      expect(loadingEl.text()).toBe('false');
+      expect(paramsEl.text()).toBe(
+        `[{"current":${_current},"pageSize":${_pageSize}}]`,
+      );
+      expect(currentEl.text()).toBe(`${_current}`);
+      expect(pageSizeEl.text()).toBe(`${_pageSize}`);
+    }
+
+    for (let index = 0; index < 100; index++) {
+      await pageSizeBtn.trigger('click');
+      expect(loadingEl.text()).toBe('true');
+      await waitForTime(1000);
+      expect(loadingEl.text()).toBe('false');
+      expect(paramsEl.text()).toBe(
+        `[{"current":${_current},"pageSize":${_pageSize}}]`,
+      );
+      expect(currentEl.text()).toBe(`${_current}`);
+      expect(pageSizeEl.text()).toBe(`${_pageSize}`);
+    }
   });
 });
