@@ -149,6 +149,7 @@ function useAsyncQuery<R, P extends unknown[], FR>(
 
   const loading = ref(false);
   const data = ref<R>();
+  const _raw_data = ref<R>();
   const error = ref<Error>();
   const params = ref<P>();
 
@@ -302,6 +303,7 @@ function useAsyncQuery<R, P extends unknown[], FR>(
   return {
     loading,
     data,
+    _raw_data,
     error,
     params,
     cancel: latestQuery.value.cancel,
