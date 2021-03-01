@@ -7,9 +7,9 @@ import { isFunction } from './core/utils';
 import { ServiceParams } from './core/utils/types';
 import { Query } from './core/createQuery';
 
-export interface LoadMoreResult<R, P extends unknown[]>
-  extends Omit<BaseResult<R, P>, 'queries' | '_raw_data'> {
-  dataList: Ref<R>;
+export interface LoadMoreResult<R, P extends unknown[], LR extends unknown[]>
+  extends Omit<BaseResult<R, P>, 'queries'> {
+  dataList: Ref<LR>;
   noMore: Ref<boolean>;
   loadingMore: Ref<boolean>;
   loadMore: () => void;
@@ -18,6 +18,7 @@ export interface LoadMoreResult<R, P extends unknown[]>
 
 export interface LoadMoreExtendsOption<R> {
   isNoMore: (data: R) => boolean;
+  listKey?: string;
 }
 
 export type LoadMoreService<R, P extends unknown[], FR> =
@@ -40,19 +41,30 @@ export type LoadMoreMixinOptions<R, P extends unknown[], FR> =
   | LoadMoreBaseOptions<R, P>
   | LoadMoreFormatOptions<R, P, FR>;
 
-function useLoadMore<R extends unknown[], P extends unknown[] = any>(
-  service: LoadMoreService<R, P, R>,
-): LoadMoreResult<R, P>;
-function useLoadMore<R, P extends unknown[] = any, FR extends unknown[] = any>(
-  service: LoadMoreService<R, P, FR>,
+function useLoadMore<
+  R,
+  P extends unknown[] = any,
+  LR extends unknown[] = any[]
+>(service: LoadMoreService<R, P, LR>): LoadMoreResult<R, P, LR>;
+function useLoadMore<
+  R,
+  P extends unknown[] = any,
+  FR = any,
+  LR extends unknown[] = any[]
+>(
+  service: LoadMoreService<R, P, LR>,
   options: LoadMoreFormatOptions<R, P, FR>,
-): LoadMoreResult<FR, P>;
-function useLoadMore<R extends unknown[], P extends unknown[] = any>(
-  service: LoadMoreService<R, P, R>,
+): LoadMoreResult<FR, P, LR>;
+function useLoadMore<
+  R,
+  P extends unknown[] = any,
+  LR extends unknown[] = any[]
+>(
+  service: LoadMoreService<R, P, LR>,
   options: LoadMoreBaseOptions<R, P>,
-): LoadMoreResult<R, P>;
-function useLoadMore<R, P extends unknown[], FR extends unknown[]>(
-  service: LoadMoreService<R, P, FR>,
+): LoadMoreResult<R, P, LR>;
+function useLoadMore<R, P extends unknown[], FR, LR extends unknown[]>(
+  service: LoadMoreService<R, P, LR>,
   options?: LoadMoreMixinOptions<R, P, FR>,
 ) {
   if (!isFunction(service)) {
@@ -60,7 +72,8 @@ function useLoadMore<R, P extends unknown[], FR extends unknown[]>(
   }
   const promiseQuery = generateService<R, P>(service as any);
 
-  const { queryKey, isNoMore, ...restOptions } = options ?? ({} as any);
+  const { queryKey, isNoMore, listKey = 'list', ...restOptions } =
+    options ?? ({} as any);
 
   if (queryKey) {
     throw new Error('useLoadMore does not support concurrent request');
@@ -68,7 +81,7 @@ function useLoadMore<R, P extends unknown[], FR extends unknown[]>(
 
   const loadingMore = ref(false);
   const increaseQueryKey = ref(0);
-  const { data, params, run, queries, _raw_data, ...rest } = useAsyncQuery<
+  const { data, params, queries, run, reset, ...rest } = useAsyncQuery<
     R,
     P,
     FR
@@ -82,19 +95,27 @@ function useLoadMore<R, P extends unknown[], FR extends unknown[]>(
     queryKey: () => String(increaseQueryKey.value),
   });
 
+  const latestData = ref(data.value) as Ref<FR>;
+  watchEffect(() => {
+    if (data.value !== undefined) {
+      latestData.value = data.value;
+    }
+  });
+
   const noMore = computed(() => {
-    return isNoMore ? isNoMore(_raw_data.value) : false;
+    return isNoMore ? isNoMore(latestData.value) : false;
   });
 
   const dataList = computed(() => {
     let list: any[] = [];
     Object.values(queries).forEach(h => {
       const queriesData = h.data as any;
-      if (queriesData.value && Array.isArray(queriesData.value)) {
-        list = list.concat(queriesData.value);
+      const dataList = get(queriesData.value, listKey);
+      if (dataList && Array.isArray(dataList)) {
+        list = list.concat(dataList);
       }
     });
-    return (list as unknown) as R;
+    return (list as unknown) as LR;
   });
 
   const loadMore = () => {
@@ -104,24 +125,31 @@ function useLoadMore<R, P extends unknown[], FR extends unknown[]>(
     loadingMore.value = true;
     const [, ...restParams] = params.value;
     const mergerParams = [
-      { dataList: dataList.value, data: _raw_data.value },
+      { dataList: dataList.value, data: latestData.value },
       ...restParams,
     ] as any;
     run(...mergerParams);
   };
 
-  const reload = () => {};
+  const reload = () => {
+    reset();
+    increaseQueryKey.value = 0;
+    const [, ...restParams] = params.value;
+    const mergerParams = [undefined, ...restParams] as any;
+    run(...mergerParams);
+  };
 
   return {
     // 每次 LoadMore 触发时，data 都会变成undefined，原因是 queries
-    data: _raw_data,
-    dataList,
+    data: latestData,
+    dataList: dataList,
     params,
     noMore,
     loadingMore,
     run,
     reload,
     loadMore,
+    reset,
     ...rest,
   };
 }

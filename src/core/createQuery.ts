@@ -21,7 +21,6 @@ export interface Mutate<R> extends MutateData<R>, MutateFunction<R> {}
 export type State<R, P extends unknown[]> = {
   loading: Ref<boolean>;
   data: Ref<R | undefined>;
-  _raw_data: Ref<R | undefined>;
   error: Ref<Error | undefined>;
   params: Ref<P>;
 };
@@ -59,7 +58,7 @@ const setStateBind = <R, P extends unknown[], T extends State<R, P>>(
 const createQuery = <R, P extends unknown[]>(
   query: Query<R, P>,
   config: Config<R, P>,
-  initialState?: UnWrapRefObject<Omit<State<R, P>, '_raw_data'>>,
+  initialState?: UnWrapRefObject<State<R, P>>,
 ): InnerQueryState<R, P> => {
   const {
     initialAutoRunFlag,
@@ -82,7 +81,6 @@ const createQuery = <R, P extends unknown[]>(
   const retriedCount = ref(0);
   const loading = ref(initialState?.loading ?? false);
   const data = ref(initialState?.data ?? initialData) as Ref<R>;
-  const _raw_data = ref(initialState?.data ?? initialData) as Ref<R>;
   const error = ref(initialState?.error);
   const params = ref(initialState?.params ?? []) as Ref<P>;
 
@@ -92,7 +90,6 @@ const createQuery = <R, P extends unknown[]>(
       data,
       error,
       params,
-      _raw_data,
     },
     [state => updateCache(state)],
   );
@@ -200,7 +197,6 @@ const createQuery = <R, P extends unknown[]>(
           const formattedResult = formatResult ? formatResult(res) : res;
 
           setState({
-            _raw_data: res,
             data: formattedResult,
             loading: false,
             error: undefined,
@@ -218,7 +214,6 @@ const createQuery = <R, P extends unknown[]>(
       .catch(error => {
         if (currentCount === count.value) {
           setState({
-            _raw_data: undefined,
             data: undefined,
             loading: false,
             error: error,
@@ -297,7 +292,6 @@ const createQuery = <R, P extends unknown[]>(
   return {
     loading,
     data,
-    _raw_data,
     error,
     params,
     run,

@@ -48,8 +48,13 @@ export const setCache = <R, P extends unknown[]>(
   });
 };
 
-export const clearCache = () => {
-  // clear timer
-  CACHE_MAP.forEach(i => clearTimeout(i.timer));
-  CACHE_MAP.clear();
+export const clearCache = (cacheKey?: CacheKey) => {
+  if (cacheKey) {
+    clearTimeout(CACHE_MAP.get(cacheKey)?.timer);
+    CACHE_MAP.delete(cacheKey);
+  } else {
+    // clear timer
+    CACHE_MAP.forEach(i => clearTimeout(i.timer));
+    CACHE_MAP.clear();
+  }
 };
