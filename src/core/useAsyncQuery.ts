@@ -2,8 +2,8 @@ import {
   computed,
   inject,
   onUnmounted,
+  reactive,
   ref,
-  shallowReactive,
   watch,
   watchEffect,
 } from 'vue';
@@ -32,6 +32,7 @@ import {
 import { getCache, setCache } from './utils/cache';
 import limitTrigger from './utils/limitTrigger';
 import subscriber from './utils/listener';
+import { UnWrapRefObject } from './utils/types';
 
 export type BaseResult<R, P extends unknown[]> = Omit<
   QueryState<R, P>,
@@ -40,8 +41,12 @@ export type BaseResult<R, P extends unknown[]> = Omit<
   run: (...arg: P) => InnerRunReturn<R>;
 };
 
+export type UnWrapState<R, P extends unknown[]> = UnWrapRefObject<
+  InnerQueryState<R, P>
+>;
+
 export type Queries<R, P extends unknown[]> = {
-  [key: string]: InnerQueryState<R, P>;
+  [key: string]: UnWrapState<R, P>;
 };
 
 const QUERY_DEFAULT_KEY = '__QUERY_DEFAULT_KEY__';
@@ -147,8 +152,8 @@ function useAsyncQuery<R, P extends unknown[], FR>(
   const error = ref<Error>();
   const params = ref<P>();
 
-  const queries = shallowReactive<Queries<R, P>>({
-    [QUERY_DEFAULT_KEY]: createQuery(query, config),
+  const queries = <Queries<R, P>>reactive({
+    [QUERY_DEFAULT_KEY]: reactive(createQuery(query, config)),
   });
 
   const latestQueriesKey = ref(QUERY_DEFAULT_KEY);
@@ -159,10 +164,10 @@ function useAsyncQuery<R, P extends unknown[], FR>(
   // TODO: 需要探索一下有没有更优的处理方法
   watchEffect(
     () => {
-      loading.value = latestQuery.value.loading.value;
-      data.value = latestQuery.value.data.value;
-      error.value = latestQuery.value.error.value;
-      params.value = latestQuery.value.params.value;
+      loading.value = latestQuery.value.loading;
+      data.value = latestQuery.value.data;
+      error.value = latestQuery.value.error;
+      params.value = latestQuery.value.params;
     },
     {
       flush: 'sync',
@@ -177,12 +182,14 @@ function useAsyncQuery<R, P extends unknown[], FR>(
       Object.keys(cache.data.queries).forEach(key => {
         const cacheQuery = cache.data.queries![key];
 
-        queries[key] = createQuery(query, config, {
-          loading: cacheQuery.loading,
-          params: cacheQuery.params,
-          data: cacheQuery.data,
-          error: cacheQuery.error,
-        });
+        queries[key] = <UnWrapState<R, P>>reactive(
+          createQuery(query, config, {
+            loading: cacheQuery.loading,
+            params: cacheQuery.params,
+            data: cacheQuery.data,
+            error: cacheQuery.error,
+          }),
+        );
       });
       /* istanbul ignore else */
       if (cache.data.latestQueriesKey) {
@@ -202,7 +209,7 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     const newKey = queryKey?.(...args) ?? QUERY_DEFAULT_KEY;
 
     if (!queries[newKey]) {
-      queries[newKey] = createQuery(query, config);
+      queries[newKey] = <UnWrapState<R, P>>reactive(createQuery(query, config));
     }
 
     latestQueriesKey.value = newKey;
@@ -292,7 +299,7 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     unsubscribeList.forEach(unsubscribe => unsubscribe());
   });
 
-  const queryState = {
+  return {
     loading,
     data,
     error,
@@ -302,9 +309,7 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     mutate: latestQuery.value.mutate,
     run,
     queries,
-  } as QueryState<R, P>;
-
-  return queryState;
+  };
 }
 
 export default useAsyncQuery;
