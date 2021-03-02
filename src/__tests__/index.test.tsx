@@ -1157,9 +1157,7 @@ describe('useRequest', () => {
                     id={item.username}
                     onClick={() => run(item.id)}
                   >
-                    {queries[item.id]?.loading.value
-                      ? 'loading'
-                      : item.username}
+                    {queries[item.id]?.loading ? 'loading' : item.username}
                   </li>
                 ))}
               </ul>
@@ -1211,7 +1209,7 @@ describe('useRequest', () => {
                   id={item.username}
                   onClick={() => run(item.id)}
                 >
-                  {queries[item.id]?.loading.value ? 'loading' : item.username}
+                  {queries[item.id]?.loading ? 'loading' : item.username}
                 </li>
               ))}
             </ul>
