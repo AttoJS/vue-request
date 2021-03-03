@@ -29,7 +29,7 @@ import {
   resolvedPromise,
   unRefObject,
 } from './utils';
-import { getCache, setCache } from './utils/cache';
+import { getCache, setCache, clearCache } from './utils/cache';
 import limitTrigger from './utils/limitTrigger';
 import subscriber from './utils/listener';
 import { UnWrapRefObject } from './utils/types';
@@ -39,6 +39,7 @@ export type BaseResult<R, P extends unknown[]> = Omit<
   'run'
 > & {
   run: (...arg: P) => InnerRunReturn<R>;
+  reset: () => void;
 };
 
 export type UnWrapState<R, P extends unknown[]> = UnWrapRefObject<
@@ -299,6 +300,21 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     unsubscribeList.forEach(unsubscribe => unsubscribe());
   });
 
+  const reset = () => {
+    latestQueriesKey.value = QUERY_DEFAULT_KEY;
+    Object.keys(queries).forEach(key => {
+      queries[key].cancel();
+      if (key !== QUERY_DEFAULT_KEY) {
+        delete queries[key];
+      }
+    });
+    queries[QUERY_DEFAULT_KEY] = <UnWrapState<R, P>>(
+      reactive(createQuery(query, config))
+    );
+    cacheKey && clearCache(cacheKey);
+    unsubscribeList.forEach(unsubscribe => unsubscribe());
+  };
+
   return {
     loading,
     data,
@@ -308,6 +324,7 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     refresh: latestQuery.value.refresh,
     mutate: latestQuery.value.mutate,
     run,
+    reset,
     queries,
   };
 }
