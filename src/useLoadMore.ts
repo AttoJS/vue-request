@@ -5,7 +5,6 @@ import get from 'lodash/get';
 import generateService from './core/utils/generateService';
 import { isFunction } from './core/utils';
 import { ServiceParams } from './core/utils/types';
-import { Query } from './core/createQuery';
 
 export interface LoadMoreResult<R, P extends unknown[], LR extends unknown[]>
   extends Omit<BaseResult<R, P>, 'queries'> {
@@ -21,9 +20,9 @@ export interface LoadMoreExtendsOption<R> {
   listKey?: string;
 }
 
-export type LoadMoreService<R, P extends unknown[], FR> =
-  | ((r: { data: R; dataList: FR }, ...args: P) => Promise<R>)
-  | ((r: { data: R; dataList: FR }, ...args: P) => ServiceParams);
+export type LoadMoreService<R, P extends unknown[], LR> =
+  | ((r: { data: R; dataList: LR }, ...args: P) => Promise<R>)
+  | ((r: { data: R; dataList: LR }, ...args: P) => ServiceParams);
 
 export type LoadMoreFormatOptions<R, P extends unknown[], FR> = Omit<
   FormatOptions<R, P, FR>,
@@ -92,10 +91,14 @@ function useLoadMore<R, P extends unknown[], FR, LR extends unknown[]>(
       increaseQueryKey.value++;
       restOptions?.onSuccess?.(...p);
     },
+    onError: (...p) => {
+      loadingMore.value = false;
+      restOptions?.onError?.(...p);
+    },
     queryKey: () => String(increaseQueryKey.value),
   });
 
-  const latestData = ref(data.value) as Ref<FR>;
+  const latestData = <Ref<FR | undefined>>ref(data.value);
   watchEffect(() => {
     if (data.value !== undefined) {
       latestData.value = data.value;
@@ -103,14 +106,15 @@ function useLoadMore<R, P extends unknown[], FR, LR extends unknown[]>(
   });
 
   const noMore = computed(() => {
-    return isNoMore ? isNoMore(latestData.value) : false;
+    return isNoMore && isFunction(isNoMore)
+      ? isNoMore(latestData.value)
+      : false;
   });
 
   const dataList = computed(() => {
     let list: any[] = [];
     Object.values(queries).forEach(h => {
-      const queriesData = h.data as any;
-      const dataList = get(queriesData.value, listKey);
+      const dataList = get(h.data, listKey);
       if (dataList && Array.isArray(dataList)) {
         list = list.concat(dataList);
       }
@@ -134,13 +138,13 @@ function useLoadMore<R, P extends unknown[], FR, LR extends unknown[]>(
   const reload = () => {
     reset();
     increaseQueryKey.value = 0;
+    latestData.value = undefined;
     const [, ...restParams] = params.value;
     const mergerParams = [undefined, ...restParams] as any;
     run(...mergerParams);
   };
 
   return {
-    // 每次 LoadMore 触发时，data 都会变成undefined，原因是 queries
     data: latestData,
     dataList: dataList,
     params,
