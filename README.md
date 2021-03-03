@@ -85,7 +85,7 @@ If you have any cool features, please submit an issue for discussion
 
 - [x] Documentation
 - [x] Pagination
-- [ ] Load More
+- [x] Load More
 - [ ] Support Vue 2
 
 ## Thanks
