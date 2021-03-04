@@ -40,4 +40,16 @@ describe('utils', () => {
     clearCache();
     expect(getCache(cacheKey)?.data).toBeUndefined();
   });
+
+  test('clear a single cache should work', async () => {
+    const cache1 = '1';
+    const cache2 = '2';
+    setCache<any, any>(cache1, cacheData, 10000);
+    setCache<any, any>(cache2, cacheData, 10000);
+    expect(getCache(cache1)?.data).toMatchObject(cacheData);
+    expect(getCache(cache2)?.data).toMatchObject(cacheData);
+    clearCache(cache1);
+    expect(getCache(cache1)?.data).toBeUndefined();
+    expect(getCache(cache2)?.data).toMatchObject(cacheData);
+  });
 });
