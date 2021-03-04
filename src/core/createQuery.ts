@@ -49,9 +49,7 @@ const setStateBind = <R, P extends unknown[], T extends State<R, P>>(
     Object.keys(newState).forEach(key => {
       oldState[key].value = newState[key];
     });
-    nextTick(() => {
-      publicCb.forEach(fun => fun(oldState));
-    });
+    publicCb.forEach(fun => fun(oldState));
   };
 };
 
