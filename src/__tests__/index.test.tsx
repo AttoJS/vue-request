@@ -2243,4 +2243,144 @@ describe('useRequest', () => {
     expect(wrapperB.find('#D').text()).toBe('false');
     expect(wrapperB.find('#E').text()).toBe('false');
   });
+
+  test('reload should work: case 1', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { run, reload, data } = useRequest(request, {
+            defaultParams: ['hello'],
+          });
+          return () => (
+            <div>
+              <button class="run" onClick={() => run('hi there')}></button>
+              <button class="reload" onClick={() => reload()}></button>
+              <div class="data">{data.value}</div>
+            </div>
+          );
+        },
+      }),
+    );
+
+    const dataEl = wrapper.find('.data');
+    const runEl = wrapper.find('.run');
+    const reloadEl = wrapper.find('.reload');
+
+    await waitForTime(1000);
+    expect(dataEl.text()).toBe('hello');
+
+    await runEl.trigger('click');
+    await waitForTime(1000);
+    expect(dataEl.text()).toEqual('hi there');
+
+    await reloadEl.trigger('click');
+    await waitForTime(1000);
+    expect(dataEl.text()).toEqual('hello');
+
+    await runEl.trigger('click');
+    await waitForTime(1000);
+    expect(dataEl.text()).toEqual('hi there');
+  });
+
+  test('reload should work: case 2', async () => {
+    const users = [
+      { id: '1', username: 'A' },
+      { id: '2', username: 'B' },
+      { id: '3', username: 'C' },
+    ];
+
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { run, queries, data, loading, reload } = useRequest(request, {
+            manual: true,
+            refreshOnWindowFocus: true,
+            queryKey: id => id,
+          });
+
+          return () => (
+            <div>
+              <div id="data">{data.value}</div>
+              <div id="loading">{loading.value.toString()}</div>
+              <div id="reload" onClick={() => reload()} />
+              <ul>
+                {users.map(item => (
+                  <li
+                    key={item.id}
+                    id={item.username}
+                    onClick={() => run(item.id)}
+                  >
+                    {queries[item.id]?.loading
+                      ? 'loading'
+                      : queries[item.id]?.data}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        },
+      }),
+    );
+
+    const dataEl = wrapper.find('#data');
+    const loadingEl = wrapper.find('#loading');
+    const reloadEl = wrapper.find('#reload');
+
+    expect(FOCUS_LISTENER.size).toBe(1);
+    expect(VISIBLE_LISTENER.size).toBe(2);
+    expect(RECONNECT_LISTENER.size).toBe(1);
+
+    for (let i = 0; i < users.length; i++) {
+      const userName = users[i].username;
+      const currentId = users[i].id;
+
+      await wrapper.find(`#${userName}`).trigger('click');
+      expect(wrapper.find(`#${userName}`).text()).toBe('loading');
+
+      expect(dataEl.text()).toBe('');
+      expect(loadingEl.text()).toBe('true');
+
+      await waitForTime(1000);
+      expect(wrapper.find(`#${userName}`).text()).toBe(currentId);
+
+      expect(dataEl.text()).toBe(currentId);
+      expect(loadingEl.text()).toBe('false');
+    }
+
+    expect(FOCUS_LISTENER.size).toBe(4);
+    expect(VISIBLE_LISTENER.size).toBe(8);
+    expect(RECONNECT_LISTENER.size).toBe(4);
+
+    await reloadEl.trigger('click');
+    for (let i = 0; i < users.length; i++) {
+      const userName = users[i].username;
+      expect(wrapper.find(`#${userName}`).text()).toBe('');
+      expect(dataEl.text()).toBe('');
+    }
+
+    expect(FOCUS_LISTENER.size).toBe(1);
+    expect(VISIBLE_LISTENER.size).toBe(2);
+    expect(RECONNECT_LISTENER.size).toBe(1);
+
+    for (let i = 0; i < users.length; i++) {
+      const userName = users[i].username;
+      const currentId = users[i].id;
+
+      await wrapper.find(`#${userName}`).trigger('click');
+      expect(wrapper.find(`#${userName}`).text()).toBe('loading');
+
+      expect(dataEl.text()).toBe('');
+      expect(loadingEl.text()).toBe('true');
+
+      await waitForTime(1000);
+      expect(wrapper.find(`#${userName}`).text()).toBe(currentId);
+
+      expect(dataEl.text()).toBe(currentId);
+      expect(loadingEl.text()).toBe('false');
+    }
+
+    expect(FOCUS_LISTENER.size).toBe(4);
+    expect(VISIBLE_LISTENER.size).toBe(8);
+    expect(RECONNECT_LISTENER.size).toBe(4);
+  });
 });
