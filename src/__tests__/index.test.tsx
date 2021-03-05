@@ -1271,6 +1271,77 @@ describe('useRequest', () => {
     }
   });
 
+  test('queryKey should work : case 4', async () => {
+    const users = [
+      { id: '1', username: 'A' },
+      { id: '2', username: 'B' },
+      { id: '3', username: 'C' },
+    ];
+
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { run, queries, data, loading } = useRequest(request, {
+            manual: true,
+            refreshOnWindowFocus: true,
+            queryKey: id => id,
+          });
+
+          return () => (
+            <div>
+              <div id="data">{data.value}</div>
+              <div id="loading">{loading.value.toString()}</div>
+              <ul>
+                {users.map(item => (
+                  <li
+                    key={item.id}
+                    id={item.username}
+                    onClick={() => run(item.id)}
+                  >
+                    {queries[item.id]?.loading
+                      ? 'loading'
+                      : queries[item.id]?.data}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        },
+      }),
+    );
+
+    for (let i = 0; i < users.length; i++) {
+      const userName = users[i].username;
+      const currentId = users[i].id;
+
+      await wrapper.find(`#${userName}`).trigger('click');
+      expect(wrapper.find(`#${userName}`).text()).toBe('loading');
+
+      expect(wrapper.find('#data').text()).toBe('');
+      expect(wrapper.find('#loading').text()).toBe('true');
+
+      await waitForTime(1000);
+      expect(wrapper.find(`#${userName}`).text()).toBe(currentId);
+
+      expect(wrapper.find('#data').text()).toBe(currentId);
+      expect(wrapper.find('#loading').text()).toBe('false');
+    }
+
+    // mock tab visible
+    jsdom.window.dispatchEvent(new Event('visibilitychange'));
+    await waitForTime(1);
+    for (let i = 0; i < users.length; i++) {
+      const userName = users[i].username;
+      expect(wrapper.find(`#${userName}`).text()).toBe('loading');
+    }
+    await waitForTime(1000);
+    for (let i = 0; i < users.length; i++) {
+      const userName = users[i].username;
+      const currentId = users[i].id;
+      expect(wrapper.find(`#${userName}`).text()).toBe(currentId);
+    }
+  });
+
   test('errorRetry should work. case 1', async () => {
     const wrapper = shallowMount(
       defineComponent({
