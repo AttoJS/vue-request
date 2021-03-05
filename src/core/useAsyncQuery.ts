@@ -23,24 +23,15 @@ import createQuery, {
   QueryState,
   State,
 } from './createQuery';
-import {
-  isDocumentVisibility,
-  isOnline,
-  resolvedPromise,
-  unRefObject,
-} from './utils';
-import { getCache, setCache, clearCache } from './utils/cache';
-import limitTrigger from './utils/limitTrigger';
-import subscriber from './utils/listener';
+import { resolvedPromise, unRefObject } from './utils';
+import { getCache, setCache } from './utils/cache';
 import { UnWrapRefObject } from './utils/types';
 
-export type BaseResult<R, P extends unknown[]> = Omit<
-  QueryState<R, P>,
-  'run'
-> & {
+export interface BaseResult<R, P extends unknown[]>
+  extends Omit<QueryState<R, P>, 'run'> {
   run: (...arg: P) => InnerRunReturn<R>;
   reset: () => void;
-};
+}
 
 export type UnWrapState<R, P extends unknown[]> = UnWrapRefObject<
   InnerQueryState<R, P>
@@ -98,12 +89,6 @@ function useAsyncQuery<R, P extends unknown[], FR>(
   // skip debounce when initail run
   const initialAutoRunFlag = ref(false);
 
-  // collect subscribers, in order to unsubscribe when the component unmounted
-  const unsubscribeList: (() => void)[] = [];
-  const addUnsubscribeList = (event?: () => void) => {
-    event && unsubscribeList.push(event);
-  };
-
   const updateCache = (state: State<R, P>) => {
     if (!cacheKey) return;
 
@@ -142,6 +127,8 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     cacheKey,
     errorRetryCount,
     errorRetryInterval,
+    refreshOnWindowFocus,
+    refocusTimespan,
     updateCache,
     formatResult,
     onSuccess,
@@ -159,7 +146,7 @@ function useAsyncQuery<R, P extends unknown[], FR>(
 
   const latestQueriesKey = ref(QUERY_DEFAULT_KEY);
 
-  const latestQuery = computed(() => queries[latestQueriesKey.value]);
+  const latestQuery = computed(() => queries[latestQueriesKey.value] ?? {});
 
   // sync state
   // TODO: 需要探索一下有没有更优的处理方法
@@ -218,6 +205,23 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     return latestQuery.value.run(...args);
   };
 
+  const reset = () => {
+    unmountQueries();
+    latestQueriesKey.value = QUERY_DEFAULT_KEY;
+    queries[QUERY_DEFAULT_KEY] = <UnWrapState<R, P>>(
+      reactive(createQuery(query, config))
+    );
+  };
+
+  // unmount queries
+  const unmountQueries = () => {
+    Object.keys(queries).forEach(key => {
+      queries[key].cancel();
+      queries[key].unmount();
+      delete queries[key];
+    });
+  };
+
   // initial run
   if (!manual) {
     initialAutoRunFlag.value = true;
@@ -253,6 +257,7 @@ function useAsyncQuery<R, P extends unknown[], FR>(
       hasTriggerReady.value = true;
       if (val && tempReadyParams.value) {
         run(...tempReadyParams.value);
+        // destroy current watch
         stopReady.value();
       }
     },
@@ -268,52 +273,9 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     });
   }
 
-  const rePolling = () => {
-    if (
-      stopPollingWhenHiddenOrOffline.value &&
-      (pollingWhenHidden || isDocumentVisibility()) &&
-      (pollingWhenOffline || isOnline())
-    ) {
-      latestQuery.value.refresh();
-      stopPollingWhenHiddenOrOffline.value = false;
-    }
-  };
-
-  // subscribe polling
-  if (!pollingWhenHidden) {
-    addUnsubscribeList(subscriber('VISIBLE_LISTENER', rePolling));
-  }
-
-  // subscribe online when pollingWhenOffline is false
-  if (!pollingWhenOffline) {
-    addUnsubscribeList(subscriber('RECONNECT_LISTENER', rePolling));
-  }
-
-  const limitRefresh = limitTrigger(latestQuery.value.refresh, refocusTimespan);
-  // subscribe window focus or visible
-  if (refreshOnWindowFocus) {
-    addUnsubscribeList(subscriber('VISIBLE_LISTENER', limitRefresh));
-    addUnsubscribeList(subscriber('FOCUS_LISTENER', limitRefresh));
-  }
-
   onUnmounted(() => {
-    unsubscribeList.forEach(unsubscribe => unsubscribe());
+    unmountQueries();
   });
-
-  const reset = () => {
-    latestQueriesKey.value = QUERY_DEFAULT_KEY;
-    Object.keys(queries).forEach(key => {
-      queries[key].cancel();
-      if (key !== QUERY_DEFAULT_KEY) {
-        delete queries[key];
-      }
-    });
-    queries[QUERY_DEFAULT_KEY] = <UnWrapState<R, P>>(
-      reactive(createQuery(query, config))
-    );
-    cacheKey && clearCache(cacheKey);
-    unsubscribeList.forEach(unsubscribe => unsubscribe());
-  };
 
   return {
     loading,

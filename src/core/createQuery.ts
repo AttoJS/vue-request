@@ -1,8 +1,10 @@
 import debounce from 'lodash/debounce';
 import throttle from 'lodash/throttle';
-import { computed, nextTick, Ref, ref } from 'vue';
+import { computed, Ref, ref } from 'vue';
 import { Config } from './config';
 import { Queries } from './useAsyncQuery';
+import limitTrigger from './utils/limitTrigger';
+import subscriber from './utils/listener';
 import {
   isDocumentVisibility,
   isFunction,
@@ -28,18 +30,18 @@ export type State<R, P extends unknown[]> = {
 // common run result | debounce and throttle result
 export type InnerRunReturn<R> = Promise<R | null>;
 
-export type QueryState<R, P extends unknown[]> = State<R, P> & {
+export interface QueryState<R, P extends unknown[]> extends State<R, P> {
   queries: Queries<R, P>;
   run: (...arg: P) => InnerRunReturn<R>;
   cancel: () => void;
   refresh: () => InnerRunReturn<R>;
   mutate: Mutate<R>;
-};
+}
 
-export type InnerQueryState<R, P extends unknown[]> = Omit<
-  QueryState<R, P>,
-  'queries'
->;
+export interface InnerQueryState<R, P extends unknown[]>
+  extends Omit<QueryState<R, P>, 'queries'> {
+  unmount: () => void;
+}
 
 const setStateBind = <R, P extends unknown[], T extends State<R, P>>(
   oldState: T,
@@ -70,6 +72,8 @@ const createQuery = <R, P extends unknown[]>(
     errorRetryCount,
     errorRetryInterval,
     stopPollingWhenHiddenOrOffline,
+    refreshOnWindowFocus,
+    refocusTimespan,
     updateCache,
     formatResult,
     onSuccess,
@@ -287,6 +291,44 @@ const createQuery = <R, P extends unknown[]>(
     });
   };
 
+  // collect subscribers, in order to unsubscribe when the component unmounted
+  const unsubscribeList: (() => void)[] = [];
+  const addUnsubscribeList = (event?: () => void) => {
+    event && unsubscribeList.push(event);
+  };
+
+  const rePolling = () => {
+    if (
+      stopPollingWhenHiddenOrOffline.value &&
+      (pollingWhenHidden || isDocumentVisibility()) &&
+      (pollingWhenOffline || isOnline())
+    ) {
+      refresh();
+      stopPollingWhenHiddenOrOffline.value = false;
+    }
+  };
+
+  // subscribe polling
+  if (!pollingWhenHidden) {
+    addUnsubscribeList(subscriber('VISIBLE_LISTENER', rePolling));
+  }
+
+  // subscribe online when pollingWhenOffline is false
+  if (!pollingWhenOffline) {
+    addUnsubscribeList(subscriber('RECONNECT_LISTENER', rePolling));
+  }
+
+  const limitRefresh = limitTrigger(refresh, refocusTimespan!);
+  // subscribe window focus or visible
+  if (refreshOnWindowFocus) {
+    addUnsubscribeList(subscriber('VISIBLE_LISTENER', limitRefresh));
+    addUnsubscribeList(subscriber('FOCUS_LISTENER', limitRefresh));
+  }
+
+  const unmount = () => {
+    unsubscribeList.forEach(unsubscribe => unsubscribe());
+  };
+
   return {
     loading,
     data,
@@ -296,6 +338,7 @@ const createQuery = <R, P extends unknown[]>(
     cancel,
     refresh,
     mutate,
+    unmount,
   };
 };
 
