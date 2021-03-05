@@ -1,0 +1,20 @@
+name: sync to gitee
+on:
+  push:
+    branches: [master]
+jobs:
+  run:
+    name: Sync GitHub to Gitee
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mirror the GitHub repos to Gitee
+        uses: Yikun/hub-mirror-action@v0.13
+        with:
+          src: github/attojs
+          dst: gitee/attojs
+          dst_key: ${{ secrets.GITEE_PRIVATE_KEY }}
+          dst_token: ${{ secrets.GITEE_TOKEN }}
+          static_list: 'vue-request'
+          account_type: org
+          force_update: true
+          timeout: 300
