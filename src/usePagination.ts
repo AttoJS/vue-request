@@ -6,13 +6,14 @@ import generateService from './core/utils/generateService';
 import { IService } from './core/utils/types';
 
 export interface PaginationResult<R, P extends unknown[]>
-  extends Omit<BaseResult<R, P>, 'queries'> {
+  extends Omit<BaseResult<R, P>, 'queries' | 'reset'> {
   current: Ref<number>;
   pageSize: Ref<number>;
   total: Ref<number>;
   totalPage: Ref<number>;
   changeCurrent: (current: number) => void;
   changePageSize: (pageSize: number) => void;
+  reload: () => void;
 }
 
 export interface PaginationExtendsOption {
@@ -24,17 +25,13 @@ export interface PaginationExtendsOption {
   };
 }
 
-export type PaginationFormatOptions<R, P extends unknown[], FR> = Omit<
-  FormatOptions<R, P, FR>,
-  'queryKey'
-> &
-  PaginationExtendsOption;
+export interface PaginationFormatOptions<R, P extends unknown[], FR>
+  extends Omit<FormatOptions<R, P, FR>, 'queryKey'>,
+    PaginationExtendsOption {}
 
-export type PaginationBaseOptions<R, P extends unknown[]> = Omit<
-  BaseOptions<R, P>,
-  'queryKey'
-> &
-  PaginationExtendsOption;
+export interface PaginationBaseOptions<R, P extends unknown[]>
+  extends Omit<BaseOptions<R, P>, 'queryKey'>,
+    PaginationExtendsOption {}
 
 export type PaginationMixinOptions<R, P extends unknown[], FR> =
   | PaginationBaseOptions<R, P>
@@ -76,18 +73,21 @@ function usePagination<R, P extends unknown[], FR>(
     throw new Error('usePagination does not support concurrent request');
   }
 
-  const { data, params, run, queries, ...rest } = useAsyncQuery<R, P, FR>(
-    promiseQuery,
-    {
-      defaultParams: [
-        {
-          [currentKey]: 1,
-          [pageSizeKey]: 10,
-        },
-      ],
-      ...restOptions,
-    },
-  );
+  const finallyOptions = {
+    defaultParams: [
+      {
+        [currentKey]: 1,
+        [pageSizeKey]: 10,
+      },
+    ],
+    ...restOptions,
+  };
+
+  const { data, params, queries, run, reset, ...rest } = useAsyncQuery<
+    R,
+    P,
+    FR
+  >(promiseQuery, finallyOptions);
 
   const paging = (paginationParams: Record<string, number>) => {
     const [oldPaginationParams, ...restParams] = params.value as P[];
@@ -109,15 +109,22 @@ function usePagination<R, P extends unknown[], FR>(
     paging({ [pageSizeKey]: pageSize });
   };
 
+  const reload = () => {
+    const { defaultParams, manual } = finallyOptions;
+    reset();
+    !manual && run(...defaultParams);
+  };
+
   const total = computed<number>(() => get(data.value, totalKey, 0));
   const current = computed({
-    get: () => (params.value[0] as Record<string, number>)[currentKey],
+    get: () => (params.value?.[0] as Record<string, number>)?.[currentKey] ?? 0,
     set: (val: number) => {
       changeCurrent(val);
     },
   });
   const pageSize = computed({
-    get: () => (params.value[0] as Record<string, number>)[pageSizeKey],
+    get: () =>
+      (params.value?.[0] as Record<string, number>)?.[pageSizeKey] ?? 10,
     set: (val: number) => {
       changePageSize(val);
     },
@@ -136,6 +143,7 @@ function usePagination<R, P extends unknown[], FR>(
     run,
     changeCurrent,
     changePageSize,
+    reload,
     ...rest,
   };
 }

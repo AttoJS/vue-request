@@ -1,21 +1,15 @@
-import { mount, shallowMount } from '@vue/test-utils';
+import { shallowMount } from '@vue/test-utils';
 import fetchMock from 'fetch-mock';
 import Mock from 'mockjs';
-import { defineComponent, reactive, Ref, ref, watchEffect } from 'vue';
-import {
-  clearGlobalOptions,
-  GlobalOptions,
-  setGlobalOptions,
-} from '../core/config';
+import { defineComponent } from 'vue';
+import { clearGlobalOptions } from '../core/config';
 import {
   FOCUS_LISTENER,
   RECONNECT_LISTENER,
   VISIBLE_LISTENER,
 } from '../core/utils/listener';
-import { usePagination, RequestConfig } from '../index';
-import { waitForAll, waitForTime } from './utils';
-import { failedRequest } from './utils/request';
-declare let jsdom: any;
+import { usePagination } from '../index';
+import { waitForTime } from './utils';
 
 type CustomPropertyMockDataType = {
   result: Array<{ name: string; age: number }>;
@@ -168,7 +162,7 @@ describe('usePagination', () => {
     const totalPageEl = wrapper.find('.totalPage');
 
     for (let index = 0; index < 100; index++) {
-      paramsEl.trigger('click');
+      await paramsEl.trigger('click');
       await waitForTime(1000);
       expect(paramsEl.text()).toBe(`[{"current":${_current},"pageSize":10}]`);
       expect(totalEl.text()).toBe('100');
@@ -216,7 +210,7 @@ describe('usePagination', () => {
     const totalPageEl = wrapper.find('.totalPage');
 
     for (let index = 0; index < 100; index++) {
-      paramsEl.trigger('click');
+      await paramsEl.trigger('click');
       await waitForTime(1000);
       expect(paramsEl.text()).toBe(`[{"current":1,"pageSize":${_pageSize}}]`);
       expect(totalEl.text()).toBe('100');
@@ -342,6 +336,73 @@ describe('usePagination', () => {
       );
       expect(currentEl.text()).toBe(`${_current}`);
       expect(pageSizeEl.text()).toBe(`${_pageSize}`);
+    }
+  });
+
+  test('`reload` should work', async () => {
+    let _current = 1;
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const {
+            total,
+            params,
+            current,
+            pageSize,
+            totalPage,
+            reload,
+          } = usePagination<NormalMockDataType>(normalApi);
+          return () => (
+            <div>
+              <div class="params">{JSON.stringify(params.value)}</div>
+              <div class="total">{total.value}</div>
+              <div class="current">{current.value}</div>
+              <div class="pageSize">{pageSize.value}</div>
+              <div class="totalPage">{totalPage.value}</div>
+              <div class="reload" onClick={() => reload()} />
+              <div class="next" onClick={() => (current.value = ++_current)} />
+            </div>
+          );
+        },
+      }),
+    );
+
+    const paramsEl = wrapper.find('.params');
+    const totalEl = wrapper.find('.total');
+    const currentEl = wrapper.find('.current');
+    const pageSizeEl = wrapper.find('.pageSize');
+    const totalPageEl = wrapper.find('.totalPage');
+    const reloadEl = wrapper.find('.reload');
+    const nextEl = wrapper.find('.next');
+
+    await waitForTime(1000);
+    for (let index = 0; index < 100; index++) {
+      await nextEl.trigger('click');
+      await waitForTime(1000);
+      expect(paramsEl.text()).toBe(`[{"current":${_current},"pageSize":10}]`);
+      expect(totalEl.text()).toBe('100');
+      expect(currentEl.text()).toBe(`${_current}`);
+      expect(pageSizeEl.text()).toBe('10');
+      expect(totalPageEl.text()).toBe('10');
+    }
+
+    await reloadEl.trigger('click');
+    _current = 1;
+    await waitForTime(1000);
+    expect(paramsEl.text()).toBe(`[{"current":${_current},"pageSize":10}]`);
+    expect(totalEl.text()).toBe('100');
+    expect(currentEl.text()).toBe(`${_current}`);
+    expect(pageSizeEl.text()).toBe('10');
+    expect(totalPageEl.text()).toBe('10');
+
+    for (let index = 0; index < 100; index++) {
+      await nextEl.trigger('click');
+      await waitForTime(1000);
+      expect(paramsEl.text()).toBe(`[{"current":${_current},"pageSize":10}]`);
+      expect(totalEl.text()).toBe('100');
+      expect(currentEl.text()).toBe(`${_current}`);
+      expect(pageSizeEl.text()).toBe('10');
+      expect(totalPageEl.text()).toBe('10');
     }
   });
 });
