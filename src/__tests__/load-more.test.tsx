@@ -1,14 +1,18 @@
-import { shallowMount } from '@vue/test-utils';
+import { mount, shallowMount } from '@vue/test-utils';
 import fetchMock from 'fetch-mock';
 import Mock from 'mockjs';
 import { defineComponent } from 'vue';
-import { clearGlobalOptions } from '../core/config';
+import {
+  clearGlobalOptions,
+  GlobalOptions,
+  setGlobalOptions,
+} from '../core/config';
 import {
   FOCUS_LISTENER,
   RECONNECT_LISTENER,
   VISIBLE_LISTENER,
 } from '../core/utils/listener';
-import { useLoadMore } from '../index';
+import { useLoadMore, RequestConfig } from '../index';
 import { waitForTime } from './utils';
 import { failedRequest } from './utils/request';
 
@@ -16,6 +20,15 @@ type CustomPropertyMockDataType = {
   myData: {
     result: string[];
   };
+};
+
+type CustomConfigMockDataType = {
+  list: number[];
+  list1: number[];
+  list2: number[];
+  list3: number[];
+  list4: number[];
+  list5: number[];
 };
 
 type NormalMockDataType = {
@@ -29,6 +42,7 @@ describe('useLoadMore', () => {
 
   const normalApi = 'http://example.com/normal';
   const customPropertyApi = 'http://example.com/custom';
+  const customConfigApi = 'http://example.com/customConfig';
 
   // mock fetch
   const normalMockData: NormalMockDataType = Mock.mock({
@@ -41,8 +55,18 @@ describe('useLoadMore', () => {
     }),
   };
 
+  const customConfigMockData: CustomConfigMockDataType = {
+    list: [99],
+    list1: [1],
+    list2: [2],
+    list3: [3],
+    list4: [4],
+    list5: [5],
+  };
+
   fetchMock.get(normalApi, normalMockData, { delay: 1000 });
   fetchMock.get(customPropertyApi, customPropertyMockData, { delay: 1000 });
+  fetchMock.get(customConfigApi, customConfigMockData, { delay: 1000 });
 
   function generateNormalData(current: number, total = 10) {
     let list: string[] = [];
@@ -127,21 +151,32 @@ describe('useLoadMore', () => {
   test('useLoadMore only support function service', () => {
     const fn = jest.fn();
 
-    try {
-      // @ts-ignore
-      useLoadMore(normalApi);
-    } catch (error) {
-      fn();
-      expect(error.message).toBe('useLoadMore only support function service');
-    }
+    shallowMount(
+      defineComponent({
+        setup() {
+          try {
+            // @ts-ignore
+            useLoadMore(normalApi);
+          } catch (error) {
+            fn();
+            expect(error.message).toBe(
+              'useLoadMore only support function service',
+            );
+          }
 
-    try {
-      // @ts-ignore
-      useLoadMore({ url: normalApi });
-    } catch (error) {
-      fn();
-      expect(error.message).toBe('useLoadMore only support function service');
-    }
+          try {
+            // @ts-ignore
+            useLoadMore({ url: normalApi });
+          } catch (error) {
+            fn();
+            expect(error.message).toBe(
+              'useLoadMore only support function service',
+            );
+          }
+          return () => <div />;
+        },
+      }),
+    );
 
     expect(fn).toHaveBeenCalledTimes(2);
   });
@@ -149,17 +184,24 @@ describe('useLoadMore', () => {
   test('useLoadMore not support queryKey', () => {
     const fn = jest.fn();
 
-    try {
-      useLoadMore(normalRequest, {
-        // @ts-ignore
-        queryKey: () => 'key',
-      });
-    } catch (error) {
-      fn();
-      expect(error.message).toBe(
-        'useLoadMore does not support concurrent request',
-      );
-    }
+    shallowMount(
+      defineComponent({
+        setup() {
+          try {
+            useLoadMore(normalRequest, {
+              // @ts-ignore
+              queryKey: () => 'key',
+            });
+          } catch (error) {
+            fn();
+            expect(error.message).toBe(
+              'useLoadMore does not support concurrent request',
+            );
+          }
+          return () => <div />;
+        },
+      }),
+    );
 
     expect(fn).toHaveBeenCalledTimes(1);
   });
@@ -415,5 +457,78 @@ describe('useLoadMore', () => {
     expect(loadingMoreEl.text()).toBe('true');
     await waitForTime(1000);
     expect(loadingMoreEl.text()).toBe('false');
+  });
+
+  test('global config should work', async () => {
+    const createComponent = (id: string, requestOptions: GlobalOptions = {}) =>
+      defineComponent({
+        setup() {
+          const { dataList } = useLoadMore(
+            () => {
+              return new Promise<{ [key: string]: number[] }>(resolve => {
+                setTimeout(() => {
+                  resolve(customConfigMockData);
+                }, 1000);
+              });
+            },
+            { isNoMore: () => false, ...requestOptions },
+          );
+
+          return () => <div id={id}>{`${dataList.value?.join(',')}`}</div>;
+        },
+      });
+
+    const ComponentA = createComponent('A');
+    const ComponentB = createComponent('B');
+    const ComponentC = createComponent('C');
+    const ComponentD = createComponent('D');
+    const ComponentE = createComponent('E', {
+      listKey: 'list5',
+    });
+
+    setGlobalOptions({
+      listKey: 'list1',
+    });
+
+    const Wrapper = defineComponent({
+      setup() {
+        return () => (
+          <div id="root">
+            <RequestConfig config={{ listKey: 'list2' }}>
+              <ComponentA />
+            </RequestConfig>
+
+            <RequestConfig config={{ listKey: 'list3' }}>
+              <ComponentB />
+
+              <ComponentE />
+
+              {/* nested */}
+              <RequestConfig config={{ listKey: 'list4' }}>
+                <ComponentC />
+              </RequestConfig>
+            </RequestConfig>
+
+            <ComponentD />
+          </div>
+        );
+      },
+    });
+
+    const wrapper = mount(Wrapper);
+
+    expect(wrapper.find('#A').text()).toBe('');
+    expect(wrapper.find('#B').text()).toBe('');
+    expect(wrapper.find('#C').text()).toBe('');
+    expect(wrapper.find('#D').text()).toBe('');
+    expect(wrapper.find('#E').text()).toBe('');
+
+    await waitForTime(1000);
+
+    expect(wrapper.find('#A').text()).toBe('2');
+    expect(wrapper.find('#B').text()).toBe('3');
+    expect(wrapper.find('#C').text()).toBe('4');
+    expect(wrapper.find('#D').text()).toBe('1');
+    expect(wrapper.find('#E').text()).toBe('5');
   });
 });

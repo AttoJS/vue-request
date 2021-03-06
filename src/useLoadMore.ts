@@ -1,5 +1,11 @@
-import { computed, ref, Ref, watchEffect } from 'vue';
-import { BaseOptions, FormatOptions } from './core/config';
+import { computed, inject, ref, Ref, watchEffect } from 'vue';
+import {
+  BaseOptions,
+  FormatOptions,
+  getGlobalOptions,
+  GlobalOptions,
+  GLOBAL_OPTIONS_PROVIDE_KEY,
+} from './core/config';
 import useAsyncQuery, { BaseResult } from './core/useAsyncQuery';
 import get from 'lodash/get';
 import generateService from './core/utils/generateService';
@@ -71,8 +77,22 @@ function useLoadMore<R, P extends unknown[], FR, LR extends unknown[]>(
   }
   const promiseQuery = generateService<R, P>(service as any);
 
-  const { queryKey, isNoMore, listKey = 'list', ...restOptions } =
-    options ?? ({} as any);
+  const injectedGlobalOptions = inject<GlobalOptions>(
+    GLOBAL_OPTIONS_PROVIDE_KEY,
+    {},
+  );
+
+  const {
+    queryKey,
+    isNoMore,
+    listKey = 'list',
+    ...restOptions
+  } = Object.assign(
+    {
+      listKey: injectedGlobalOptions.listKey ?? getGlobalOptions().listKey,
+    },
+    options ?? ({} as any),
+  );
 
   if (queryKey) {
     throw new Error('useLoadMore does not support concurrent request');

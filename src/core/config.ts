@@ -1,3 +1,5 @@
+import { LoadMoreExtendsOption } from 'src/useLoadMore';
+import { PaginationExtendsOption } from 'src/usePagination';
 import { InjectionKey, Ref, WatchSource } from 'vue';
 import { State } from './createQuery';
 
@@ -23,7 +25,11 @@ export const clearGlobalOptions = () => {
   });
 };
 
-export type GlobalOptions = {
+export interface GlobalOptions
+  // usePagination config
+  extends Partial<PaginationExtendsOption>,
+    // useLoadMore config
+    Partial<Omit<LoadMoreExtendsOption<any>, 'isNoMore'>> {
   loadingDelay?: number;
   pollingInterval?: number;
   pollingWhenHidden?: boolean;
@@ -39,7 +45,7 @@ export type GlobalOptions = {
   // error retry
   errorRetryCount?: number;
   errorRetryInterval?: number;
-};
+}
 
 export type BaseOptions<R, P extends unknown[]> = GlobalOptions & {
   defaultParams?: P;

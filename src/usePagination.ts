@@ -1,6 +1,13 @@
-import { computed, Ref } from 'vue';
-import { BaseOptions, FormatOptions } from './core/config';
+import { computed, inject, Ref } from 'vue';
+import {
+  BaseOptions,
+  FormatOptions,
+  getGlobalOptions,
+  GlobalOptions,
+  GLOBAL_OPTIONS_PROVIDE_KEY,
+} from './core/config';
 import useAsyncQuery, { BaseResult } from './core/useAsyncQuery';
+import merge from 'lodash/merge';
 import get from 'lodash/get';
 import generateService from './core/utils/generateService';
 import { IService } from './core/utils/types';
@@ -63,11 +70,21 @@ function usePagination<R, P extends unknown[], FR>(
     },
   };
 
+  const injectedGlobalOptions = inject<GlobalOptions>(
+    GLOBAL_OPTIONS_PROVIDE_KEY,
+    {},
+  );
+
   const {
     pagination: { currentKey, pageSizeKey, totalKey, totalPageKey },
     queryKey,
     ...restOptions
-  } = Object.assign(defaultOptions, options ?? ({} as any));
+  } = merge(
+    defaultOptions,
+    { pagination: getGlobalOptions().pagination ?? {} },
+    { pagination: injectedGlobalOptions.pagination ?? {} },
+    options ?? ({} as any),
+  );
 
   if (queryKey) {
     throw new Error('usePagination does not support concurrent request');
@@ -117,14 +134,13 @@ function usePagination<R, P extends unknown[], FR>(
 
   const total = computed<number>(() => get(data.value, totalKey, 0));
   const current = computed({
-    get: () => (params.value?.[0] as Record<string, number>)?.[currentKey] ?? 0,
+    get: () => (params.value[0] as Record<string, number>)?.[currentKey] ?? 0,
     set: (val: number) => {
       changeCurrent(val);
     },
   });
   const pageSize = computed({
-    get: () =>
-      (params.value?.[0] as Record<string, number>)?.[pageSizeKey] ?? 10,
+    get: () => (params.value[0] as Record<string, number>)?.[pageSizeKey] ?? 10,
     set: (val: number) => {
       changePageSize(val);
     },

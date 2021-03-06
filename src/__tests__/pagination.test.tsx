@@ -1,14 +1,18 @@
-import { shallowMount } from '@vue/test-utils';
+import { mount, shallowMount } from '@vue/test-utils';
 import fetchMock from 'fetch-mock';
 import Mock from 'mockjs';
 import { defineComponent } from 'vue';
-import { clearGlobalOptions } from '../core/config';
+import {
+  clearGlobalOptions,
+  GlobalOptions,
+  setGlobalOptions,
+} from '../core/config';
 import {
   FOCUS_LISTENER,
   RECONNECT_LISTENER,
   VISIBLE_LISTENER,
 } from '../core/utils/listener';
-import { usePagination } from '../index';
+import { usePagination, RequestConfig } from '../index';
 import { waitForTime } from './utils';
 
 type CustomPropertyMockDataType = {
@@ -29,6 +33,7 @@ describe('usePagination', () => {
 
   const normalApi = 'http://example.com/normal';
   const customPropertyApi = 'http://example.com/custom';
+  const customConfigApi = 'http://example.com/customConfig';
 
   // mock fetch
   const normalMockData: NormalMockDataType = Mock.mock({
@@ -52,8 +57,19 @@ describe('usePagination', () => {
     myTotalPage: { a: { b: { totalPage: 99 } } },
   });
 
+  const customConfigMockData: CustomPropertyMockDataType = Mock.mock({
+    'result|10': ['@name'],
+    total: 99,
+    total1: 1,
+    total2: 2,
+    total3: 3,
+    total4: 4,
+    total5: 5,
+  });
+
   fetchMock.get(normalApi, normalMockData, { delay: 1000 });
   fetchMock.get(customPropertyApi, customPropertyMockData, { delay: 1000 });
+  fetchMock.get(customConfigApi, customConfigMockData, { delay: 1000 });
 
   const originalError = console.error;
   beforeEach(() => {
@@ -264,17 +280,26 @@ describe('usePagination', () => {
 
   test('concurrent request should not work', async () => {
     const fn = jest.fn();
-    try {
-      usePagination(customPropertyApi, {
-        // @ts-ignore
-        queryKey: () => '1',
-      });
-    } catch (error) {
-      expect(error.message).toBe(
-        'usePagination does not support concurrent request',
-      );
-      fn();
-    }
+
+    shallowMount(
+      defineComponent({
+        setup() {
+          try {
+            usePagination(customPropertyApi, {
+              // @ts-ignore
+              queryKey: () => '1',
+            });
+          } catch (error) {
+            expect(error.message).toBe(
+              'usePagination does not support concurrent request',
+            );
+            fn();
+          }
+          return () => <div />;
+        },
+      }),
+    );
+
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
@@ -404,5 +429,128 @@ describe('usePagination', () => {
       expect(pageSizeEl.text()).toBe('10');
       expect(totalPageEl.text()).toBe('10');
     }
+  });
+
+  test('changeCurrent should work', async () => {
+    let _current = 1;
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const {
+            total,
+            params,
+            current,
+            pageSize,
+            totalPage,
+            changeCurrent,
+          } = usePagination(normalApi, {
+            manual: true,
+          });
+          return () => (
+            <div>
+              <button
+                class="params"
+                onClick={() => changeCurrent((_current += 1))}
+              >
+                {JSON.stringify(params.value)}
+              </button>
+              <div class="total">{total.value}</div>
+              <div class="current">{current.value}</div>
+              <div class="pageSize">{pageSize.value}</div>
+              <div class="totalPage">{totalPage.value}</div>
+            </div>
+          );
+        },
+      }),
+    );
+
+    const paramsEl = wrapper.find('.params');
+    const totalEl = wrapper.find('.total');
+    const currentEl = wrapper.find('.current');
+    const pageSizeEl = wrapper.find('.pageSize');
+    const totalPageEl = wrapper.find('.totalPage');
+
+    expect(paramsEl.text()).toBe('[]');
+    expect(totalEl.text()).toBe('0');
+    expect(currentEl.text()).toBe('0');
+    expect(pageSizeEl.text()).toBe('10');
+    expect(totalPageEl.text()).toBe('0');
+
+    for (let index = 0; index < 100; index++) {
+      await paramsEl.trigger('click');
+      await waitForTime(1000);
+
+      expect(paramsEl.text()).toBe(`[{"current":${_current}}]`);
+      expect(totalEl.text()).toBe('100');
+      expect(currentEl.text()).toBe(`${_current}`);
+      expect(pageSizeEl.text()).toBe('10');
+      expect(totalPageEl.text()).toBe('10');
+    }
+  });
+
+  test('global config should work', async () => {
+    const createComponent = (id: string, requestOptions: GlobalOptions = {}) =>
+      defineComponent({
+        setup() {
+          const { total } = usePagination(customConfigApi, requestOptions);
+
+          return () => <div id={id}>{`${total.value}`}</div>;
+        },
+      });
+
+    const ComponentA = createComponent('A');
+    const ComponentB = createComponent('B');
+    const ComponentC = createComponent('C');
+    const ComponentD = createComponent('D');
+    const ComponentE = createComponent('E', {
+      pagination: { totalKey: 'total5' },
+    });
+
+    setGlobalOptions({
+      pagination: {
+        totalKey: 'total1',
+      },
+    });
+
+    const Wrapper = defineComponent({
+      setup() {
+        return () => (
+          <div id="root">
+            <RequestConfig config={{ pagination: { totalKey: 'total2' } }}>
+              <ComponentA />
+            </RequestConfig>
+
+            <RequestConfig config={{ pagination: { totalKey: 'total3' } }}>
+              <ComponentB />
+
+              <ComponentE />
+
+              {/* nested */}
+              <RequestConfig config={{ pagination: { totalKey: 'total4' } }}>
+                <ComponentC />
+              </RequestConfig>
+            </RequestConfig>
+
+            <ComponentD />
+          </div>
+        );
+      },
+    });
+
+    const wrapper = mount(Wrapper);
+
+    expect(wrapper.find('#A').text()).toBe('0');
+    expect(wrapper.find('#B').text()).toBe('0');
+    expect(wrapper.find('#C').text()).toBe('0');
+    expect(wrapper.find('#D').text()).toBe('0');
+    expect(wrapper.find('#E').text()).toBe('0');
+
+    await waitForTime(1000);
+
+    expect(wrapper.find('#A').text()).toBe('2');
+    expect(wrapper.find('#B').text()).toBe('3');
+    expect(wrapper.find('#C').text()).toBe('4');
+    expect(wrapper.find('#D').text()).toBe('1');
+    expect(wrapper.find('#E').text()).toBe('5');
   });
 });
