@@ -1,6 +1,6 @@
 {
   "name": "vue-request",
-  "version": "1.0.0-beta.11",
+  "version": "1.0.3-beta.11",
   "description": "A request library for Vue 3",
   "license": "MIT",
   "keywords": [
@@ -10,7 +10,10 @@
     "request",
     "http",
     "fetch",
-    "composition-api"
+    "composition-api",
+    "axios",
+    "vue-request",
+    "vue request"
   ],
   "repository": {
     "type": "git",
