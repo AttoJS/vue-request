@@ -20,7 +20,7 @@
     <img src="https://img.shields.io/bundlephobia/min/vue-request" alt="Size" />
   </a>
   <a href="https://www.npmjs.com/package/vue-request">
-    <img src="https://img.shields.io/npm/v/vue-request/beta" alt="Version" />
+    <img src="https://img.shields.io/npm/v/vue-request" alt="Version" />
   </a>
   <a href="https://www.npmjs.com/package/vue-request">
     <img src="https://img.shields.io/github/languages/top/attojs/vue-request" alt="Languages" />
@@ -29,8 +29,6 @@
     <img src="https://img.shields.io/npm/l/vue-request" alt="License" />
   </a>
 </div>
-
-# 当前状态: Beta
 
 ## 特性
 
@@ -52,16 +50,16 @@
 ## 安装
 
 ```bash
-npm install vue-request@beta
+npm install vue-request
 
 # or with yarn
-yarn add vue-request@beta
+yarn add vue-request
 ```
 
 ### CDN
 
 ```html
-<script src="https://unpkg.com/vue-request@beta"></script>
+<script src="https://unpkg.com/vue-request"></script>
 ```
 
 它将以 `window.VueRequest.useRequest` 暴露在全局
