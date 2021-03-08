@@ -17,7 +17,7 @@
     />
   </a>
   <a href="https://www.npmjs.com/package/vue-request">
-    <img src="https://img.shields.io/bundlephobia/min/vue-request" alt="Size" />
+    <img src="https://img.shields.io/bundlephobia/minzip/vue-request" alt="Size" />
   </a>
   <a href="https://www.npmjs.com/package/vue-request">
     <img src="https://img.shields.io/npm/v/vue-request" alt="Version" />
@@ -27,6 +27,9 @@
   </a>
   <a href="https://www.npmjs.com/package/vue-request">
     <img src="https://img.shields.io/npm/l/vue-request" alt="License" />
+  </a>
+  <a href="https://github.com/AttoJS/vue-request/stargazers">
+    <img src="https://img.shields.io/github/stars/attojs/vue-request" alt="Star" />
   </a>
 </div>
 
