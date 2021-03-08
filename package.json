@@ -1,6 +1,6 @@
 {
   "name": "vue-request",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A request library for Vue 3",
   "license": "MIT",
   "keywords": [
