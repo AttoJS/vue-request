@@ -84,7 +84,6 @@ export default {
 - [x] 文档
 - [x] 分页
 - [x] 加载更多
-- [ ] 支持 Vue 2
 
 ## 致谢
 
