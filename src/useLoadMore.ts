@@ -21,10 +21,13 @@ export interface LoadMoreResult<R, P extends unknown[], LR extends unknown[]>
   reload: () => void;
 }
 
-export interface LoadMoreExtendsOption<R> {
-  isNoMore: (data: R) => boolean;
+export type LoadMoreExtendsOption = {
   listKey?: string;
-}
+};
+
+export type LoadMoreGenericExtendsOption<R> = {
+  isNoMore?: (data: R) => boolean;
+};
 
 export type LoadMoreService<R, P extends unknown[], LR> =
   | ((r: { data: R; dataList: LR }, ...args: P) => Promise<R>)
@@ -34,13 +37,15 @@ export type LoadMoreFormatOptions<R, P extends unknown[], FR> = Omit<
   FormatOptions<R, P, FR>,
   'queryKey'
 > &
-  LoadMoreExtendsOption<R>;
+  LoadMoreGenericExtendsOption<R> &
+  LoadMoreExtendsOption;
 
 export type LoadMoreBaseOptions<R, P extends unknown[]> = Omit<
   BaseOptions<R, P>,
   'queryKey'
 > &
-  LoadMoreExtendsOption<R>;
+  LoadMoreGenericExtendsOption<R> &
+  LoadMoreExtendsOption;
 
 export type LoadMoreMixinOptions<R, P extends unknown[], FR> =
   | LoadMoreBaseOptions<R, P>

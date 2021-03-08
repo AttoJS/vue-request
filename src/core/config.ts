@@ -27,9 +27,9 @@ export const clearGlobalOptions = () => {
 
 export interface GlobalOptions
   // usePagination config
-  extends Partial<PaginationExtendsOption>,
+  extends PaginationExtendsOption,
     // useLoadMore config
-    Partial<Omit<LoadMoreExtendsOption<any>, 'isNoMore'>> {
+    LoadMoreExtendsOption {
   loadingDelay?: number;
   pollingInterval?: number;
   pollingWhenHidden?: boolean;
