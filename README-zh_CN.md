@@ -46,9 +46,9 @@
 
 ## 文档
 
-- [English](https://attojs.github.io/vue-request-docs/)
-- [中文](https://attojs.github.io/vue-request-docs/zh/)
-- [国内镜像](https://attojs.gitee.io/vue-request-docs/zh/)
+- [English](https://www.attojs.org/)
+- [中文](https://www.attojs.org/zh/)
+- [国内镜像](https://www.attojs.com/zh/)
 
 ## 安装
 
