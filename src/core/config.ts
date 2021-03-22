@@ -54,7 +54,7 @@ export type BaseOptions<R, P extends unknown[]> = GlobalOptions & {
   refreshDeps?: WatchSource<any>[];
   cacheKey?: string;
   queryKey?: (...args: P) => string;
-  onSuccess: (data: R, params: P) => void;
+  onSuccess?: (data: R, params: P) => void;
   onError?: (error: Error, params: P) => void;
 };
 
