@@ -2,6 +2,7 @@ import { computed, inject, ref, Ref, watchEffect } from 'vue';
 import {
   BaseOptions,
   FormatOptions,
+  FRPlaceholderType,
   getGlobalOptions,
   GlobalOptions,
   GLOBAL_OPTIONS_PROVIDE_KEY,
@@ -59,7 +60,7 @@ function useLoadMore<
 function useLoadMore<
   R,
   P extends unknown[] = any,
-  FR = any,
+  FR = FRPlaceholderType,
   LR extends unknown[] = any[]
 >(
   service: LoadMoreService<R, P, LR>,

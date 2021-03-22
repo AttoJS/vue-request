@@ -1,4 +1,9 @@
-import { BaseOptions, FormatOptions, MixinOptions } from './core/config';
+import {
+  BaseOptions,
+  FormatOptions,
+  FRPlaceholderType,
+  MixinOptions,
+} from './core/config';
 import useAsyncQuery, { BaseResult } from './core/useAsyncQuery';
 import generateService from './core/utils/generateService';
 import { IService } from './core/utils/types';
@@ -10,7 +15,7 @@ export interface RequestResult<R, P extends unknown[]>
 function useRequest<R, P extends unknown[] = any>(
   service: IService<R, P>,
 ): RequestResult<R, P>;
-function useRequest<R, P extends unknown[] = any, FR = any>(
+function useRequest<R, P extends unknown[] = any, FR = FRPlaceholderType>(
   service: IService<R, P>,
   options: FormatOptions<R, P, FR>,
 ): RequestResult<FR, P>;

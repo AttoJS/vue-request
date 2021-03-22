@@ -2,6 +2,7 @@ import { computed, inject, Ref } from 'vue';
 import {
   BaseOptions,
   FormatOptions,
+  FRPlaceholderType,
   getGlobalOptions,
   GlobalOptions,
   GLOBAL_OPTIONS_PROVIDE_KEY,
@@ -47,7 +48,7 @@ export type PaginationMixinOptions<R, P extends unknown[], FR> =
 function usePagination<R, P extends unknown[] = any>(
   service: IService<R, P>,
 ): PaginationResult<R, P>;
-function usePagination<R, P extends unknown[] = any, FR = any>(
+function usePagination<R, P extends unknown[] = any, FR = FRPlaceholderType>(
   service: IService<R, P>,
   options: PaginationFormatOptions<R, P, FR>,
 ): PaginationResult<FR, P>;

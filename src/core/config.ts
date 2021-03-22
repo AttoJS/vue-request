@@ -54,13 +54,23 @@ export type BaseOptions<R, P extends unknown[]> = GlobalOptions & {
   refreshDeps?: WatchSource<any>[];
   cacheKey?: string;
   queryKey?: (...args: P) => string;
-  onSuccess?: (data: R, params: P) => void;
+  onSuccess: (data: R, params: P) => void;
   onError?: (error: Error, params: P) => void;
 };
 
+const FRPlaceholderType = Symbol('FR');
+export type FRPlaceholderType = typeof FRPlaceholderType;
+
+// temporary fix: https://github.com/AttoJS/vue-request/issues/31
+// When `formatResult` and `onSuccess` are used at the same time
+// the type of the parameter `data` of `onSuccess` is temporarily set to `any`
 export type FormatOptions<R, P extends unknown[], FR> = {
   formatResult: (data: R) => FR;
-} & BaseOptions<FR, P>;
+  onSuccess?: (
+    data: FR extends FRPlaceholderType ? any : FR,
+    params: P,
+  ) => void;
+} & Omit<BaseOptions<FR, P>, 'onSuccess'>;
 
 export type MixinOptions<R, P extends unknown[], FR> =
   | BaseOptions<R, P>
