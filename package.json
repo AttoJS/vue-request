@@ -1,7 +1,7 @@
 {
   "name": "vue-request",
   "version": "1.0.4",
-  "description": "A request library for Vue 3",
+  "description": "Vue 3 composition api for data fetching, supports SWR, polling, error retry, cache request, pagination and other cool features.",
   "license": "MIT",
   "keywords": [
     "vue",
@@ -19,6 +19,8 @@
     "type": "git",
     "url": "https://github.com/attojs/vue-request.git"
   },
+  "bugs": "https://github.com/attojs/vue-request/issues",
+  "homepage": "https://www.attojs.org",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
   "unpkg": "dist/vue-request.min.js",

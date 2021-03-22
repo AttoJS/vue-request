@@ -1,15 +1,17 @@
 English | [简体中文](README-zh_CN.md)
 
 <p align="center">
-  <img
-    width="150"
-    src="https://raw.githubusercontent.com/AttoJS/art/master/vue-request-logo.png"
-    alt="VueRequest logo"
-  />
+  <a href="https://www.attojs.org">
+    <img
+      width="150"
+      src="https://raw.githubusercontent.com/AttoJS/art/master/vue-request-logo.png"
+      alt="VueRequest logo"
+    />
+  </a>
 </p>
 <h1 align="center">VueRequest</h1>
 <div align="center">
-  <p align="center">⚡️ A request library for Vue 3.</p>
+  <p align="center">⚡️ Vue 3 composition api for data fetching, supports SWR, polling, error retry, cache request, pagination etc.</p>
   <a href="https://codecov.io/github/attojs/vue-request?branch=master">
     <img
       src="https://img.shields.io/codecov/c/github/attojs/vue-request?token=NW2XVQWGPP"
