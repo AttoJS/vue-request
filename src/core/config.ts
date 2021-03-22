@@ -1,5 +1,5 @@
-import { LoadMoreExtendsOption } from 'src/useLoadMore';
-import { PaginationExtendsOption } from 'src/usePagination';
+import { LoadMoreExtendsOption } from '../useLoadMore';
+import { PaginationExtendsOption } from '../usePagination';
 import { InjectionKey, Ref, WatchSource } from 'vue';
 import { State } from './createQuery';
 
