@@ -11,7 +11,7 @@ English | [简体中文](README-zh_CN.md)
 </p>
 <h1 align="center">VueRequest</h1>
 <div align="center">
-  <p align="center">⚡️ Vue 3 composition API for data fetching, supports SWR, polling, error retry, cache request, pagination ,etc.</p>
+  <p align="center">⚡️ Vue 3 composition API for data fetching, supports SWR, polling, error retry, cache request, pagination, etc.</p>
   <a href="https://codecov.io/github/attojs/vue-request?branch=master">
     <img
       src="https://img.shields.io/codecov/c/github/attojs/vue-request?token=NW2XVQWGPP"
