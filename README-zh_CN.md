@@ -11,7 +11,7 @@
 </p>
 <h1 align="center">VueRequest</h1>
 <div align="center">
-  <p align="center">⚡️ 一个能轻松帮你管理请求状态（支持SWR，轮询，错误重试，缓存，分页等）的 Vue 3 请求库</p>
+  <p align="center">⚡️ 一个能轻松帮你管理请求状态（支持SWR，轮询，错误重试，缓存，分页等）的 Vue 3 composition API 请求库</p>
   <a href="https://codecov.io/github/attojs/vue-request?branch=master">
     <img
       src="https://img.shields.io/codecov/c/github/attojs/vue-request?token=NW2XVQWGPP"
