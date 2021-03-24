@@ -1,7 +1,7 @@
 ---
 name: '疑问或需要帮助 Question or need help'
 about: Question or need help
-title: ''
+title: '[Need Help]'
 labels: question
 assignees: ''
 ---
