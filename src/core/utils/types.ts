@@ -15,7 +15,7 @@ export type UnWrapRefObject<T> = {
   [P in keyof T]: UnRef<T[P]>;
 };
 
-export type ServiceObject = {
+export type ServiceObject = Partial<RequestInit> & {
   [key: string]: any;
   url: string;
 };
