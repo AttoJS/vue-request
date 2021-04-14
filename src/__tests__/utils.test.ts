@@ -7,6 +7,7 @@ import {
   isPromise,
   isString,
   requestProxy,
+  isObject,
 } from '../core/utils';
 import limitTrigger from '../core/utils/limitTrigger';
 import fetchMock from 'fetch-mock';
@@ -44,12 +45,18 @@ describe('utils', () => {
     expect(isPlainObject([])).toBe(false);
   });
 
+  test('isObject should work', () => {
+    expect(isObject([])).toBe(true);
+    expect(isObject({})).toBe(true);
+    expect(isObject(null)).toBe(false);
+  });
+
   test('isPromise should work', () => {
     expect(isPromise(Promise.resolve())).toBe(true);
     expect(isPromise(function () {})).toBe(false);
   });
 
-  test('isPromise should work', () => {
+  test('isFunction should work', () => {
     expect(isFunction(function () {})).toBe(true);
     expect(isFunction(() => {})).toBe(true);
     expect(isFunction('')).toBe(false);

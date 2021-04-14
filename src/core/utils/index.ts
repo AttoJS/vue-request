@@ -9,8 +9,11 @@ export const isString = (val: unknown): val is string =>
 export const isPlainObject = (val: unknown): val is Record<string, any> =>
   toTypeString(val) === '[object Object]';
 
+export const isObject = (val: unknown): val is Record<any, any> =>
+  val !== null && typeof val === 'object';
+
 export const isPromise = (fn: unknown): fn is Promise<unknown> =>
-  fn instanceof Promise;
+  isObject(fn) && isFunction(fn.then) && isFunction(fn.catch);
 
 export const isFunction = (fn: unknown): fn is Function =>
   fn instanceof Function;
