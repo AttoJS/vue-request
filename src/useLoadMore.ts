@@ -15,7 +15,7 @@ import { ServiceParams } from './core/utils/types';
 import omit from 'lodash/omit';
 
 export interface LoadMoreResult<R, P extends unknown[], LR extends unknown[]>
-  extends Omit<BaseResult<R, P>, 'queries' | 'refresh'> {
+  extends Omit<BaseResult<R, P>, 'queries' | 'refresh' | 'mutate'> {
   dataList: Ref<LR>;
   noMore: Ref<boolean>;
   loadingMore: Ref<boolean>;
@@ -223,7 +223,7 @@ function useLoadMore<R, P extends unknown[], FR, LR extends unknown[]>(
     reset,
     refresh,
     cancel,
-    ...omit(rest, ['refresh']),
+    ...omit(rest, ['refresh', 'mutate']),
   };
 }
 
