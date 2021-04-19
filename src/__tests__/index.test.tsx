@@ -1342,6 +1342,76 @@ describe('useRequest', () => {
     }
   });
 
+  test('queryKey should work with root level `cancel`, `mutate`, `refresh`', async () => {
+    const users = [
+      { id: '1', username: 'A' },
+      { id: '2', username: 'B' },
+      { id: '3', username: 'C' },
+    ];
+
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { run, queries, mutate, refresh, cancel } = useRequest(
+            request,
+            {
+              manual: true,
+              refreshOnWindowFocus: true,
+              queryKey: id => id,
+            },
+          );
+
+          return () => (
+            <div>
+              <div id="mutate" onClick={() => mutate('new data')} />
+              <div id="refresh" onClick={() => refresh()} />
+              <div id="cancel" onClick={() => cancel()} />
+              <ul>
+                {users.map(item => (
+                  <li
+                    key={item.id}
+                    id={item.username}
+                    onClick={() => run(item.id)}
+                  >
+                    {queries[item.id]?.loading
+                      ? 'loading'
+                      : queries[item.id]?.data}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        },
+      }),
+    );
+
+    const mutate = () => wrapper.find('#mutate').trigger('click');
+    const refresh = () => wrapper.find('#refresh').trigger('click');
+    const cancel = () => wrapper.find('#cancel').trigger('click');
+
+    for (let i = 0; i < users.length; i++) {
+      const userName = users[i].username;
+      const currentId = users[i].id;
+      const userElement = wrapper.find(`#${userName}`);
+      await userElement.trigger('click');
+      expect(userElement.text()).toBe('loading');
+      await waitForTime(1000);
+      expect(userElement.text()).toBe(currentId);
+
+      await mutate();
+      expect(userElement.text()).toBe('new data');
+
+      await userElement.trigger('click');
+      expect(userElement.text()).toBe('loading');
+      await waitForTime(100);
+      await cancel();
+      expect(userElement.text()).toBe('new data');
+
+      await refresh();
+      expect(userElement.text()).toBe('loading');
+    }
+  });
+
   test('errorRetry should work. case 1', async () => {
     const wrapper = shallowMount(
       defineComponent({

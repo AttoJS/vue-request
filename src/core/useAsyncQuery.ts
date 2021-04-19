@@ -19,6 +19,7 @@ import {
 import createQuery, {
   InnerQueryState,
   InnerRunReturn,
+  Mutate,
   Query,
   QueryState,
   State,
@@ -222,6 +223,10 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     });
   };
 
+  const cancel = () => latestQuery.value.cancel();
+  const refresh = () => latestQuery.value.refresh();
+  const mutate = <Mutate<R>>((arg: R) => latestQuery.value.mutate(arg));
+
   // initial run
   if (!manual) {
     initialAutoRunFlag.value = true;
@@ -282,9 +287,9 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     data,
     error,
     params,
-    cancel: latestQuery.value.cancel,
-    refresh: latestQuery.value.refresh,
-    mutate: latestQuery.value.mutate,
+    cancel,
+    refresh,
+    mutate,
     run,
     reset,
     queries,
