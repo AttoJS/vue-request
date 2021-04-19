@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.1.0](https://github.com/attojs/vue-request/compare/v1.0.5...v1.1.0) (2021-04-19)
+
+### Features
+
+- **useLoadMore:** 重构 `useLoadMore` 的 `refresh` 和 `cancel` 方法，添加了 `refreshing` 用于记录是否正在刷新 [#36](https://github.com/attojs/vue-request/issues/36) ([7c34351](https://github.com/attojs/vue-request/commit/7c34351fbc8dad763effb33f4bd7b9e4cb18b9d6))
+
+### Bug Fixes
+
+- 在使用 `queryKey` 后，根级别的 `refresh`, `mutate`, `cancel` 无法正常工作 [#37](https://github.com/attojs/vue-request/issues/37) ([66b3198](https://github.com/attojs/vue-request/commit/66b31981353fee5c9ebda806bbbeccef4bf6e4c3))
+
+### ⚠ BREAKING CHANGES
+
+- **useLoadMore:** 移除 `useLoadMore` 里的 `mutate` 方法 ([b935bcd](https://github.com/attojs/vue-request/commit/b935bcd01629b38ba068e82ca062380b6434c85f))
+
 ### [1.0.5](https://github.com/attojs/vue-request/compare/v1.0.4...v1.0.5) (2021-03-22)
 
 ### Bug Fixes
