@@ -429,6 +429,290 @@ describe('useLoadMore', () => {
     }
   });
 
+  test('refresh should work, case: 1', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const {
+            dataList,
+            loadingMore,
+            loading,
+            loadMore,
+            refresh,
+            refreshing,
+          } = useLoadMore(normalRequest);
+          return () => (
+            <div>
+              <div class="dataList">{dataList.value.length || 0}</div>
+              <div class="loadingMore">{`${loadingMore.value}`}</div>
+              <div class="loading">{`${loading.value}`}</div>
+              <div class="refreshing">{`${refreshing.value}`}</div>
+              <div
+                class="loadMore"
+                onClick={() => {
+                  loadMore();
+                }}
+              />
+              <div
+                class="refresh"
+                onClick={() => {
+                  refresh();
+                }}
+              />
+            </div>
+          );
+        },
+      }),
+    );
+
+    const dataListEl = wrapper.find('.dataList');
+    const loadingMoreEl = wrapper.find('.loadingMore');
+    const loadingEl = wrapper.find('.loading');
+    const loadMoreEl = wrapper.find('.loadMore');
+    const refreshEl = wrapper.find('.refresh');
+    const refreshingEl = wrapper.find('.refreshing');
+
+    expect(loadingEl.text()).toBe('true');
+    expect(refreshingEl.text()).toBe('false');
+    await waitForTime(1000);
+    expect(refreshingEl.text()).toBe('false');
+    expect(loadingEl.text()).toBe('false');
+    expect(dataListEl.text()).toBe('10');
+    expect(loadingMoreEl.text()).toBe('false');
+
+    for (let index = 1; index <= 5; index++) {
+      await loadMoreEl.trigger('click');
+      expect(loadingMoreEl.text()).toBe('true');
+      expect(loadingEl.text()).toBe('true');
+      expect(refreshingEl.text()).toBe('false');
+      await waitForTime(1000);
+      expect(loadingEl.text()).toBe('false');
+      expect(loadingMoreEl.text()).toBe('false');
+      expect(refreshingEl.text()).toBe('false');
+      expect(dataListEl.text()).toBe(`${10 + index * 10}`);
+    }
+
+    expect(dataListEl.text()).toBe('60');
+    expect(loadingMoreEl.text()).toBe('false');
+    expect(loadingEl.text()).toBe('false');
+    expect(refreshingEl.text()).toBe('false');
+
+    await refreshEl.trigger('click');
+    expect(dataListEl.text()).toBe('60');
+    expect(loadingMoreEl.text()).toBe('false');
+    expect(loadingEl.text()).toBe('true');
+    expect(refreshingEl.text()).toBe('true');
+
+    await waitForTime(1000);
+    expect(dataListEl.text()).toBe('10');
+    expect(loadingMoreEl.text()).toBe('false');
+    expect(loadingEl.text()).toBe('false');
+    expect(refreshingEl.text()).toBe('false');
+  });
+
+  test('refresh should work, case: 2', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const {
+            dataList,
+            loadingMore,
+            loading,
+            refresh,
+            refreshing,
+          } = useLoadMore(normalRequest);
+          return () => (
+            <div>
+              <div class="dataList">{dataList.value.length || 0}</div>
+              <div class="loadingMore">{`${loadingMore.value}`}</div>
+              <div class="loading">{`${loading.value}`}</div>
+              <div class="refreshing">{`${refreshing.value}`}</div>
+              <div
+                class="refresh"
+                onClick={() => {
+                  refresh();
+                }}
+              />
+            </div>
+          );
+        },
+      }),
+    );
+
+    const dataListEl = wrapper.find('.dataList');
+    const loadingMoreEl = wrapper.find('.loadingMore');
+    const loadingEl = wrapper.find('.loading');
+    const refreshEl = wrapper.find('.refresh');
+    const refreshingEl = wrapper.find('.refreshing');
+
+    expect(loadingEl.text()).toBe('true');
+    expect(refreshingEl.text()).toBe('false');
+    expect(loadingMoreEl.text()).toBe('false');
+    await refreshEl.trigger('click');
+    expect(loadingEl.text()).toBe('true');
+    expect(refreshingEl.text()).toBe('true');
+    expect(loadingMoreEl.text()).toBe('false');
+    await waitForTime(1000);
+    expect(dataListEl.text()).toBe('10');
+  });
+
+  test('cancel should work, case: 1', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const {
+            dataList,
+            loadingMore,
+            loading,
+            loadMore,
+            refresh,
+            refreshing,
+            cancel,
+            reload,
+          } = useLoadMore(normalRequest);
+          return () => (
+            <div>
+              <div class="dataList">{dataList.value.length || 0}</div>
+              <div class="loadingMore">{`${loadingMore.value}`}</div>
+              <div class="loading">{`${loading.value}`}</div>
+              <div class="refreshing">{`${refreshing.value}`}</div>
+              <div
+                class="loadMore"
+                onClick={() => {
+                  loadMore();
+                }}
+              />
+              <div
+                class="refresh"
+                onClick={() => {
+                  refresh();
+                }}
+              />
+              <div
+                class="cancel"
+                onClick={() => {
+                  cancel();
+                }}
+              />
+              <div
+                class="reload"
+                onClick={() => {
+                  reload();
+                }}
+              />
+            </div>
+          );
+        },
+      }),
+    );
+
+    const dataListEl = wrapper.find('.dataList');
+    const loadingMoreEl = wrapper.find('.loadingMore');
+    const loadingEl = wrapper.find('.loading');
+    const loadMoreEl = wrapper.find('.loadMore');
+    const refreshEl = wrapper.find('.refresh');
+    const refreshingEl = wrapper.find('.refreshing');
+    const cancelEl = wrapper.find('.cancel');
+    const reloadEl = wrapper.find('.reload');
+
+    expect(loadingEl.text()).toBe('true');
+    expect(refreshingEl.text()).toBe('false');
+    expect(loadingMoreEl.text()).toBe('false');
+    await waitForTime(1000);
+    expect(loadingEl.text()).toBe('false');
+    expect(dataListEl.text()).toBe('10');
+    expect(loadingMoreEl.text()).toBe('false');
+
+    // trigger loadMore
+    await loadMoreEl.trigger('click');
+    expect(loadingEl.text()).toBe('true');
+    expect(loadingMoreEl.text()).toBe('true');
+    expect(refreshingEl.text()).toBe('false');
+    await waitForTime(100);
+    // trigger cancel
+    await cancelEl.trigger('click');
+    expect(loadingEl.text()).toBe('false');
+    expect(loadingMoreEl.text()).toBe('false');
+    expect(refreshingEl.text()).toBe('false');
+    expect(dataListEl.text()).toBe('10');
+
+    // trigger refresh
+    await refreshEl.trigger('click');
+    expect(loadingEl.text()).toBe('true');
+    expect(loadingMoreEl.text()).toBe('false');
+    expect(refreshingEl.text()).toBe('true');
+    await waitForTime(100);
+    // trigger cancel
+    await cancelEl.trigger('click');
+    expect(loadingEl.text()).toBe('false');
+    expect(loadingMoreEl.text()).toBe('false');
+    expect(refreshingEl.text()).toBe('false');
+    expect(dataListEl.text()).toBe('10');
+
+    // trigger reload
+    await reloadEl.trigger('click');
+    expect(loadingEl.text()).toBe('true');
+    expect(loadingMoreEl.text()).toBe('false');
+    expect(refreshingEl.text()).toBe('false');
+    await waitForTime(100);
+    // trigger cancel
+    await cancelEl.trigger('click');
+    expect(loadingEl.text()).toBe('false');
+    expect(loadingMoreEl.text()).toBe('false');
+    expect(refreshingEl.text()).toBe('false');
+    expect(dataListEl.text()).toBe('0');
+  });
+
+  test('cancel should work, case: 2', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const {
+            dataList,
+            loadingMore,
+            loading,
+            refreshing,
+            cancel,
+          } = useLoadMore(normalRequest);
+          return () => (
+            <div>
+              <div class="dataList">{dataList.value.length || 0}</div>
+              <div class="loadingMore">{`${loadingMore.value}`}</div>
+              <div class="loading">{`${loading.value}`}</div>
+              <div class="refreshing">{`${refreshing.value}`}</div>
+              <div
+                class="cancel"
+                onClick={() => {
+                  cancel();
+                }}
+              />
+            </div>
+          );
+        },
+      }),
+    );
+
+    const dataListEl = wrapper.find('.dataList');
+    const loadingMoreEl = wrapper.find('.loadingMore');
+    const loadingEl = wrapper.find('.loading');
+    const refreshingEl = wrapper.find('.refreshing');
+    const cancelEl = wrapper.find('.cancel');
+
+    expect(loadingEl.text()).toBe('true');
+    expect(refreshingEl.text()).toBe('false');
+    expect(loadingMoreEl.text()).toBe('false');
+
+    // trigger cancel
+    await cancelEl.trigger('click');
+    expect(loadingEl.text()).toBe('false');
+    expect(refreshingEl.text()).toBe('false');
+    expect(loadingMoreEl.text()).toBe('false');
+    expect(dataListEl.text()).toBe('0');
+
+    await waitForTime(1000);
+    expect(dataListEl.text()).toBe('0');
+  });
+
   test('useLoadMore when request error', async () => {
     const wrapper = shallowMount(
       defineComponent({

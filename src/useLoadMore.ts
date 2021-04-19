@@ -12,14 +12,17 @@ import get from 'lodash/get';
 import generateService from './core/utils/generateService';
 import { isFunction } from './core/utils';
 import { ServiceParams } from './core/utils/types';
+import omit from 'lodash/omit';
 
 export interface LoadMoreResult<R, P extends unknown[], LR extends unknown[]>
-  extends Omit<BaseResult<R, P>, 'queries'> {
+  extends Omit<BaseResult<R, P>, 'queries' | 'refresh'> {
   dataList: Ref<LR>;
   noMore: Ref<boolean>;
   loadingMore: Ref<boolean>;
+  refreshing: Ref<boolean>;
   loadMore: () => void;
   reload: () => void;
+  refresh: () => void;
 }
 
 export type LoadMoreExtendsOption = {
@@ -104,13 +107,19 @@ function useLoadMore<R, P extends unknown[], FR, LR extends unknown[]>(
     throw new Error('useLoadMore does not support concurrent request');
   }
 
+  const refreshing = ref(false);
   const loadingMore = ref(false);
-  const increaseQueryKey = ref(0);
-  const { data, params, queries, run, reset, ...rest } = useAsyncQuery<
-    R,
-    P,
-    FR
-  >(promiseQuery, {
+  const initailIncreaseQueryKey = 0;
+  const increaseQueryKey = ref(initailIncreaseQueryKey);
+  const {
+    data,
+    params,
+    queries,
+    run,
+    reset,
+    cancel: _cancel,
+    ...rest
+  } = useAsyncQuery<R, P, FR>(promiseQuery, {
     ...restOptions,
     onSuccess: (...p) => {
       loadingMore.value = false;
@@ -161,13 +170,44 @@ function useLoadMore<R, P extends unknown[], FR, LR extends unknown[]>(
     run(...mergerParams);
   };
 
+  const unmountQueries = () => {
+    Object.keys(queries).forEach(key => {
+      if (key !== initailIncreaseQueryKey.toString()) {
+        queries[key].cancel();
+        queries[key].unmount();
+        delete queries[key];
+      }
+    });
+  };
+
+  const refresh = async () => {
+    refreshing.value = true;
+    const latestKey = increaseQueryKey.value - 1;
+    const key =
+      latestKey < initailIncreaseQueryKey ? initailIncreaseQueryKey : latestKey;
+
+    latestData.value = queries[key].data;
+    increaseQueryKey.value = initailIncreaseQueryKey;
+    const [, ...restParams] = params.value;
+    const mergerParams = [undefined, ...restParams] as any;
+    await run(...mergerParams);
+    unmountQueries();
+    refreshing.value = false;
+  };
+
   const reload = () => {
     reset();
-    increaseQueryKey.value = 0;
+    increaseQueryKey.value = initailIncreaseQueryKey;
     latestData.value = undefined;
     const [, ...restParams] = params.value;
     const mergerParams = [undefined, ...restParams] as any;
     run(...mergerParams);
+  };
+
+  const cancel = () => {
+    _cancel();
+    loadingMore.value = false;
+    refreshing.value = false;
   };
 
   return {
@@ -176,11 +216,14 @@ function useLoadMore<R, P extends unknown[], FR, LR extends unknown[]>(
     params,
     noMore,
     loadingMore,
+    refreshing,
     run,
     reload,
     loadMore,
     reset,
-    ...rest,
+    refresh,
+    cancel,
+    ...omit(rest, ['refresh']),
   };
 }
 
