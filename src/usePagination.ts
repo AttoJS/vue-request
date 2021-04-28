@@ -91,15 +91,17 @@ function usePagination<R, P extends unknown[], FR>(
     throw new Error('usePagination does not support concurrent request');
   }
 
-  const finallyOptions = {
-    defaultParams: [
-      {
-        [currentKey]: 1,
-        [pageSizeKey]: 10,
-      },
-    ],
-    ...restOptions,
-  };
+  const finallyOptions = merge(
+    {
+      defaultParams: [
+        {
+          [currentKey]: 1,
+          [pageSizeKey]: 10,
+        },
+      ],
+    },
+    restOptions,
+  );
 
   const { data, params, queries, run, reset, ...rest } = useAsyncQuery<
     R,
@@ -135,13 +137,17 @@ function usePagination<R, P extends unknown[], FR>(
 
   const total = computed<number>(() => get(data.value, totalKey, 0));
   const current = computed({
-    get: () => (params.value[0] as Record<string, number>)?.[currentKey] ?? 0,
+    get: () =>
+      (params.value[0] as Record<string, number>)?.[currentKey] ??
+      finallyOptions.defaultParams[0][currentKey],
     set: (val: number) => {
       changeCurrent(val);
     },
   });
   const pageSize = computed({
-    get: () => (params.value[0] as Record<string, number>)?.[pageSizeKey] ?? 10,
+    get: () =>
+      (params.value[0] as Record<string, number>)?.[pageSizeKey] ??
+      finallyOptions.defaultParams[0][pageSizeKey],
     set: (val: number) => {
       changePageSize(val);
     },

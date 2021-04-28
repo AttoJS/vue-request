@@ -472,7 +472,7 @@ describe('usePagination', () => {
 
     expect(paramsEl.text()).toBe('[]');
     expect(totalEl.text()).toBe('0');
-    expect(currentEl.text()).toBe('0');
+    expect(currentEl.text()).toBe('1');
     expect(pageSizeEl.text()).toBe('10');
     expect(totalPageEl.text()).toBe('0');
 
@@ -485,6 +485,69 @@ describe('usePagination', () => {
       expect(currentEl.text()).toBe(`${_current}`);
       expect(pageSizeEl.text()).toBe('10');
       expect(totalPageEl.text()).toBe('10');
+    }
+  });
+
+  test('manual should work with defaltParams', async () => {
+    let _current = 1;
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const {
+            total,
+            params,
+            current,
+            pageSize,
+            totalPage,
+            changeCurrent,
+          } = usePagination(normalApi, {
+            manual: true,
+            defaultParams: [
+              {
+                pageSize: 20,
+                current: 2,
+              },
+            ],
+          });
+          return () => (
+            <div>
+              <button
+                class="params"
+                onClick={() => changeCurrent((_current += 1))}
+              >
+                {JSON.stringify(params.value)}
+              </button>
+              <div class="total">{total.value}</div>
+              <div class="current">{current.value}</div>
+              <div class="pageSize">{pageSize.value}</div>
+              <div class="totalPage">{totalPage.value}</div>
+            </div>
+          );
+        },
+      }),
+    );
+
+    const paramsEl = wrapper.find('.params');
+    const totalEl = wrapper.find('.total');
+    const currentEl = wrapper.find('.current');
+    const pageSizeEl = wrapper.find('.pageSize');
+    const totalPageEl = wrapper.find('.totalPage');
+
+    expect(paramsEl.text()).toBe('[]');
+    expect(totalEl.text()).toBe('0');
+    expect(currentEl.text()).toBe('2');
+    expect(pageSizeEl.text()).toBe('20');
+    expect(totalPageEl.text()).toBe('0');
+
+    for (let index = 0; index < 100; index++) {
+      await paramsEl.trigger('click');
+      await waitForTime(1000);
+
+      expect(paramsEl.text()).toBe(`[{"current":${_current}}]`);
+      expect(totalEl.text()).toBe('100');
+      expect(currentEl.text()).toBe(`${_current}`);
+      expect(pageSizeEl.text()).toBe('20');
+      expect(totalPageEl.text()).toBe('5');
     }
   });
 
