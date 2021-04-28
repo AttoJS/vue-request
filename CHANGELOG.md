@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.1.1](https://github.com/attojs/vue-request/compare/v1.1.0...v1.1.1) (2021-04-28)
+
+### Bug Fixes
+
+- **usePagination:** `defaultParams.current` and `defaultParams.pageSize` should work if `manual: true` ([3ca5fd7](https://github.com/attojs/vue-request/commit/3ca5fd7749a2aafb723797e299df5c6a8bd0e37f)), closes [#40](https://github.com/attojs/vue-request/issues/40)
+
 ## [1.1.0](https://github.com/attojs/vue-request/compare/v1.0.5...v1.1.0) (2021-04-19)
 
 ### Features
