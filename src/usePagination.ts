@@ -22,6 +22,7 @@ export interface PaginationResult<R, P extends unknown[]>
   reloading: Ref<boolean>;
   changeCurrent: (current: number) => void;
   changePageSize: (pageSize: number) => void;
+  changePagination: (current: number, pageSize: number) => void;
   reload: () => void;
 }
 
@@ -130,6 +131,11 @@ function usePagination<R, P extends unknown[], FR>(
     paging({ [pageSizeKey]: pageSize });
   };
 
+  // changePagination	change current and pageSize	(current: number, pageSize: number) => void
+  const changePagination = (current: number, pageSize: number) => {
+    paging({ [currentKey]: current, [pageSizeKey]: pageSize });
+  };
+
   const reloading = ref(false);
   const reload = async () => {
     const { defaultParams, manual } = finallyOptions;
@@ -173,6 +179,7 @@ function usePagination<R, P extends unknown[], FR>(
     run,
     changeCurrent,
     changePageSize,
+    changePagination,
     reload,
     ...rest,
   };
