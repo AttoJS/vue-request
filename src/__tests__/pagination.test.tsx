@@ -625,4 +625,43 @@ describe('usePagination', () => {
     expect(wrapper.find('#D').text()).toBe('1');
     expect(wrapper.find('#E').text()).toBe('5');
   });
+
+  test('onBefore and onAfter hooks can use in `usePagination`', async () => {
+    const onBefore = jest.fn();
+    const onAfter = jest.fn();
+
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { changeCurrent } = usePagination<NormalMockDataType>(
+            normalApi,
+            {
+              onBefore,
+              onAfter,
+            },
+          );
+          return () => (
+            <div>
+              <button class="button" onClick={() => changeCurrent(1)} />
+            </div>
+          );
+        },
+      }),
+    );
+
+    const buttonEl = wrapper.find('.button');
+
+    expect(onBefore).toHaveBeenCalledTimes(1);
+    expect(onAfter).toHaveBeenCalledTimes(0);
+    await waitForTime(1000);
+    expect(onBefore).toHaveBeenCalledTimes(1);
+    expect(onAfter).toHaveBeenCalledTimes(1);
+
+    await buttonEl.trigger('click');
+    expect(onBefore).toHaveBeenCalledTimes(2);
+    expect(onAfter).toHaveBeenCalledTimes(1);
+    await waitForTime(1000);
+    expect(onBefore).toHaveBeenCalledTimes(2);
+    expect(onAfter).toHaveBeenCalledTimes(2);
+  });
 });

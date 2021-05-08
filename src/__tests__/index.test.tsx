@@ -2463,4 +2463,35 @@ describe('useRequest', () => {
     expect(VISIBLE_LISTENER.size).toBe(8);
     expect(RECONNECT_LISTENER.size).toBe(4);
   });
+
+  test('onBefore and onAfter hooks can use', async () => {
+    const onBefore = jest.fn();
+    const onAfter = jest.fn();
+
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { data, run } = useRequest(request, {
+            onBefore,
+            onAfter,
+          });
+
+          return () => (
+            <button onClick={() => run()}>{`data:${data.value}`}</button>
+          );
+        },
+      }),
+    );
+    expect(onBefore).toHaveBeenCalledTimes(1);
+    expect(onAfter).toHaveBeenCalledTimes(0);
+    await waitForTime(100);
+    expect(onBefore).toHaveBeenCalledTimes(1);
+    expect(onAfter).toHaveBeenCalledTimes(0);
+    await waitForTime(800);
+    expect(onBefore).toHaveBeenCalledTimes(1);
+    expect(onAfter).toHaveBeenCalledTimes(0);
+    await waitForTime(100);
+    expect(onBefore).toHaveBeenCalledTimes(1);
+    expect(onAfter).toHaveBeenCalledTimes(1);
+  });
 });

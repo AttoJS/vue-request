@@ -56,6 +56,8 @@ export type BaseOptions<R, P extends unknown[]> = GlobalOptions & {
   queryKey?: (...args: P) => string;
   onSuccess?: (data: R, params: P) => void;
   onError?: (error: Error, params: P) => void;
+  onBefore?: (params: P) => void;
+  onAfter?: (params: P) => void;
 };
 
 const FRPlaceholderType = Symbol('FR');

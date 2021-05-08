@@ -84,6 +84,8 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     formatResult,
     onSuccess,
     onError,
+    onBefore,
+    onAfter,
   } = { ...getGlobalOptions(), ...injectedGlobalOptions, ...options };
 
   const stopPollingWhenHiddenOrOffline = ref(false);
@@ -134,6 +136,8 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     formatResult,
     onSuccess,
     onError,
+    onBefore,
+    onAfter,
   } as Config<R, P>;
 
   const loading = ref(false);

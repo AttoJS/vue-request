@@ -78,6 +78,8 @@ const createQuery = <R, P extends unknown[]>(
     formatResult,
     onSuccess,
     onError,
+    onBefore,
+    onAfter,
   } = config;
 
   const retriedCount = ref(0);
@@ -193,6 +195,9 @@ const createQuery = <R, P extends unknown[]>(
     count.value += 1;
     const currentCount = count.value;
 
+    // onBefore hooks
+    onBefore?.(args);
+
     return query(...args)
       .then(res => {
         if (currentCount === count.value) {
@@ -238,6 +243,9 @@ const createQuery = <R, P extends unknown[]>(
 
           // run for polling
           pollingTimer.value = polling(() => _run(...args));
+
+          // onAfter hooks
+          onAfter?.(args);
         }
       });
   };

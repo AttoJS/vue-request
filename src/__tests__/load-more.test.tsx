@@ -827,4 +827,45 @@ describe('useLoadMore', () => {
     expect(wrapper.find('#D').text()).toBe('1');
     expect(wrapper.find('#E').text()).toBe('5');
   });
+
+  test('onBefore and onAfter hooks can use in `useLoadMore`', async () => {
+    const onBefore = jest.fn();
+    const onAfter = jest.fn();
+
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { loadMore } = useLoadMore(normalRequest, {
+            onBefore,
+            onAfter,
+          });
+          return () => (
+            <div>
+              <div
+                class="loadMore"
+                onClick={() => {
+                  loadMore();
+                }}
+              />
+            </div>
+          );
+        },
+      }),
+    );
+
+    const loadMoreEl = wrapper.find('.loadMore');
+
+    expect(onBefore).toHaveBeenCalledTimes(1);
+    expect(onAfter).toHaveBeenCalledTimes(0);
+    await waitForTime(1000);
+    expect(onBefore).toHaveBeenCalledTimes(1);
+    expect(onAfter).toHaveBeenCalledTimes(1);
+
+    await loadMoreEl.trigger('click');
+    expect(onBefore).toHaveBeenCalledTimes(2);
+    expect(onAfter).toHaveBeenCalledTimes(1);
+    await waitForTime(1000);
+    expect(onBefore).toHaveBeenCalledTimes(2);
+    expect(onAfter).toHaveBeenCalledTimes(2);
+  });
 });
