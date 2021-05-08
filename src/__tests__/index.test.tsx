@@ -2318,11 +2318,12 @@ describe('useRequest', () => {
     const wrapper = shallowMount(
       defineComponent({
         setup() {
-          const { run, reload, data } = useRequest(request, {
+          const { run, reload, reloading, data } = useRequest(request, {
             defaultParams: ['hello'],
           });
           return () => (
             <div>
+              <div class="reloading">{`${reloading.value}`}</div>
               <button class="run" onClick={() => run('hi there')}></button>
               <button class="reload" onClick={() => reload()}></button>
               <div class="data">{data.value}</div>
@@ -2334,21 +2335,30 @@ describe('useRequest', () => {
 
     const dataEl = wrapper.find('.data');
     const runEl = wrapper.find('.run');
+    const reloadingEl = wrapper.find('.reloading');
     const reloadEl = wrapper.find('.reload');
 
+    expect(reloadingEl.text()).toBe('false');
     await waitForTime(1000);
+    expect(reloadingEl.text()).toBe('false');
     expect(dataEl.text()).toBe('hello');
 
     await runEl.trigger('click');
+    expect(reloadingEl.text()).toBe('false');
     await waitForTime(1000);
+    expect(reloadingEl.text()).toBe('false');
     expect(dataEl.text()).toEqual('hi there');
 
     await reloadEl.trigger('click');
+    expect(reloadingEl.text()).toBe('true');
     await waitForTime(1000);
+    expect(reloadingEl.text()).toBe('false');
     expect(dataEl.text()).toEqual('hello');
 
     await runEl.trigger('click');
+    expect(reloadingEl.text()).toBe('false');
     await waitForTime(1000);
+    expect(reloadingEl.text()).toBe('false');
     expect(dataEl.text()).toEqual('hi there');
   });
 

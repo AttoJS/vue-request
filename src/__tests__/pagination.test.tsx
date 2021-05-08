@@ -375,6 +375,7 @@ describe('usePagination', () => {
             current,
             pageSize,
             totalPage,
+            reloading,
             reload,
           } = usePagination<NormalMockDataType>(normalApi);
           return () => (
@@ -384,6 +385,7 @@ describe('usePagination', () => {
               <div class="current">{current.value}</div>
               <div class="pageSize">{pageSize.value}</div>
               <div class="totalPage">{totalPage.value}</div>
+              <div class="reloading">{`${reloading.value}`}</div>
               <div class="reload" onClick={() => reload()} />
               <div class="next" onClick={() => (current.value = ++_current)} />
             </div>
@@ -397,13 +399,16 @@ describe('usePagination', () => {
     const currentEl = wrapper.find('.current');
     const pageSizeEl = wrapper.find('.pageSize');
     const totalPageEl = wrapper.find('.totalPage');
+    const reloadingEl = wrapper.find('.reloading');
     const reloadEl = wrapper.find('.reload');
     const nextEl = wrapper.find('.next');
 
     await waitForTime(1000);
     for (let index = 0; index < 100; index++) {
       await nextEl.trigger('click');
+      expect(reloadingEl.text()).toBe('false');
       await waitForTime(1000);
+      expect(reloadingEl.text()).toBe('false');
       expect(paramsEl.text()).toBe(`[{"current":${_current},"pageSize":10}]`);
       expect(totalEl.text()).toBe('100');
       expect(currentEl.text()).toBe(`${_current}`);
@@ -412,8 +417,10 @@ describe('usePagination', () => {
     }
 
     await reloadEl.trigger('click');
+    expect(reloadingEl.text()).toBe('true');
     _current = 1;
     await waitForTime(1000);
+    expect(reloadingEl.text()).toBe('false');
     expect(paramsEl.text()).toBe(`[{"current":${_current},"pageSize":10}]`);
     expect(totalEl.text()).toBe('100');
     expect(currentEl.text()).toBe(`${_current}`);
@@ -422,7 +429,9 @@ describe('usePagination', () => {
 
     for (let index = 0; index < 100; index++) {
       await nextEl.trigger('click');
+      expect(reloadingEl.text()).toBe('false');
       await waitForTime(1000);
+      expect(reloadingEl.text()).toBe('false');
       expect(paramsEl.text()).toBe(`[{"current":${_current},"pageSize":10}]`);
       expect(totalEl.text()).toBe('100');
       expect(currentEl.text()).toBe(`${_current}`);

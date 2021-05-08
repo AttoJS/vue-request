@@ -343,6 +343,7 @@ describe('useLoadMore', () => {
             loadingMore,
             noMore,
             loading,
+            reloading,
             loadMore,
             reload,
           } = useLoadMore(normalRequest, {
@@ -352,6 +353,7 @@ describe('useLoadMore', () => {
             <div>
               <div class="dataList">{dataList.value.length || 0}</div>
               <div class="loadingMore">{`${loadingMore.value}`}</div>
+              <div class="reloading">{`${reloading.value}`}</div>
               <div class="loading">{`${loading.value}`}</div>
               <div class="noMore">{`${noMore.value}`}</div>
               <div
@@ -374,6 +376,7 @@ describe('useLoadMore', () => {
 
     const dataListEl = wrapper.find('.dataList');
     const loadingMoreEl = wrapper.find('.loadingMore');
+    const reloadingEl = wrapper.find('.reloading');
     const loadingEl = wrapper.find('.loading');
     const loadMoreEl = wrapper.find('.loadMore');
     const noMoreEl = wrapper.find('.noMore');
@@ -382,6 +385,7 @@ describe('useLoadMore', () => {
     expect(loadingEl.text()).toBe('true');
     await waitForTime(1000);
     expect(loadingEl.text()).toBe('false');
+    expect(reloadingEl.text()).toBe('false');
     expect(dataListEl.text()).toBe('10');
     expect(loadingMoreEl.text()).toBe('false');
     expect(noMoreEl.text()).toBe('false');
@@ -390,9 +394,11 @@ describe('useLoadMore', () => {
       await loadMoreEl.trigger('click');
       expect(loadingMoreEl.text()).toBe('true');
       expect(loadingEl.text()).toBe('true');
+      expect(reloadingEl.text()).toBe('false');
       await waitForTime(1000);
-      expect(loadingEl.text()).toBe('false');
+      expect(reloadingEl.text()).toBe('false');
       expect(loadingMoreEl.text()).toBe('false');
+      expect(loadingEl.text()).toBe('false');
       expect(dataListEl.text()).toBe(`${10 + index * 10}`);
       expect(noMoreEl.text()).toBe(`${index === 9}`);
     }
@@ -401,9 +407,11 @@ describe('useLoadMore', () => {
       await loadMoreEl.trigger('click');
       expect(loadingMoreEl.text()).toBe('false');
       expect(loadingEl.text()).toBe('false');
+      expect(reloadingEl.text()).toBe('false');
       await waitForTime(1000);
       expect(loadingEl.text()).toBe('false');
       expect(loadingMoreEl.text()).toBe('false');
+      expect(reloadingEl.text()).toBe('false');
       expect(dataListEl.text()).toBe('100');
       expect(noMoreEl.text()).toBe('true');
     }
@@ -411,19 +419,23 @@ describe('useLoadMore', () => {
     await reloadEl.trigger('click');
     expect(loadingEl.text()).toBe('true');
     expect(loadingMoreEl.text()).toBe('false');
+    expect(reloadingEl.text()).toBe('true');
     expect(dataListEl.text()).toBe('0');
     expect(noMoreEl.text()).toBe('false');
     await waitForTime(1000);
     expect(loadingEl.text()).toBe('false');
+    expect(reloadingEl.text()).toBe('false');
     expect(dataListEl.text()).toBe('10');
 
     for (let index = 1; index <= 9; index++) {
       await loadMoreEl.trigger('click');
       expect(loadingEl.text()).toBe('true');
       expect(loadingMoreEl.text()).toBe('true');
+      expect(reloadingEl.text()).toBe('false');
       await waitForTime(1000);
       expect(loadingEl.text()).toBe('false');
       expect(loadingMoreEl.text()).toBe('false');
+      expect(reloadingEl.text()).toBe('false');
       expect(dataListEl.text()).toBe(`${10 + index * 10}`);
       expect(noMoreEl.text()).toBe(`${index === 9}`);
     }

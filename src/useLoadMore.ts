@@ -20,6 +20,7 @@ export interface LoadMoreResult<R, P extends unknown[], LR extends unknown[]>
   noMore: Ref<boolean>;
   loadingMore: Ref<boolean>;
   refreshing: Ref<boolean>;
+  reloading: Ref<boolean>;
   loadMore: () => void;
   reload: () => void;
   refresh: () => void;
@@ -109,6 +110,7 @@ function useLoadMore<R, P extends unknown[], FR, LR extends unknown[]>(
 
   const refreshing = ref(false);
   const loadingMore = ref(false);
+  const reloading = ref(false);
   const initailIncreaseQueryKey = 0;
   const increaseQueryKey = ref(initailIncreaseQueryKey);
   const {
@@ -195,13 +197,15 @@ function useLoadMore<R, P extends unknown[], FR, LR extends unknown[]>(
     refreshing.value = false;
   };
 
-  const reload = () => {
+  const reload = async () => {
+    reloading.value = true;
     reset();
     increaseQueryKey.value = initailIncreaseQueryKey;
     latestData.value = undefined;
     const [, ...restParams] = params.value;
     const mergerParams = [undefined, ...restParams] as any;
-    run(...mergerParams);
+    await run(...mergerParams);
+    reloading.value = false;
   };
 
   const cancel = () => {
@@ -217,6 +221,7 @@ function useLoadMore<R, P extends unknown[], FR, LR extends unknown[]>(
     noMore,
     loadingMore,
     refreshing,
+    reloading,
     run,
     reload,
     loadMore,

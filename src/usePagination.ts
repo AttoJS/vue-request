@@ -1,4 +1,4 @@
-import { computed, inject, Ref } from 'vue';
+import { computed, inject, ref, Ref } from 'vue';
 import {
   BaseOptions,
   FormatOptions,
@@ -19,6 +19,7 @@ export interface PaginationResult<R, P extends unknown[]>
   pageSize: Ref<number>;
   total: Ref<number>;
   totalPage: Ref<number>;
+  reloading: Ref<boolean>;
   changeCurrent: (current: number) => void;
   changePageSize: (pageSize: number) => void;
   reload: () => void;
@@ -129,10 +130,15 @@ function usePagination<R, P extends unknown[], FR>(
     paging({ [pageSizeKey]: pageSize });
   };
 
-  const reload = () => {
+  const reloading = ref(false);
+  const reload = async () => {
     const { defaultParams, manual } = finallyOptions;
     reset();
-    !manual && run(...defaultParams);
+    if (!manual) {
+      reloading.value = true;
+      await run(...defaultParams);
+      reloading.value = false;
+    }
   };
 
   const total = computed<number>(() => get(data.value, totalKey, 0));
@@ -163,6 +169,7 @@ function usePagination<R, P extends unknown[], FR>(
     pageSize,
     total,
     totalPage,
+    reloading,
     run,
     changeCurrent,
     changePageSize,

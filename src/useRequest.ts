@@ -1,3 +1,4 @@
+import { Ref, ref } from 'vue';
 import {
   BaseOptions,
   FormatOptions,
@@ -10,6 +11,7 @@ import { IService } from './core/utils/types';
 
 export interface RequestResult<R, P extends unknown[]>
   extends Omit<BaseResult<R, P>, 'reset'> {
+  reloading: Ref<boolean>;
   reload: () => void;
 }
 function useRequest<R, P extends unknown[] = any>(
@@ -33,15 +35,21 @@ function useRequest<R, P extends unknown[], FR>(
     (options ?? {}) as any,
   );
 
-  const reload = () => {
+  const reloading = ref(false);
+  const reload = async () => {
     const { defaultParams = ([] as unknown) as P, manual } = options!;
     reset();
-    !manual && run(...defaultParams);
+    if (!manual) {
+      reloading.value = true;
+      await run(...defaultParams);
+      reloading.value = false;
+    }
   };
 
   return {
     reload,
     run,
+    reloading,
     ...rest,
   };
 }
