@@ -49,8 +49,8 @@ English | [简体中文](README-zh_CN.md)
 ## Documentation
 
 - [English](https://www.attojs.org/)
-- [中文](https://www.attojs.org/zh/)
-- [国内镜像](https://www.attojs.com/zh/)
+- [中文](https://cn.attojs.org/)
+- [国内镜像](https://www.attojs.com/)
 
 ## Install
 
