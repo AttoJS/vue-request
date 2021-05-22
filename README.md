@@ -19,7 +19,7 @@ English | [简体中文](README-zh_CN.md)
     />
   </a>
   <a href="https://www.npmjs.com/package/vue-request">
-    <img src="https://img.shields.io/bundlephobia/minzip/vue-request" alt="Size" />
+    <img src="https://img.shields.io/bundlephobia/minzip/vue-request/latest" alt="Size" />
   </a>
   <a href="https://www.npmjs.com/package/vue-request">
     <img src="https://img.shields.io/npm/v/vue-request" alt="Version" />
@@ -32,6 +32,9 @@ English | [简体中文](README-zh_CN.md)
   </a>
   <a href="https://github.com/AttoJS/vue-request/stargazers">
     <img src="https://img.shields.io/github/stars/attojs/vue-request" alt="Star" />
+  </a>
+  <a href="https://www.npmjs.com/package/vue-request">
+    <img src="https://img.shields.io/npm/dm/vue-request" alt="Download" />
   </a>
 </div>
 
