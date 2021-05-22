@@ -2,7 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### [1.1.1](https://github.com/attojs/vue-request/compare/v1.1.0...v1.1.1) (2021-04-28)
+## [1.2.0](https://github.com/attojs/vue-request/compare/v1.1.1...v1.2.0) (2021-05-22)
+
+### Features
+
+- **usePagination:** 新增 `changePagination()` 方法，用来同时修改 `current` 和 `pageSize` [#43](https://github.com/attojs/vue-request/issues/43) ([c3822f0](https://github.com/attojs/vue-request/commit/c3822f0fe0d579dc1b534c6e9c6845dc6ca3f0f1))
+- 新增 `onBefore()` 和 `onAfter()` 钩子 [#42](https://github.com/attojs/vue-request/issues/42) ([135e76f](https://github.com/attojs/vue-request/commit/135e76f06ee9605e5a0a64f6def363df36bf7947))
+- 新增 `reloading` 用于记录 `reload()` 是否正在触发 [#41](https://github.com/attojs/vue-request/issues/41) ([5034f2c](https://github.com/attojs/vue-request/commit/5034f2c7110e16d63b824793dc57ebea27e15ae8))
+
+### Performance Improvements
+
+- 包体积优化，整体体积减少 **88%** [#44](https://github.com/attojs/vue-request/issues/44) ([6a5b074](https://github.com/attojs/vue-request/commit/6a5b074de77bd3dbbf1150e8db202ee5fc1c59dc), [ffbc5d1](https://github.com/attojs/vue-request/commit/ffbc5d1e49f99ffa52106085f90117095fa884b6), [ce233ca](https://github.com/attojs/vue-request/commit/ce233ca74c81507ed3177576674d495054d155b7), [#45](https://github.com/attojs/vue-request/issues/45)([4272062](https://github.com/attojs/vue-request/commit/4272062f2a160f4ca3dd01bdee42bef263a132c7)))
+
+### ⚠ BREAKING CHANGES
+
+- not support IE11 [#44](https://github.com/attojs/vue-request/issues/44) ([686e4cd](https://github.com/attojs/vue-request/commit/686e4cdcf802a08af9590088dceaebd2d9249671))
+
+## [1.1.1](https://github.com/attojs/vue-request/compare/v1.1.0...v1.1.1) (2021-04-28)
 
 ### Bug Fixes
 
@@ -22,20 +38,20 @@ All notable changes to this project will be documented in this file. See [standa
 
 - **useLoadMore:** 移除 `useLoadMore` 里的 `mutate` 方法 ([b935bcd](https://github.com/attojs/vue-request/commit/b935bcd01629b38ba068e82ca062380b6434c85f))
 
-### [1.0.5](https://github.com/attojs/vue-request/compare/v1.0.4...v1.0.5) (2021-03-22)
+## [1.0.5](https://github.com/attojs/vue-request/compare/v1.0.4...v1.0.5) (2021-03-22)
 
 ### Bug Fixes
 
 - `onSuccess` 的 `data` 类型不正确 ([407ed11](https://github.com/attojs/vue-request/commit/407ed116ebed813e1f07cede97ad2285281e76ba)), closes [#31](https://github.com/attojs/vue-request/issues/31)
 - 错误的 import 路径 ([0a31504](https://github.com/attojs/vue-request/commit/0a315040a1e38cbb9b8cb877b912fbde091f471c)), closes [#33](https://github.com/attojs/vue-request/issues/33)
 
-### [1.0.4](https://github.com/attojs/vue-request/compare/v1.0.3...v1.0.4) (2021-03-08)
+## [1.0.4](https://github.com/attojs/vue-request/compare/v1.0.3...v1.0.4) (2021-03-08)
 
 ### Bug Fixes
 
 - 修复 `useLoadMore` 类型 ([0e673bf](https://github.com/attojs/vue-request/commit/0e673bffb683164bfad6c58b4aa58c7d7734428e))
 
-### [1.0.3](https://github.com/attojs/vue-request/compare/v1.0.0-beta.11...v1.0.3) (2021-03-06)
+## [1.0.3](https://github.com/attojs/vue-request/compare/v1.0.0-beta.11...v1.0.3) (2021-03-06)
 
 ### Bug Fixes
 
