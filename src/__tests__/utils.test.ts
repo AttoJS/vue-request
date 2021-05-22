@@ -8,6 +8,8 @@ import {
   isString,
   requestProxy,
   isObject,
+  get,
+  omit,
 } from '../core/utils';
 import limitTrigger from '../core/utils/limitTrigger';
 import fetchMock from 'fetch-mock';
@@ -161,5 +163,19 @@ describe('utils', () => {
     } catch (error) {
       expect(error.message).toBe('Not Found');
     }
+  });
+
+  test('get should work', () => {
+    const object = { a: [{ b: { c: 3 } }] };
+
+    expect(get(object, 'a[0].b.c')).toBe(3);
+    // => 3
+
+    expect(get(object, 'a.b.c', 'default')).toBe('default');
+  });
+
+  test('omit should work', () => {
+    const object = { a: 1, b: 2, c: 3 };
+    expect(omit(object, ['a', 'b'])).toStrictEqual({ c: 3 });
   });
 });

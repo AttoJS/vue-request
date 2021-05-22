@@ -49,3 +49,31 @@ export const requestProxy = async (...args: [url: string, ...rest: any[]]) => {
   }
   throw new Error(res.statusText);
 };
+
+export const get = (
+  source: Record<string, any>,
+  path: string,
+  defaultValue: any = undefined,
+) => {
+  // a[3].b -> a.3.b
+  const paths = path.replace(/\[(\d+)\]/g, '.$1').split('.');
+  let result = source;
+  for (const p of paths) {
+    result = Object(result)[p];
+    if (result === undefined) {
+      return defaultValue;
+    }
+  }
+  return result;
+};
+
+export function omit<T, K extends keyof T>(
+  object: T,
+  keys: Array<K>,
+): Pick<T, Exclude<keyof T, K>> {
+  const result = Object.assign({}, object);
+  for (const key of keys) {
+    delete result[key];
+  }
+  return result;
+}
