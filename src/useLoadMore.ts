@@ -8,11 +8,9 @@ import {
   GLOBAL_OPTIONS_PROVIDE_KEY,
 } from './core/config';
 import useAsyncQuery, { BaseResult } from './core/useAsyncQuery';
-import get from 'lodash/get';
 import generateService from './core/utils/generateService';
-import { isFunction } from './core/utils';
 import { ServiceParams } from './core/utils/types';
-import omit from 'lodash/omit';
+import { omit, get, isFunction } from './core/utils';
 
 export interface LoadMoreResult<R, P extends unknown[], LR extends unknown[]>
   extends Omit<BaseResult<R, P>, 'queries' | 'refresh' | 'mutate'> {
@@ -151,7 +149,7 @@ function useLoadMore<R, P extends unknown[], FR, LR extends unknown[]>(
   const dataList = computed(() => {
     let list: any[] = [];
     Object.values(queries).forEach(h => {
-      const dataList = get(h.data, listKey);
+      const dataList = get(h.data!, listKey);
       if (dataList && Array.isArray(dataList)) {
         list = list.concat(dataList);
       }

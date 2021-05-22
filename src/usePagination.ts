@@ -8,8 +8,8 @@ import {
   GLOBAL_OPTIONS_PROVIDE_KEY,
 } from './core/config';
 import useAsyncQuery, { BaseResult } from './core/useAsyncQuery';
-import merge from 'lodash/merge';
-import get from 'lodash/get';
+import { merge } from './core/utils/lodash';
+import { get } from './core/utils';
 import generateService from './core/utils/generateService';
 import { IService } from './core/utils/types';
 
@@ -87,7 +87,7 @@ function usePagination<R, P extends unknown[], FR>(
     { pagination: getGlobalOptions().pagination ?? {} },
     { pagination: injectedGlobalOptions.pagination ?? {} },
     options ?? ({} as any),
-  );
+  ) as any;
 
   if (queryKey) {
     throw new Error('usePagination does not support concurrent request');
@@ -103,7 +103,7 @@ function usePagination<R, P extends unknown[], FR>(
       ],
     },
     restOptions,
-  );
+  ) as any;
 
   const { data, params, queries, run, reset, ...rest } = useAsyncQuery<
     R,
@@ -147,7 +147,7 @@ function usePagination<R, P extends unknown[], FR>(
     }
   };
 
-  const total = computed<number>(() => get(data.value, totalKey, 0));
+  const total = computed<number>(() => get(data.value!, totalKey, 0));
   const current = computed({
     get: () =>
       (params.value[0] as Record<string, number>)?.[currentKey] ??
@@ -165,7 +165,7 @@ function usePagination<R, P extends unknown[], FR>(
     },
   });
   const totalPage = computed<number>(() =>
-    get(data.value, totalPageKey, Math.ceil(total.value / pageSize.value)),
+    get(data.value!, totalPageKey, Math.ceil(total.value / pageSize.value)),
   );
 
   return {

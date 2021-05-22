@@ -1,5 +1,4 @@
-import debounce from 'lodash/debounce';
-import throttle from 'lodash/throttle';
+import { debounce, throttle } from './utils/lodash';
 import { computed, Ref, ref } from 'vue';
 import { Config } from './config';
 import { Queries } from './useAsyncQuery';
@@ -251,9 +250,13 @@ const createQuery = <R, P extends unknown[]>(
   };
 
   const debouncedRun =
-    !isNil(debounceInterval) && debounce(_run, debounceInterval);
+    !isNil(debounceInterval) && debounce(_run, debounceInterval!);
   const throttledRun =
-    !isNil(throttleInterval) && throttle(_run, throttleInterval);
+    !isNil(throttleInterval) &&
+    throttle(_run, throttleInterval!, {
+      leading: true,
+      trailing: true,
+    });
 
   const run = (...args: P) => {
     clearAllTimer();
