@@ -1,4 +1,4 @@
-import merge from '../core/utils/lodash/merge';
+import { merge } from '../core/utils/lodash';
 
 describe('utils', () => {
   beforeAll(() => {});
