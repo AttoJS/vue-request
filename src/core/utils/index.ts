@@ -8,14 +8,10 @@ export const isString = (val: unknown): val is string =>
   toTypeString(val) === '[object String]';
 export const isPlainObject = (val: unknown): val is Record<string, any> =>
   toTypeString(val) === '[object Object]';
-export const isPlainArray = (val: unknown): val is Record<string, any> =>
-  toTypeString(val) === '[object Array]';
+export const isArray = (val: unknown): val is any[] => Array.isArray(val);
 
 export const isObject = (val: unknown): val is Record<any, any> =>
   val !== null && typeof val === 'object';
-
-export const isSameType = (a: unknown, b: unknown): boolean =>
-  toTypeString(a) === toTypeString(b);
 
 export const isPromise = (fn: unknown): fn is Promise<unknown> =>
   isObject(fn) && isFunction(fn.then) && isFunction(fn.catch);
