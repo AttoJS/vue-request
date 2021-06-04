@@ -1,10 +1,16 @@
 const presets = ['@babel/preset-env'];
 const plugins = ['@vue/babel-plugin-jsx'];
 
+const babelConfig = {
+  presets,
+  plugins,
+};
+
 if (process.env.NODE_ENV === 'test') {
-  plugins.push('@babel/plugin-transform-runtime');
+  babelConfig.plugins.push('@babel/plugin-transform-runtime');
+  babelConfig.targets = { node: 'current' };
 } else {
-  plugins.push([
+  babelConfig.plugins.push([
     '@babel/plugin-transform-runtime',
     {
       corejs: 3,
@@ -12,7 +18,4 @@ if (process.env.NODE_ENV === 'test') {
   ]);
 }
 
-module.exports = {
-  presets,
-  plugins,
-};
+module.exports = babelConfig;
