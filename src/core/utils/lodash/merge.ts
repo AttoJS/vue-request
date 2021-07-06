@@ -1,4 +1,4 @@
-import { isPlainObject, isArray, isObject } from '../index';
+import { isArray, isObject, isPlainObject } from '../index';
 
 type MergeObject = Record<string, any>;
 

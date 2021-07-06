@@ -1,6 +1,6 @@
+import type { State } from '../types';
 import { isNil } from './index';
-import { State } from '../createQuery';
-import { UnWrapRefObject } from './types';
+import type { UnWrapRefObject } from './types';
 
 type CacheResultType<T> = {
   data: T;

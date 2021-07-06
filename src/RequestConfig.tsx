@@ -1,5 +1,8 @@
-import { defineComponent, PropType, provide } from 'vue';
-import { GlobalOptions, GLOBAL_OPTIONS_PROVIDE_KEY } from './core/config';
+import type { PropType } from 'vue';
+import { defineComponent, provide } from 'vue';
+
+import { GLOBAL_OPTIONS_PROVIDE_KEY } from './core/config';
+import type { GlobalOptions } from './core/types';
 
 const RequestConfig = defineComponent({
   name: 'RequestConfig',

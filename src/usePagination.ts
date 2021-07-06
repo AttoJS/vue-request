@@ -1,17 +1,19 @@
-import { computed, inject, ref, Ref } from 'vue';
-import {
+import type { Ref } from 'vue';
+import { computed, inject, ref } from 'vue';
+
+import { getGlobalOptions, GLOBAL_OPTIONS_PROVIDE_KEY } from './core/config';
+import type {
   BaseOptions,
+  BaseResult,
   FormatOptions,
   FRPlaceholderType,
-  getGlobalOptions,
   GlobalOptions,
-  GLOBAL_OPTIONS_PROVIDE_KEY,
-} from './core/config';
-import useAsyncQuery, { BaseResult } from './core/useAsyncQuery';
-import { merge } from './core/utils/lodash';
+} from './core/types';
+import useAsyncQuery from './core/useAsyncQuery';
 import { get } from './core/utils';
 import generateService from './core/utils/generateService';
-import { IService } from './core/utils/types';
+import { merge } from './core/utils/lodash';
+import type { IService } from './core/utils/types';
 
 export interface PaginationResult<R, P extends unknown[]>
   extends Omit<BaseResult<R, P>, 'queries' | 'reset'> {
@@ -103,13 +105,12 @@ function usePagination<R, P extends unknown[], FR>(
       ],
     },
     restOptions,
-  ) as any;
+  );
 
-  const { data, params, queries, run, reset, ...rest } = useAsyncQuery<
-    R,
-    P,
-    FR
-  >(promiseQuery, finallyOptions);
+  const { data, params, queries, run, reset, ...rest } = useAsyncQuery<R, P>(
+    promiseQuery,
+    finallyOptions,
+  );
 
   const paging = (paginationParams: Record<string, number>) => {
     const [oldPaginationParams, ...restParams] = params.value as P[];

@@ -1,5 +1,6 @@
 import { unref } from 'vue';
-import { RefObject, UnRef } from './types';
+
+import type { RefObject, UnRef } from './types';
 
 export const objectToString = Object.prototype.toString;
 export const toTypeString = (val: unknown): string => objectToString.call(val);

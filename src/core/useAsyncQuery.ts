@@ -1,3 +1,4 @@
+import type { Ref } from 'vue';
 import {
   computed,
   inject,
@@ -7,65 +8,35 @@ import {
   watch,
   watchEffect,
 } from 'vue';
-import {
+
+import { getGlobalOptions, GLOBAL_OPTIONS_PROVIDE_KEY } from './config';
+import createQuery from './createQuery';
+import type {
   BaseOptions,
+  BaseResult,
   Config,
-  FormatOptions,
-  getGlobalOptions,
   GlobalOptions,
-  GLOBAL_OPTIONS_PROVIDE_KEY,
-  MixinOptions,
-} from './config';
-import createQuery, {
-  InnerQueryState,
-  InnerRunReturn,
   Mutate,
+  Queries,
   Query,
-  QueryState,
   State,
-} from './createQuery';
-import { resolvedPromise, unRefObject } from './utils';
+  UnWrapState,
+} from './types';
+import { omit, resolvedPromise, unRefObject } from './utils';
 import { getCache, setCache } from './utils/cache';
-import { UnWrapRefObject } from './utils/types';
-
-export interface BaseResult<R, P extends unknown[]>
-  extends Omit<QueryState<R, P>, 'run'> {
-  run: (...arg: P) => InnerRunReturn<R>;
-  reset: () => void;
-}
-
-export type UnWrapState<R, P extends unknown[]> = UnWrapRefObject<
-  InnerQueryState<R, P>
->;
-
-export type Queries<R, P extends unknown[]> = {
-  [key: string]: UnWrapState<R, P>;
-};
 
 const QUERY_DEFAULT_KEY = '__QUERY_DEFAULT_KEY__';
 
-function useAsyncQuery<R, P extends unknown[], FR>(
-  query: Query<R, P>,
-  options: FormatOptions<R, P, FR>,
-): BaseResult<FR, P>;
 function useAsyncQuery<R, P extends unknown[]>(
   query: Query<R, P>,
   options: BaseOptions<R, P>,
-): BaseResult<R, P>;
-function useAsyncQuery<R, P extends unknown[], FR>(
-  query: Query<R, P>,
-  options: MixinOptions<R, P, FR>,
-) {
+): BaseResult<R, P> {
   const injectedGlobalOptions = inject<GlobalOptions>(
     GLOBAL_OPTIONS_PROVIDE_KEY,
     {},
   );
 
   const {
-    initialData,
-    pollingInterval,
-    debounceInterval,
-    throttleInterval,
     cacheKey,
     defaultParams = ([] as unknown) as P,
     manual = false,
@@ -81,12 +52,12 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     errorRetryCount = 0,
     errorRetryInterval = 0,
     queryKey,
-    formatResult,
-    onSuccess,
-    onError,
-    onBefore,
-    onAfter,
-  } = { ...getGlobalOptions(), ...injectedGlobalOptions, ...options };
+    ...rest
+  } = {
+    ...getGlobalOptions(),
+    ...injectedGlobalOptions,
+    ...options,
+  };
 
   const stopPollingWhenHiddenOrOffline = ref(false);
   // skip debounce when initail run
@@ -119,11 +90,7 @@ function useAsyncQuery<R, P extends unknown[], FR>(
 
   const config = {
     initialAutoRunFlag,
-    initialData,
     loadingDelay,
-    pollingInterval,
-    debounceInterval,
-    throttleInterval,
     pollingWhenHidden,
     pollingWhenOffline,
     stopPollingWhenHiddenOrOffline,
@@ -133,17 +100,13 @@ function useAsyncQuery<R, P extends unknown[], FR>(
     refreshOnWindowFocus,
     refocusTimespan,
     updateCache,
-    formatResult,
-    onSuccess,
-    onError,
-    onBefore,
-    onAfter,
+    ...omit(rest, ['pagination', 'listKey']),
   } as Config<R, P>;
 
   const loading = ref(false);
   const data = ref<R>();
   const error = ref<Error>();
-  const params = ref<P>();
+  const params = ref() as Ref<P>;
 
   const queries = <Queries<R, P>>reactive({
     [QUERY_DEFAULT_KEY]: reactive(createQuery(query, config)),

@@ -1,13 +1,16 @@
-import { Ref, ref } from 'vue';
-import {
+import type { Ref } from 'vue';
+import { ref } from 'vue';
+
+import type {
   BaseOptions,
+  BaseResult,
   FormatOptions,
   FRPlaceholderType,
   MixinOptions,
-} from './core/config';
-import useAsyncQuery, { BaseResult } from './core/useAsyncQuery';
+} from './core/types';
+import useAsyncQuery from './core/useAsyncQuery';
 import generateService from './core/utils/generateService';
-import { IService } from './core/utils/types';
+import type { IService } from './core/utils/types';
 
 export interface RequestResult<R, P extends unknown[]>
   extends Omit<BaseResult<R, P>, 'reset'> {
@@ -30,7 +33,7 @@ function useRequest<R, P extends unknown[], FR>(
   options?: MixinOptions<R, P, FR>,
 ) {
   const promiseQuery = generateService(service);
-  const { reset, run, ...rest } = useAsyncQuery<R, P, FR>(
+  const { reset, run, ...rest } = useAsyncQuery<R, P>(
     promiseQuery,
     (options ?? {}) as any,
   );

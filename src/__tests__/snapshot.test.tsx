@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils';
-import { RequestConfig } from '../index';
 import { defineComponent } from 'vue';
+
+import { RequestConfig } from '../index';
 
 describe('RequestConfig', () => {
   const Child = defineComponent({

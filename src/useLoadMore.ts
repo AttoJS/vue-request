@@ -1,16 +1,18 @@
-import { computed, inject, ref, Ref, watchEffect } from 'vue';
-import {
+import type { Ref } from 'vue';
+import { computed, inject, ref, watchEffect } from 'vue';
+
+import { getGlobalOptions, GLOBAL_OPTIONS_PROVIDE_KEY } from './core/config';
+import type {
   BaseOptions,
+  BaseResult,
   FormatOptions,
   FRPlaceholderType,
-  getGlobalOptions,
   GlobalOptions,
-  GLOBAL_OPTIONS_PROVIDE_KEY,
-} from './core/config';
-import useAsyncQuery, { BaseResult } from './core/useAsyncQuery';
+} from './core/types';
+import useAsyncQuery from './core/useAsyncQuery';
+import { get, isFunction, omit } from './core/utils';
 import generateService from './core/utils/generateService';
-import { ServiceParams } from './core/utils/types';
-import { omit, get, isFunction } from './core/utils';
+import type { ServiceParams } from './core/utils/types';
 
 export interface LoadMoreResult<R, P extends unknown[], LR extends unknown[]>
   extends Omit<BaseResult<R, P>, 'queries' | 'refresh' | 'mutate'> {
@@ -119,7 +121,7 @@ function useLoadMore<R, P extends unknown[], FR, LR extends unknown[]>(
     reset,
     cancel: _cancel,
     ...rest
-  } = useAsyncQuery<R, P, FR>(promiseQuery, {
+  } = useAsyncQuery<R, P>(promiseQuery, {
     ...restOptions,
     onSuccess: (...p) => {
       loadingMore.value = false;
@@ -133,7 +135,7 @@ function useLoadMore<R, P extends unknown[], FR, LR extends unknown[]>(
     queryKey: () => String(increaseQueryKey.value),
   });
 
-  const latestData = <Ref<FR | undefined>>ref(data.value);
+  const latestData = ref(data.value) as Ref<R | undefined>;
   watchEffect(() => {
     if (data.value !== undefined) {
       latestData.value = data.value;
@@ -166,7 +168,7 @@ function useLoadMore<R, P extends unknown[], FR, LR extends unknown[]>(
     const mergerParams = [
       { dataList: dataList.value, data: latestData.value },
       ...restParams,
-    ] as any;
+    ] as P;
     run(...mergerParams);
   };
 

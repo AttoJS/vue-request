@@ -1,4 +1,3 @@
-import { IService } from './types';
 import {
   isFunction,
   isPlainObject,
@@ -6,6 +5,7 @@ import {
   isString,
   requestProxy,
 } from './index';
+import type { IService } from './types';
 
 export default <R, P extends unknown[]>(service: IService<R, P>) => {
   let promiseQuery: (() => Promise<R>) | ((...args: P) => Promise<R>);

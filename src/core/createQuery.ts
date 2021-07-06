@@ -1,9 +1,7 @@
-import { debounce, throttle } from './utils/lodash';
-import { computed, Ref, ref } from 'vue';
-import { Config } from './config';
-import { Queries } from './useAsyncQuery';
-import limitTrigger from './utils/limitTrigger';
-import subscriber from './utils/listener';
+import type { Ref } from 'vue';
+import { computed, ref } from 'vue';
+
+import type { Config, InnerQueryState, Mutate, Query, State } from './types';
 import {
   isDocumentVisibility,
   isFunction,
@@ -11,36 +9,10 @@ import {
   isOnline,
   resolvedPromise,
 } from './utils';
-import { UnWrapRefObject } from './utils/types';
-type MutateData<R> = (newData: R) => void;
-type MutateFunction<R> = (arg: (oldData: R) => R) => void;
-
-// P means params, R means Response
-export type Query<R, P extends unknown[]> = (...args: P) => Promise<R>;
-export interface Mutate<R> extends MutateData<R>, MutateFunction<R> {}
-
-export type State<R, P extends unknown[]> = {
-  loading: Ref<boolean>;
-  data: Ref<R | undefined>;
-  error: Ref<Error | undefined>;
-  params: Ref<P>;
-};
-
-// common run result | debounce and throttle result
-export type InnerRunReturn<R> = Promise<R | null>;
-
-export interface QueryState<R, P extends unknown[]> extends State<R, P> {
-  queries: Queries<R, P>;
-  run: (...arg: P) => InnerRunReturn<R>;
-  cancel: () => void;
-  refresh: () => InnerRunReturn<R>;
-  mutate: Mutate<R>;
-}
-
-export interface InnerQueryState<R, P extends unknown[]>
-  extends Omit<QueryState<R, P>, 'queries'> {
-  unmount: () => void;
-}
+import limitTrigger from './utils/limitTrigger';
+import subscriber from './utils/listener';
+import { debounce, throttle } from './utils/lodash';
+import type { UnWrapRefObject } from './utils/types';
 
 const setStateBind = <R, P extends unknown[], T extends State<R, P>>(
   oldState: T,
@@ -293,9 +265,7 @@ const createQuery = <R, P extends unknown[]>(
     return run(...params.value);
   };
 
-  const mutate: Mutate<R> = (
-    x: Parameters<MutateData<R>>[0] | Parameters<MutateFunction<R>>[0],
-  ) => {
+  const mutate: Mutate<R> = x => {
     const mutateData = isFunction(x) ? x(data.value) : x;
     setState({
       data: mutateData,

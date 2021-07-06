@@ -1,5 +1,6 @@
-import { Ref } from 'vue';
-import { Query } from '../createQuery';
+import type { Ref } from 'vue';
+
+import type { Query } from '../types';
 
 export type PartialRecord<T> = {
   [P in keyof T]: Partial<T[P]>;

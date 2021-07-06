@@ -1,18 +1,17 @@
 import { mount, shallowMount } from '@vue/test-utils';
 import fetchMock from 'fetch-mock';
-import { defineComponent, reactive, Ref, ref } from 'vue';
-import {
-  clearGlobalOptions,
-  GlobalOptions,
-  setGlobalOptions,
-} from '../core/config';
+import type { GlobalOptions } from 'src/core/types';
+import type { Ref } from 'vue';
+import { defineComponent, reactive, ref } from 'vue';
+
+import { clearGlobalOptions, setGlobalOptions } from '../core/config';
 import { clearCache } from '../core/utils/cache';
 import {
   FOCUS_LISTENER,
   RECONNECT_LISTENER,
   VISIBLE_LISTENER,
 } from '../core/utils/listener';
-import { useRequest, RequestConfig } from '../index';
+import { RequestConfig, useRequest } from '../index';
 import { waitForAll, waitForTime } from './utils';
 import { failedRequest, request } from './utils/request';
 declare let jsdom: any;

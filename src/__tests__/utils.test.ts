@@ -1,18 +1,19 @@
+import fetchMock from 'fetch-mock';
+
 import {
-  isOnline,
+  get,
   isDocumentVisibility,
   isFunction,
   isNil,
+  isObject,
+  isOnline,
   isPlainObject,
   isPromise,
   isString,
-  requestProxy,
-  isObject,
-  get,
   omit,
+  requestProxy,
 } from '../core/utils';
 import limitTrigger from '../core/utils/limitTrigger';
-import fetchMock from 'fetch-mock';
 import subscriber, {
   FOCUS_LISTENER,
   RECONNECT_LISTENER,

@@ -3,8 +3,8 @@
  * https://github.com/lodash/lodash.git
  */
 /* istanbul ignore next */
-import debounce from './debounce';
 import { isObject } from '../index';
+import debounce from './debounce';
 
 function throttle(
   func: (...args: any[]) => any,

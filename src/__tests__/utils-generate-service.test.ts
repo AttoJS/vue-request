@@ -1,4 +1,5 @@
 import fetchMock from 'fetch-mock';
+
 import generateService from '../core/utils/generateService';
 
 describe('generateService', () => {

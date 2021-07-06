@@ -1,18 +1,16 @@
 import { mount, shallowMount } from '@vue/test-utils';
 import fetchMock from 'fetch-mock';
 import Mock from 'mockjs';
+import type { GlobalOptions } from 'src/core/types';
 import { defineComponent } from 'vue';
-import {
-  clearGlobalOptions,
-  GlobalOptions,
-  setGlobalOptions,
-} from '../core/config';
+
+import { clearGlobalOptions, setGlobalOptions } from '../core/config';
 import {
   FOCUS_LISTENER,
   RECONNECT_LISTENER,
   VISIBLE_LISTENER,
 } from '../core/utils/listener';
-import { usePagination, RequestConfig } from '../index';
+import { RequestConfig, usePagination } from '../index';
 import { waitForTime } from './utils';
 
 type CustomPropertyMockDataType = {
