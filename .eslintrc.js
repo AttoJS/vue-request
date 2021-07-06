@@ -9,7 +9,7 @@ module.exports = {
     'plugin:@typescript-eslint/recommended',
     'plugin:prettier/recommended',
   ],
-  plugins: ['@typescript-eslint'],
+  plugins: ['simple-import-sort', '@typescript-eslint'],
   parserOptions: {
     ecmaVersion: 2020,
     sourceType: 'module',
@@ -25,6 +25,9 @@ module.exports = {
     '@typescript-eslint/ban-ts-comment': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/ban-types': 'off',
+    '@typescript-eslint/consistent-type-imports': 'error',
+    'simple-import-sort/imports': 'error',
+    'simple-import-sort/exports': 'error',
   },
   overrides: [
     {
