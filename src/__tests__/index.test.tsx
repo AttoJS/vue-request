@@ -60,7 +60,7 @@ describe('useRequest', () => {
       }),
     );
     await waitForAll();
-    expect(wrapper.vm.$el.textContent).toBe('data:success');
+    expect(wrapper.text()).toBe('data:success');
   });
 
   test('can be manually triggered', async () => {
@@ -76,10 +76,10 @@ describe('useRequest', () => {
       }),
     );
     await waitForAll();
-    expect(wrapper.vm.$el.textContent).toBe('data:undefined');
+    expect(wrapper.text()).toBe('data:undefined');
     await wrapper.find('button').trigger('click');
     await waitForAll();
-    expect(wrapper.vm.$el.textContent).toBe('data:success');
+    expect(wrapper.text()).toBe('data:success');
   });
 
   test('params should work', async () => {
@@ -118,7 +118,7 @@ describe('useRequest', () => {
       }),
     );
     await waitForAll();
-    expect(wrapper.vm.$el.textContent).toBe('data:hello,world');
+    expect(wrapper.text()).toBe('data:hello,world');
   });
 
   test('run can be accept params', async () => {
@@ -136,10 +136,10 @@ describe('useRequest', () => {
       }),
     );
     await waitForAll();
-    expect(wrapper.vm.$el.textContent).toBe('data:success');
+    expect(wrapper.text()).toBe('data:success');
     await wrapper.find('button').trigger('click');
     await waitForAll();
-    expect(wrapper.vm.$el.textContent).toBe('data:hello,world');
+    expect(wrapper.text()).toBe('data:hello,world');
   });
 
   test('mutate should work', async () => {
@@ -155,9 +155,9 @@ describe('useRequest', () => {
       }),
     );
     await waitForAll();
-    expect(wrapper.vm.$el.textContent).toBe('data:success');
+    expect(wrapper.text()).toBe('data:success');
     await wrapper.find('button').trigger('click');
-    expect(wrapper.vm.$el.textContent).toBe('data:ok');
+    expect(wrapper.text()).toBe('data:ok');
   });
 
   test('mutate callback should work', async () => {
@@ -175,9 +175,9 @@ describe('useRequest', () => {
       }),
     );
     await waitForAll();
-    expect(wrapper.vm.$el.textContent).toBe('data:success');
+    expect(wrapper.text()).toBe('data:success');
     await wrapper.find('button').trigger('click');
-    expect(wrapper.vm.$el.textContent).toBe('data:ok');
+    expect(wrapper.text()).toBe('data:ok');
   });
 
   test('refresh should work', async () => {
@@ -195,9 +195,9 @@ describe('useRequest', () => {
       }),
     );
     await wrapper.find('button').trigger('click');
-    expect(wrapper.vm.$el.textContent).toBe('loading:true');
+    expect(wrapper.text()).toBe('loading:true');
     await waitForAll();
-    expect(wrapper.vm.$el.textContent).toBe('loading:false');
+    expect(wrapper.text()).toBe('loading:false');
   });
 
   test('log request error by default', async () => {
@@ -270,9 +270,9 @@ describe('useRequest', () => {
         },
       }),
     );
-    expect(wrapper.vm.$el.textContent).toBe('data:init');
+    expect(wrapper.text()).toBe('data:init');
     await waitForAll();
-    expect(wrapper.vm.$el.textContent).toBe('data:success');
+    expect(wrapper.text()).toBe('data:success');
   });
 
   test('ready should work', async () => {
@@ -298,10 +298,10 @@ describe('useRequest', () => {
       }),
     );
     await waitForAll();
-    expect(wrapper.vm.$el.textContent).toBe('data:undefined');
+    expect(wrapper.text()).toBe('data:undefined');
     await wrapper.find('button').trigger('click');
     await waitForAll();
-    expect(wrapper.vm.$el.textContent).toBe('data:success');
+    expect(wrapper.text()).toBe('data:success');
   });
 
   test('ready should save the first time request params : case 1', async () => {
@@ -398,10 +398,10 @@ describe('useRequest', () => {
       }),
     );
     await waitForAll();
-    expect(wrapper.vm.$el.textContent).toBe('data:0');
+    expect(wrapper.text()).toBe('data:0');
     await wrapper.find('button').trigger('click');
     await waitForAll();
-    expect(wrapper.vm.$el.textContent).toBe('data:1');
+    expect(wrapper.text()).toBe('data:1');
   });
 
   test('ready should work only once', async () => {
@@ -430,15 +430,15 @@ describe('useRequest', () => {
       }),
     );
     await waitForAll();
-    expect(wrapper.vm.$el.textContent).toBe('data:undefined');
+    expect(wrapper.text()).toBe('data:undefined');
     await wrapper.find('button').trigger('click');
     // first click
     await waitForAll();
-    expect(wrapper.vm.$el.textContent).toBe('data:1');
+    expect(wrapper.text()).toBe('data:1');
     await wrapper.find('button').trigger('click');
     // second click
     await waitForAll();
-    expect(wrapper.vm.$el.textContent).toBe('data:2');
+    expect(wrapper.text()).toBe('data:2');
   });
 
   test('formatResult should work', async () => {
@@ -453,9 +453,9 @@ describe('useRequest', () => {
         },
       }),
     );
-    expect(wrapper.vm.$el.textContent).toBe('data:undefined');
+    expect(wrapper.text()).toBe('data:undefined');
     await waitForAll();
-    expect(wrapper.vm.$el.textContent).toBe('data:formatted');
+    expect(wrapper.text()).toBe('data:formatted');
   });
 
   test('refreshDeps should work', async () => {
@@ -522,11 +522,11 @@ describe('useRequest', () => {
       }),
     );
 
-    expect(wrapper.vm.$el.textContent).toBe('loading:false');
+    expect(wrapper.text()).toBe('loading:false');
     await waitForTime(800);
-    expect(wrapper.vm.$el.textContent).toBe('loading:true');
+    expect(wrapper.text()).toBe('loading:true');
     await waitForTime(200);
-    expect(wrapper.vm.$el.textContent).toBe('loading:false');
+    expect(wrapper.text()).toBe('loading:false');
   });
 
   test('cancel loadingDelay should work', async () => {
@@ -546,11 +546,11 @@ describe('useRequest', () => {
       }),
     );
 
-    expect(wrapper.vm.$el.textContent).toBe('loading:false');
+    expect(wrapper.text()).toBe('loading:false');
     await waitForTime(800);
-    expect(wrapper.vm.$el.textContent).toBe('loading:true');
+    expect(wrapper.text()).toBe('loading:true');
     await wrapper.find('button').trigger('click');
-    expect(wrapper.vm.$el.textContent).toBe('loading:false');
+    expect(wrapper.text()).toBe('loading:false');
   });
 
   test('cancel should work', async () => {
@@ -626,16 +626,16 @@ describe('useRequest', () => {
       }),
     );
 
-    expect(wrapper.vm.$el.textContent).toBe('loading:true');
+    expect(wrapper.text()).toBe('loading:true');
     await waitForTime(1000);
-    expect(wrapper.vm.$el.textContent).toBe('loading:false');
+    expect(wrapper.text()).toBe('loading:false');
     await waitForTime(500);
-    expect(wrapper.vm.$el.textContent).toBe('loading:true');
+    expect(wrapper.text()).toBe('loading:true');
     await waitForTime(1000);
-    expect(wrapper.vm.$el.textContent).toBe('loading:false');
+    expect(wrapper.text()).toBe('loading:false');
     await wrapper.find('button').trigger('click');
     waitForTime(600);
-    expect(wrapper.vm.$el.textContent).toBe('loading:false');
+    expect(wrapper.text()).toBe('loading:false');
   });
 
   test('pollingInterval less than 0 should not work', async () => {
@@ -655,11 +655,11 @@ describe('useRequest', () => {
       }),
     );
 
-    expect(wrapper.vm.$el.textContent).toBe('loading:true');
+    expect(wrapper.text()).toBe('loading:true');
     await waitForTime(1000);
-    expect(wrapper.vm.$el.textContent).toBe('loading:false');
+    expect(wrapper.text()).toBe('loading:false');
     await waitForTime(10);
-    expect(wrapper.vm.$el.textContent).toBe('loading:false');
+    expect(wrapper.text()).toBe('loading:false');
   });
 
   test('pollingWhenHidden be false should work', async () => {
@@ -677,20 +677,20 @@ describe('useRequest', () => {
       }),
     );
 
-    expect(wrapper.vm.$el.textContent).toBe('data:undefined');
+    expect(wrapper.text()).toBe('data:undefined');
     await waitForTime(1000);
-    expect(wrapper.vm.$el.textContent).toBe('data:1');
+    expect(wrapper.text()).toBe('data:1');
     await waitForTime(2000);
-    expect(wrapper.vm.$el.textContent).toBe('data:2');
+    expect(wrapper.text()).toBe('data:2');
     // mock tab hide
     Object.defineProperty(document, 'visibilityState', {
       value: 'hidden',
       writable: true,
     });
     await waitForTime(2000);
-    expect(wrapper.vm.$el.textContent).toBe('data:3');
+    expect(wrapper.text()).toBe('data:3');
     await waitForTime(2000);
-    expect(wrapper.vm.$el.textContent).toBe('data:3');
+    expect(wrapper.text()).toBe('data:3');
     // mock tab show
     Object.defineProperty(document, 'visibilityState', {
       value: 'visible',
@@ -698,9 +698,9 @@ describe('useRequest', () => {
     });
     jsdom.window.dispatchEvent(new Event('visibilitychange'));
     await waitForTime(1000);
-    expect(wrapper.vm.$el.textContent).toBe('data:4');
+    expect(wrapper.text()).toBe('data:4');
     await waitForTime(2000);
-    expect(wrapper.vm.$el.textContent).toBe('data:5');
+    expect(wrapper.text()).toBe('data:5');
   });
 
   test('pollingWhenHidden be true should work', async () => {
@@ -718,20 +718,20 @@ describe('useRequest', () => {
       }),
     );
 
-    expect(wrapper.vm.$el.textContent).toBe('data:undefined');
+    expect(wrapper.text()).toBe('data:undefined');
     await waitForTime(1000);
-    expect(wrapper.vm.$el.textContent).toBe('data:1');
+    expect(wrapper.text()).toBe('data:1');
     await waitForTime(2000);
-    expect(wrapper.vm.$el.textContent).toBe('data:2');
+    expect(wrapper.text()).toBe('data:2');
     // mock tab hide
     Object.defineProperty(document, 'visibilityState', {
       value: 'hidden',
       writable: true,
     });
     await waitForTime(2000);
-    expect(wrapper.vm.$el.textContent).toBe('data:3');
+    expect(wrapper.text()).toBe('data:3');
     await waitForTime(2000);
-    expect(wrapper.vm.$el.textContent).toBe('data:4');
+    expect(wrapper.text()).toBe('data:4');
     // mock tab show
     Object.defineProperty(document, 'visibilityState', {
       value: 'visible',
@@ -740,9 +740,9 @@ describe('useRequest', () => {
     jsdom.window.dispatchEvent(new Event('visibilitychange'));
     await waitForTime(1000);
     // because pollingWhenHidden is true, so refresh never trigger
-    expect(wrapper.vm.$el.textContent).toBe('data:4');
+    expect(wrapper.text()).toBe('data:4');
     await waitForTime(2000);
-    expect(wrapper.vm.$el.textContent).toBe('data:5');
+    expect(wrapper.text()).toBe('data:5');
   });
 
   test('refreshOnWindowFocus should work', async () => {
@@ -761,24 +761,24 @@ describe('useRequest', () => {
       }),
     );
 
-    expect(wrapper.vm.$el.textContent).toBe('data:undefined');
+    expect(wrapper.text()).toBe('data:undefined');
     await waitForTime(1000);
-    expect(wrapper.vm.$el.textContent).toBe('data:1');
+    expect(wrapper.text()).toBe('data:1');
     await wrapper.find('button').trigger('click');
     await waitForTime(1000);
-    expect(wrapper.vm.$el.textContent).toBe('data:2');
+    expect(wrapper.text()).toBe('data:2');
     // mock tab visible
     jsdom.window.dispatchEvent(new Event('visibilitychange'));
     await waitForTime(1000);
-    expect(wrapper.vm.$el.textContent).toBe('data:3');
+    expect(wrapper.text()).toBe('data:3');
     jsdom.window.dispatchEvent(new Event('visibilitychange'));
     await waitForTime(1000);
-    expect(wrapper.vm.$el.textContent).toBe('data:3');
+    expect(wrapper.text()).toBe('data:3');
     // wait for 5s
     await waitForTime(4000);
     jsdom.window.dispatchEvent(new Event('visibilitychange'));
     await waitForTime(1000);
-    expect(wrapper.vm.$el.textContent).toBe('data:4');
+    expect(wrapper.text()).toBe('data:4');
   });
 
   test('refocusTimespan should work', async () => {
@@ -798,24 +798,24 @@ describe('useRequest', () => {
       }),
     );
 
-    expect(wrapper.vm.$el.textContent).toBe('data:undefined');
+    expect(wrapper.text()).toBe('data:undefined');
     await waitForTime(1000);
-    expect(wrapper.vm.$el.textContent).toBe('data:1');
+    expect(wrapper.text()).toBe('data:1');
     await wrapper.find('button').trigger('click');
     await waitForTime(1000);
-    expect(wrapper.vm.$el.textContent).toBe('data:2');
+    expect(wrapper.text()).toBe('data:2');
     // mock tab visible
     jsdom.window.dispatchEvent(new Event('visibilitychange'));
     await waitForTime(1000);
-    expect(wrapper.vm.$el.textContent).toBe('data:3');
+    expect(wrapper.text()).toBe('data:3');
     jsdom.window.dispatchEvent(new Event('visibilitychange'));
     await waitForTime(1000);
-    expect(wrapper.vm.$el.textContent).toBe('data:3');
+    expect(wrapper.text()).toBe('data:3');
     // wait for 3s
     await waitForTime(2000);
     jsdom.window.dispatchEvent(new Event('visibilitychange'));
     await waitForTime(1000);
-    expect(wrapper.vm.$el.textContent).toBe('data:4');
+    expect(wrapper.text()).toBe('data:4');
   });
 
   test('debounceInterval should work', async () => {
