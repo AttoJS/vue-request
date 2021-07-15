@@ -1,13 +1,5 @@
 import type { Ref } from 'vue';
-import {
-  computed,
-  inject,
-  onUnmounted,
-  reactive,
-  ref,
-  watch,
-  watchEffect,
-} from 'vue';
+import { computed, inject, onUnmounted, reactive, ref, watch } from 'vue';
 
 import { getGlobalOptions, GLOBAL_OPTIONS_PROVIDE_KEY } from './config';
 import createQuery from './createQuery';
@@ -117,16 +109,17 @@ function useAsyncQuery<R, P extends unknown[]>(
   const latestQuery = computed(() => queries[latestQueriesKey.value] ?? {});
 
   // sync state
-  // TODO: 需要探索一下有没有更优的处理方法
-  watchEffect(
-    () => {
-      loading.value = latestQuery.value.loading;
-      data.value = latestQuery.value.data;
-      error.value = latestQuery.value.error;
-      params.value = latestQuery.value.params;
+  watch(
+    latestQuery,
+    queryData => {
+      loading.value = queryData.loading;
+      data.value = queryData.data;
+      error.value = queryData.error;
+      params.value = queryData.params;
     },
     {
-      flush: 'sync',
+      immediate: true,
+      deep: true,
     },
   );
 
