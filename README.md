@@ -38,57 +38,117 @@ English | [简体中文](README-zh_CN.md)
   </a>
 </div>
 
+## Why VueRequest
+
+In the past projects, they were often confused by repeated implementations such as the management of the loading state, the requested throttling and debounce, the caching of request data, and pagination. Whenever we start a new project, we have to manually deal with the above problems, which will be a repetitive work, but also to ensure that the team is consistent.
+
+VueRequest aims to provide developers with a convenient and fast way to manage the state of the request API. In the development, save repetitive work, and it can be used only with a simple configuration, focusing on the core of the development project.
+
 ## Features
 
-- 🚀 All data is reactive
-- 🔄 Interval polling
-- 🤖 Automatic error retry
-- 🗄 Built-in cache
-- 📠 Written in TypeScript
-- 🍃 Lightweight
-- 📦 Out of the box
-- 🔥 Interactive docs
+- 🚀 &nbsp;All data is reactive
+- 🔄 &nbsp;Interval polling
+- 🤖 &nbsp;Automatic error retry
+- 🗄 &nbsp;Built-in cache
+- 💧 &nbsp;Throttle and Debounce
+- ⚙️ &nbsp;Powerful pagination extension and load more extensions
+- 📠 &nbsp;Written in TypeScript
+- ⚡️ &nbsp;Compatible with Vite
+- 🍃 &nbsp;Lightweight
+- 📦 &nbsp;Out of the box
 
 ## Documentation
 
 - [English](https://www.attojs.org/)
-- [中文](https://cn.attojs.org/)
-- [国内镜像](https://www.attojs.com/)
+- [中文文档](https://www.attojs.com/)
 
 ## Install
 
-```bash
-npm install vue-request
+You can install VueRequest with [NPM](https://www.npmjs.com/), [YARN](https://yarnpkg.com/), or a `<script>` via [unpkg.com](https://unpkg.com/)
 
-# or with yarn
+### NPM
+
+```sh
+npm install vue-request
+# or
 yarn add vue-request
 ```
 
 ### CDN
 
+> For production, we recommend linking to a specific version number and build to avoid unexpected breakage from newer versions.
+
 ```html
-<script src="https://unpkg.com/vue-request"></script>
+<script src="https://unpkg.com/vue-request/dist/vue-request.min.js"></script>
 ```
 
-It will be exposed to global as `window.VueRequest.useRequest`
+Once you've added this you will have access to the `window.VueRequest` object and its exports.
 
 ## Usage
 
-```tsx
-import { useRequest } from 'vue-request';
+```vue
+<template>
+  <div>
+    <div v-if="loading">loading...</div>
+    <div v-if="error">failed to fetch</div>
+    <div v-if="data">Hey! {{ data }}</div>
+  </div>
+</template>
 
-export default {
+<script lang="ts">
+import { defineComponent } from 'vue';
+export default defineComponent({
   setup() {
-    const { data } = useRequest('api/user');
-    return () => <div>{data.value}</div>;
+    const { data, loading, error } = useRequest(service);
+
+    return {
+      data,
+      loading,
+      error,
+    };
   },
-};
+});
+</script>
 ```
+
+In this example, `useRequest` accepts a `service` function. `service` is a asynchronous function. In other words, you can use **axios** to fetch data and return a **Promise**. More specific instructions can be viewed in [document](https://www.attojs.org/guide/documentation/dataFetching.html).
+
+`useRequest` also return 3 values: `data`, `loading` and `error`. When the request is not yet finished, data will be `undefined` and `loading` will be `true`. And when we get a response, it sets data and error based on the result of service and rerenders the component. This is because `data` and `error` are [Reactivity(Refs)](https://v3.vuejs.org/guide/reactivity-fundamentals.html), and their values will be set by the service response.
+
+## Some of the coolest features:
+
+VueRequest has many features, such as error retry, cache, pagination, throttle, debounce..., here are two cool features
+
+### 1.Refresh On Focus
+
+Sometimes, you need to ensure data consistency between multiple browser windows; or when the user's computer is reactivated in the dormant state, the page data needs to be synchronized to the latest state. `refreshOnWindowFocus` may save you a lot of code. [Click here to go to the document](https://www.attojs.org/guide/documentation/refreshOnWindowFocus.html)
+
+```ts
+const { data, error, run } = useRequest(getUserInfo, {
+  refreshOnWindowFocus: true,
+  refocusTimespan: 1000, // refresh interval 1s
+});
+```
+
+![vue-request](https://z3.ax1x.com/2021/09/10/hXAs8s.gif)
+
+### 2.Polling Data
+
+Sometimes, you want to ensure that data is synchronized and updated between multiple devices. At this time, we can use the `pollingInterval` provided by us to periodically re-request the request API, so that the data consistency between multiple devices can be guaranteed. When the user modifies the data, the two windows will be updated simultaneously in real time. [Click here to go to the document](https://www.attojs.org/guide/documentation/polling.htm)
+
+```ts
+const { data, error, run } = useRequest(getUserInfo, {
+  pollingInterval: 1000, // polling interval 1s
+});
+```
+
+![vue-request](https://z3.ax1x.com/2021/09/10/hXAy2n.gif)
 
 ## TODO List
 
 If you have any cool features, please submit an issue for discussion
 
+- [ ] Support Vue 2
 - [x] Documentation
 - [x] Pagination
 - [x] Load More
