@@ -75,10 +75,11 @@ describe('generateService', () => {
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
-  test('should throw error when use unknown service', () => {
+  test('should throw error when use unknown service', async () => {
     const fn = jest.fn();
     try {
       const service = generateService(unknownService as any);
+      await service();
     } catch (error) {
       expect(error.message).toBe('Unknown service type');
       fn();
