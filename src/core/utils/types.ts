@@ -26,4 +26,5 @@ export type ServiceParams = string | ServiceObject;
 export type IService<R, P extends unknown[]> =
   | ((...args: P) => ServiceParams)
   | ServiceParams
-  | Query<R, P>;
+  | Query<R, P>
+  | Promise<R>;

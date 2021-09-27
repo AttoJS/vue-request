@@ -8,7 +8,7 @@ import {
 import type { IService } from './types';
 
 const generateService = <R, P extends unknown[]>(
-  service: IService<R, P> | Promise<R>,
+  service: IService<R, P>,
 ): (() => Promise<R>) | ((...args: P) => Promise<R>) => {
   return (...args: P) => {
     if (isFunction(service)) {
