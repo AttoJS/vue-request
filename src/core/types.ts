@@ -1,3 +1,5 @@
+/* istanbul ignore next */
+
 import type { LoadMoreExtendsOption } from 'src/useLoadMore';
 import type { PaginationExtendsOption } from 'src/usePagination';
 import type { Ref, WatchSource } from 'vue';
