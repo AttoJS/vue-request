@@ -4,6 +4,7 @@ import {
   isPromise,
   isString,
   requestProxy,
+  warning,
 } from './index';
 import type { IService } from './types';
 
@@ -21,7 +22,7 @@ const generateService = <R, P extends unknown[]>(
     } else if (isString(service)) {
       return requestProxy(service);
     } else {
-      throw Error('Unknown service type');
+      throw warning('Unknown service type', true);
     }
   };
 };

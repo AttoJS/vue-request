@@ -10,7 +10,7 @@ import type {
   GlobalOptions,
 } from './core/types';
 import useAsyncQuery from './core/useAsyncQuery';
-import { get } from './core/utils';
+import { get, warning } from './core/utils';
 import generateService from './core/utils/generateService';
 import { merge } from './core/utils/lodash';
 import type { IService } from './core/utils/types';
@@ -92,7 +92,7 @@ function usePagination<R, P extends unknown[], FR>(
   ) as any;
 
   if (queryKey) {
-    throw new Error('usePagination does not support concurrent request');
+    warning('usePagination does not support concurrent request');
   }
 
   const finallyOptions = merge(

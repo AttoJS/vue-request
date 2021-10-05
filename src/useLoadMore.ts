@@ -10,7 +10,7 @@ import type {
   GlobalOptions,
 } from './core/types';
 import useAsyncQuery from './core/useAsyncQuery';
-import { get, isFunction, omit } from './core/utils';
+import { get, isFunction, omit, warning } from './core/utils';
 import generateService from './core/utils/generateService';
 import type { ServiceParams } from './core/utils/types';
 
@@ -83,7 +83,7 @@ function useLoadMore<R, P extends unknown[], FR, LR extends unknown[]>(
   options?: LoadMoreMixinOptions<R, P, FR>,
 ) {
   if (!isFunction(service)) {
-    throw new Error('useLoadMore only support function service');
+    warning('useLoadMore only support function service');
   }
   const promiseQuery = generateService<R, P>(service as any);
 
@@ -105,7 +105,7 @@ function useLoadMore<R, P extends unknown[], FR, LR extends unknown[]>(
   );
 
   if (queryKey) {
-    throw new Error('useLoadMore does not support concurrent request');
+    warning('useLoadMore does not support concurrent request');
   }
 
   const refreshing = ref(false);

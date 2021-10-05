@@ -69,7 +69,7 @@ describe('generateService', () => {
     try {
       await service();
     } catch (error) {
-      expect(error.message).toBe('Unknown service type');
+      expect(error.message).toBe('Warning: [vue-request] Unknown service type');
       fn();
     }
     expect(fn).toHaveBeenCalledTimes(1);
@@ -81,7 +81,7 @@ describe('generateService', () => {
       const service = generateService(unknownService as any);
       await service();
     } catch (error) {
-      expect(error.message).toBe('Unknown service type');
+      expect(error.message).toBe('Warning: [vue-request] Unknown service type');
       fn();
     }
     expect(fn).toHaveBeenCalledTimes(1);

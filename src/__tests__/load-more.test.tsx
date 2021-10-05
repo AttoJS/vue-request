@@ -147,61 +147,37 @@ describe('useLoadMore', () => {
   });
 
   test('useLoadMore only support function service', () => {
-    const fn = jest.fn();
-
     shallowMount(
       defineComponent({
         setup() {
-          try {
-            // @ts-ignore
-            useLoadMore(normalApi);
-          } catch (error) {
-            fn();
-            expect(error.message).toBe(
-              'useLoadMore only support function service',
-            );
-          }
+          // @ts-ignore
+          useLoadMore(normalApi);
+          // @ts-ignore
+          useLoadMore({ url: normalApi });
 
-          try {
-            // @ts-ignore
-            useLoadMore({ url: normalApi });
-          } catch (error) {
-            fn();
-            expect(error.message).toBe(
-              'useLoadMore only support function service',
-            );
-          }
           return () => <div />;
         },
       }),
     );
 
-    expect(fn).toHaveBeenCalledTimes(2);
+    expect(console.error).toHaveBeenCalledTimes(2);
   });
 
   test('useLoadMore not support queryKey', () => {
-    const fn = jest.fn();
-
     shallowMount(
       defineComponent({
         setup() {
-          try {
-            useLoadMore(normalRequest, {
-              // @ts-ignore
-              queryKey: () => 'key',
-            });
-          } catch (error) {
-            fn();
-            expect(error.message).toBe(
-              'useLoadMore does not support concurrent request',
-            );
-          }
+          useLoadMore(normalRequest, {
+            // @ts-ignore
+            queryKey: () => 'key',
+          });
+
           return () => <div />;
         },
       }),
     );
 
-    expect(fn).toHaveBeenCalledTimes(1);
+    expect(console.error).toHaveBeenCalledTimes(1);
   });
 
   test('useLoadMore should work', async () => {

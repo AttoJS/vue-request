@@ -282,23 +282,17 @@ describe('usePagination', () => {
     shallowMount(
       defineComponent({
         setup() {
-          try {
-            usePagination(customPropertyApi, {
-              // @ts-ignore
-              queryKey: () => '1',
-            });
-          } catch (error) {
-            expect(error.message).toBe(
-              'usePagination does not support concurrent request',
-            );
-            fn();
-          }
+          usePagination(customPropertyApi, {
+            // @ts-ignore
+            queryKey: () => '1',
+          });
+
           return () => <div />;
         },
       }),
     );
 
-    expect(fn).toHaveBeenCalledTimes(1);
+    expect(console.error).toHaveBeenCalledTimes(1);
   });
 
   test('`current` and `pageSize` `current` and `pageSize` can modify and can trigger request', async () => {

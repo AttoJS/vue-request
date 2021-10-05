@@ -78,3 +78,12 @@ export function omit<T, K extends keyof T>(
   }
   return result;
 }
+
+export const warning = (message: string, throwError = false) => {
+  const msg = `Warning: [vue-request] ${message}`;
+  if (throwError) {
+    return new Error(msg);
+  } else {
+    console.error(msg);
+  }
+};

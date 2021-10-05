@@ -12,6 +12,7 @@ import {
   isString,
   omit,
   requestProxy,
+  warning,
 } from '../core/utils';
 import limitTrigger from '../core/utils/limitTrigger';
 import subscriber, {
@@ -178,5 +179,19 @@ describe('utils', () => {
   test('omit should work', () => {
     const object = { a: 1, b: 2, c: 3 };
     expect(omit(object, ['a', 'b'])).toStrictEqual({ c: 3 });
+  });
+
+  test('warning should work', () => {
+    const origin = console.error;
+    console.error = jest.fn();
+    warning('test');
+    expect(console.error).toHaveBeenCalledTimes(1);
+    console.error = origin;
+
+    try {
+      warning('test', true);
+    } catch (error) {
+      expect(error.message).toBe('Warning: [vue-request] test');
+    }
   });
 });
