@@ -855,6 +855,134 @@ describe('useRequest', () => {
     expect(mockFn).toHaveBeenCalledTimes(2);
   });
 
+  test('debounceOptions should work: case 1', async () => {
+    const mockFn = jest.fn();
+
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { run } = useRequest(
+            () => {
+              mockFn();
+              return request();
+            },
+            {
+              debounceInterval: 100,
+              debounceOptions: {
+                leading: true,
+                trailing: false,
+              },
+              manual: true,
+            },
+          );
+          return () => <button onClick={() => run()} />;
+        },
+      }),
+    );
+    for (let index = 0; index < 100; index++) {
+      await wrapper.find('button').trigger('click');
+      await waitForTime(50);
+    }
+
+    expect(mockFn).toHaveBeenCalledTimes(1);
+    await waitForTime(100);
+    expect(mockFn).toHaveBeenCalledTimes(1);
+
+    for (let index = 0; index < 100; index++) {
+      await wrapper.find('button').trigger('click');
+      await waitForTime(50);
+    }
+
+    expect(mockFn).toHaveBeenCalledTimes(2);
+    await waitForTime(100);
+    expect(mockFn).toHaveBeenCalledTimes(2);
+  });
+
+  test('debounceOptions should work: case 2', async () => {
+    const mockFn = jest.fn();
+
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { run } = useRequest(
+            () => {
+              mockFn();
+              return request();
+            },
+            {
+              debounceInterval: 100,
+              debounceOptions: {
+                leading: false,
+                trailing: false,
+              },
+              manual: true,
+            },
+          );
+          return () => <button onClick={() => run()} />;
+        },
+      }),
+    );
+    for (let index = 0; index < 100; index++) {
+      await wrapper.find('button').trigger('click');
+      await waitForTime(50);
+    }
+
+    expect(mockFn).toHaveBeenCalledTimes(0);
+    await waitForTime(100);
+    expect(mockFn).toHaveBeenCalledTimes(0);
+
+    for (let index = 0; index < 100; index++) {
+      await wrapper.find('button').trigger('click');
+      await waitForTime(50);
+    }
+
+    expect(mockFn).toHaveBeenCalledTimes(0);
+    await waitForTime(100);
+    expect(mockFn).toHaveBeenCalledTimes(0);
+  });
+
+  test('debounceOptions should work: case 3', async () => {
+    const mockFn = jest.fn();
+
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { run } = useRequest(
+            () => {
+              mockFn();
+              return request();
+            },
+            {
+              debounceInterval: 500,
+              debounceOptions: {
+                maxWait: 1000,
+              },
+              manual: true,
+            },
+          );
+          return () => <button onClick={() => run()} />;
+        },
+      }),
+    );
+    for (let index = 0; index < 100; index++) {
+      await wrapper.find('button').trigger('click');
+      await waitForTime(50);
+    }
+
+    expect(mockFn).toHaveBeenCalledTimes(5);
+    await waitForTime(1000);
+    expect(mockFn).toHaveBeenCalledTimes(5);
+
+    for (let index = 0; index < 100; index++) {
+      await wrapper.find('button').trigger('click');
+      await waitForTime(50);
+    }
+
+    expect(mockFn).toHaveBeenCalledTimes(10);
+    await waitForTime(1000);
+    expect(mockFn).toHaveBeenCalledTimes(10);
+  });
+
   test('debounceInterval should work with cancel', async () => {
     const mockFn = jest.fn();
 
@@ -962,6 +1090,119 @@ describe('useRequest', () => {
     // have been call 3 times
     // because the function will invoking on the leading edge and trailing edge of the timeout
     expect(mockFn).toHaveBeenCalledTimes(3);
+  });
+
+  test('throttleOptions should work, case: 1', async () => {
+    const mockFn = jest.fn();
+
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { run } = useRequest(
+            () => {
+              mockFn();
+              return request();
+            },
+            {
+              throttleInterval: 100,
+              throttleOptions: {
+                leading: false,
+              },
+              manual: true,
+            },
+          );
+          return () => <button onClick={() => run()} />;
+        },
+      }),
+    );
+
+    await wrapper.find('button').trigger('click');
+
+    await waitForTime(50);
+    await wrapper.find('button').trigger('click');
+
+    await waitForTime(50);
+    await wrapper.find('button').trigger('click');
+
+    await waitForAll();
+    // have been call 2 times
+    // because the function will only invoking on the trailing edge of the timeout
+    expect(mockFn).toHaveBeenCalledTimes(2);
+  });
+
+  test('throttleOptions should work, case: 2', async () => {
+    const mockFn = jest.fn();
+
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { run } = useRequest(
+            () => {
+              mockFn();
+              return request();
+            },
+            {
+              throttleInterval: 100,
+              throttleOptions: {
+                trailing: false,
+              },
+              manual: true,
+            },
+          );
+          return () => <button onClick={() => run()} />;
+        },
+      }),
+    );
+
+    await wrapper.find('button').trigger('click');
+
+    await waitForTime(50);
+    await wrapper.find('button').trigger('click');
+
+    await waitForTime(50);
+    await wrapper.find('button').trigger('click');
+
+    await waitForAll();
+    // have been call 2 times
+    // because the function will only invoking on the leading edge of the timeout
+    expect(mockFn).toHaveBeenCalledTimes(2);
+  });
+
+  test('throttleOptions should work, case: 3', async () => {
+    const mockFn = jest.fn();
+
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { run } = useRequest(
+            () => {
+              mockFn();
+              return request();
+            },
+            {
+              throttleInterval: 100,
+              throttleOptions: {
+                leading: false,
+                trailing: false,
+              },
+              manual: true,
+            },
+          );
+          return () => <button onClick={() => run()} />;
+        },
+      }),
+    );
+
+    await wrapper.find('button').trigger('click');
+
+    await waitForTime(50);
+    await wrapper.find('button').trigger('click');
+
+    await waitForTime(50);
+    await wrapper.find('button').trigger('click');
+
+    await waitForAll();
+    expect(mockFn).toHaveBeenCalledTimes(0);
   });
 
   test('throttleInterval should work with cancel', async () => {

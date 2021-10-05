@@ -41,6 +41,13 @@ export interface InnerQueryState<R, P extends unknown[]>
   unmount: () => void;
 }
 
+interface DebounceOptions {
+  leading?: boolean;
+  trailing?: boolean;
+  maxWait?: number;
+}
+type ThrottleOptions = Omit<DebounceOptions, 'maxWait'>;
+
 export interface GlobalOptions
   // usePagination config
   extends PaginationExtendsOption,
@@ -51,6 +58,8 @@ export interface GlobalOptions
   pollingWhenHidden?: boolean;
   pollingWhenOffline?: boolean;
   debounceInterval?: number;
+  debounceOptions?: DebounceOptions;
+  throttleOptions?: ThrottleOptions;
   throttleInterval?: number;
   refreshOnWindowFocus?: boolean;
   refocusTimespan?: number;

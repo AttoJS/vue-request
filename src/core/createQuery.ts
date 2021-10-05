@@ -37,7 +37,9 @@ const createQuery = <R, P extends unknown[]>(
     loadingDelay,
     pollingInterval,
     debounceInterval,
+    debounceOptions,
     throttleInterval,
+    throttleOptions,
     pollingWhenHidden,
     pollingWhenOffline,
     errorRetryCount,
@@ -222,13 +224,11 @@ const createQuery = <R, P extends unknown[]>(
   };
 
   const debouncedRun =
-    !isNil(debounceInterval) && debounce(_run, debounceInterval!);
+    !isNil(debounceInterval) &&
+    debounce(_run, debounceInterval!, debounceOptions);
   const throttledRun =
     !isNil(throttleInterval) &&
-    throttle(_run, throttleInterval!, {
-      leading: true,
-      trailing: true,
-    });
+    throttle(_run, throttleInterval!, throttleOptions);
 
   const run = (...args: P) => {
     clearAllTimer();
