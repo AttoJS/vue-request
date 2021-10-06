@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.1](https://github.com/attojs/vue-request/compare/v1.2.0...v1.2.1) (2021-10-06)
+
+### Features
+
+- 防抖和节流模式现在支持配置触发时机 [#63](https://github.com/attojs/vue-request/issues/63) ([decbbd3](https://github.com/attojs/vue-request/commit/decbbd3a2da5e559556126c6ed1166415ce87c06))
+
 ## [1.2.0](https://github.com/attojs/vue-request/compare/v1.1.1...v1.2.0) (2021-05-22)
 
 ### Features
