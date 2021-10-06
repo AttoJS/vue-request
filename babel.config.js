@@ -1,5 +1,8 @@
 const presets = ['@babel/preset-env'];
-const plugins = ['@vue/babel-plugin-jsx'];
+const plugins = [
+  '@vue/babel-plugin-jsx',
+  '@babel/plugin-proposal-nullish-coalescing-operator',
+];
 
 const babelConfig = {
   presets,
