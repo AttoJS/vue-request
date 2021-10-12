@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.3](https://github.com/attojs/vue-request/compare/v1.2.2...v1.2.3) (2021-10-12)
+
+### Bug Fixes
+
+- 修复错误的 import 路径 [#71](https://github.com/attojs/vue-request/issues/71) ([#72](https://github.com/attojs/vue-request/issues/72)) ([2926510](https://github.com/attojs/vue-request/commit/2926510db896205bdaf597bb5b28d8c9efcbffdd))
+
 ### [1.2.2](https://github.com/attojs/vue-request/compare/v1.2.1...v1.2.2) (2021-10-06)
 
 ### Bug Fixes
