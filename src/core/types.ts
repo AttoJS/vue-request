@@ -1,9 +1,9 @@
 /* istanbul ignore next */
 
-import type { LoadMoreExtendsOption } from 'src/useLoadMore';
-import type { PaginationExtendsOption } from 'src/usePagination';
 import type { Ref, WatchSource } from 'vue';
 
+import type { LoadMoreExtendsOption } from '../useLoadMore';
+import type { PaginationExtendsOption } from '../usePagination';
 import type { UnWrapRefObject } from './utils/types';
 
 export interface BaseResult<R, P extends unknown[]> extends QueryState<R, P> {
