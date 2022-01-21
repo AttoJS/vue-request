@@ -23,7 +23,7 @@ const RollUpConfig = {
     {
       name: 'VueRequest',
       file: './dist/vue-request.min.js',
-      format: 'iife',
+      format: 'umd',
       exports: 'named',
       extend: true,
       plugins: [terser()],
