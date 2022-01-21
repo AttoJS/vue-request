@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.4](https://github.com/attojs/vue-request/compare/v1.2.3...v1.2.4) (2022-01-21)
+
+### Refactor
+
+- 使用 UMD 替换 IIFE modules ([2f05be8](https://github.com/AttoJS/vue-request/commit/2f05be83238416437c87a5b5bdaea4a87f982e88))
+
 ### [1.2.3](https://github.com/attojs/vue-request/compare/v1.2.2...v1.2.3) (2021-10-12)
 
 ### Bug Fixes
