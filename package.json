@@ -43,8 +43,7 @@
   "husky": {
     "hooks": {
       "pre-commit": "node ./scripts/preCommit.js && lint-staged",
-      "commit-msg": "commitlint -x @commitlint/config-conventional -e $HUSKY_GIT_PARAMS",
-      "pre-push": "yarn test --coverage=false"
+      "commit-msg": "commitlint -x @commitlint/config-conventional -e $HUSKY_GIT_PARAMS"
     }
   },
   "lint-staged": {
