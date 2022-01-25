@@ -53,6 +53,14 @@
     ],
     "package.json": "sort-package-json"
   },
+  "dependencies": {
+    "vue-demi": "latest"
+  },
+  "peerDependenciesMeta": {
+    "@vue/composition-api": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@babel/core": "^7.12.3",
     "@babel/plugin-proposal-nullish-coalescing-operator": "^7.14.5",
@@ -99,9 +107,11 @@
     "ts-jest": "^26.4.1",
     "typescript": "^4.0.5",
     "vite": "^2.1.5",
-    "vue": "^3.0.2"
+    "vue": "^3.0.2",
+    "vue2": "npm:vue@2"
   },
   "peerDependencies": {
-    "vue": "^3.0.0"
+    "@vue/composition-api": "^1.0.0-rc.1",
+    "vue": "^2.0.0 || >=3.0.0"
   }
 }

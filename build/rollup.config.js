@@ -48,6 +48,6 @@ const RollUpConfig = {
       exclude: [/core-js/],
     }),
   ],
-  external: ['vue'],
+  external: ['vue', 'vue-demi'],
 };
 export default RollUpConfig;
