@@ -1,5 +1,5 @@
-import { defineComponent } from 'vue';
 import { useRequest } from 'vue-request';
+import { defineComponent } from 'vue3';
 
 function testService() {
   return new Promise<string>(resolve => {

@@ -12,11 +12,11 @@
     "declaration": true,
     "declarationDir": "dist/types",
     "baseUrl": "./",
-    "types": ["jest", "@vue/test-utils"],
+    "types": ["jest", "node"],
     "paths": {
       "vue-request": ["src/index.ts"]
     }
   },
-  "include": ["src", "example", "**/__tests__/**/*"],
+  "include": ["src", "examples", "**/__tests__/**/*"],
   "exclude": ["node_modules", "dist"]
 }
