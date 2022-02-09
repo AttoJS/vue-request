@@ -1,3 +1,5 @@
+import { ref } from 'vue-demi';
+
 import type { CacheDataType } from '../core/utils/cache';
 import { clearCache, getCache, setCache } from '../core/utils/cache';
 import { waitForTime } from './utils';
@@ -5,8 +7,10 @@ import { waitForTime } from './utils';
 describe('utils', () => {
   const cacheKey = 'test';
   const cacheData: CacheDataType<any, any> = {
-    queries: {},
-    latestQueriesKey: 'testKey',
+    data: ref(1),
+    error: ref(undefined),
+    loading: ref(false),
+    params: ref([]),
   };
   beforeAll(() => {
     jest.useFakeTimers();

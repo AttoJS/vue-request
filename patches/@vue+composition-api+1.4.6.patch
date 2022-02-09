@@ -1,0 +1,13 @@
+diff --git a/node_modules/@vue/composition-api/dist/vue-composition-api.common.js b/node_modules/@vue/composition-api/dist/vue-composition-api.common.js
+index b791a1a..23e3c62 100644
+--- a/node_modules/@vue/composition-api/dist/vue-composition-api.common.js
++++ b/node_modules/@vue/composition-api/dist/vue-composition-api.common.js
+@@ -2,7 +2,7 @@
+ 
+ Object.defineProperty(exports, '__esModule', { value: true });
+ 
+-var Vue = require('vue');
++var Vue = require('vue2');
+ 
+ function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+ 
