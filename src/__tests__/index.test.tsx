@@ -1759,6 +1759,60 @@ describe('useRequest', () => {
     expect(mockFn).toHaveBeenCalledTimes(11);
   });
 
+  test('errorRetry should work with debounce', async () => {
+    const wrapper = shallowMount(
+      defineComponent({
+        setup() {
+          const { run, loading, error } = useRequest(failedRequest, {
+            manual: true,
+            debounceInterval: 1000,
+            errorRetryCount: 4,
+            errorRetryInterval: 1000,
+          });
+          const handleClick = () => run();
+          return () => (
+            <button onClick={handleClick}>
+              {`${loading.value || error.value?.message}`}
+            </button>
+          );
+        },
+      }),
+    );
+
+    // request
+    await wrapper.find('button').trigger('click');
+    await waitForTime(2001);
+    expect(wrapper.text()).toBe('fail');
+
+    // retrying 1
+    await waitForTime(1000);
+    expect(wrapper.text()).toBe('true');
+    await waitForTime(1000);
+    expect(wrapper.text()).toBe('fail');
+
+    // retrying 2
+    await waitForTime(1000);
+    expect(wrapper.text()).toBe('true');
+    await waitForTime(1000);
+    expect(wrapper.text()).toBe('fail');
+
+    // trigger button to reset retry count
+    await wrapper.find('button').trigger('click');
+    await waitForTime(2001);
+    expect(wrapper.text()).toBe('fail');
+
+    for (let index = 0; index < 4; index++) {
+      await waitForTime(1000);
+      expect(wrapper.text()).toBe('true');
+      await waitForTime(1000);
+      expect(wrapper.text()).toBe('fail');
+    }
+    await waitForTime(1000);
+    expect(wrapper.text()).toBe('fail');
+    await waitForTime(1000);
+    expect(wrapper.text()).toBe('fail');
+  });
+
   test('errorRetry should work with pollingInterval', async () => {
     let flag = true;
     const mixinRequest = () => {

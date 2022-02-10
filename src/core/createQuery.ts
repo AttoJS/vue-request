@@ -232,6 +232,9 @@ const createQuery = <R, P extends unknown[]>(
 
   const run = (...args: P) => {
     clearAllTimer();
+
+    resetRetriedCount();
+
     // initial auto run should not debounce
     if (!initialAutoRunFlag.value && debouncedRun) {
       debouncedRun(...args);
@@ -242,7 +245,6 @@ const createQuery = <R, P extends unknown[]>(
       throttledRun(...args);
       return resolvedPromise;
     }
-    resetRetriedCount();
 
     return _run(...args);
   };
