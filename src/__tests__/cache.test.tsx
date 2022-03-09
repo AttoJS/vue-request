@@ -1,16 +1,14 @@
 import { ref } from 'vue-demi';
 
-import type { CacheDataType } from '../core/utils/cache';
+import type { CacheData, CacheResultType } from '../core/utils/cache';
 import { clearCache, getCache, setCache } from '../core/utils/cache';
 import { waitForTime } from './utils';
 
 describe('utils', () => {
   const cacheKey = 'test';
-  const cacheData: CacheDataType<any, any> = {
+  const cacheData: CacheResultType = {
     data: ref(1),
-    error: ref(undefined),
-    loading: ref(false),
-    params: ref([]),
+    time: new Date().getTime(),
   };
   beforeAll(() => {
     jest.useFakeTimers();
@@ -18,16 +16,16 @@ describe('utils', () => {
   });
 
   test('setCache and getCache should work', () => {
-    setCache<any, any>(cacheKey, cacheData, 10000);
+    setCache(cacheKey, 10000, cacheData);
     const data = getCache(cacheKey);
     expect(data?.data).toMatchObject(cacheData);
   });
 
   test('cacheTime should work', async () => {
-    setCache<any, any>(cacheKey, cacheData, 10000);
+    setCache(cacheKey, 10000, cacheData);
     expect(getCache(cacheKey)?.data).toMatchObject(cacheData);
     await waitForTime(5000);
-    setCache<any, any>(cacheKey, cacheData, 10000);
+    setCache(cacheKey, 10000, cacheData);
     await waitForTime(5000);
     expect(getCache(cacheKey)?.data).toMatchObject(cacheData);
     await waitForTime(5000);
@@ -35,7 +33,7 @@ describe('utils', () => {
   });
 
   test('clearCache should work', async () => {
-    setCache<any, any>(cacheKey, cacheData, 10000);
+    setCache(cacheKey, 10000, cacheData);
     expect(getCache(cacheKey)?.data).toMatchObject(cacheData);
     clearCache();
     expect(getCache(cacheKey)?.data).toBeUndefined();
@@ -44,8 +42,8 @@ describe('utils', () => {
   test('clear a single cache should work', async () => {
     const cache1 = '1';
     const cache2 = '2';
-    setCache<any, any>(cache1, cacheData, 10000);
-    setCache<any, any>(cache2, cacheData, 10000);
+    setCache(cache1, 10000, cacheData);
+    setCache(cache2, 10000, cacheData);
     expect(getCache(cache1)?.data).toMatchObject(cacheData);
     expect(getCache(cache2)?.data).toMatchObject(cacheData);
     clearCache(cache1);
