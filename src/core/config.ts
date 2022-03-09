@@ -1,4 +1,4 @@
-import type { InjectionKey } from 'vue';
+import type { InjectionKey } from 'vue-demi';
 
 import type { GlobalOptions } from './types';
 

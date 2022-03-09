@@ -1,4 +1,4 @@
-import { unref } from 'vue';
+import { unref } from 'vue-demi';
 
 import type { RefObject, UnRef } from './types';
 

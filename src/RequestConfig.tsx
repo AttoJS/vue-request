@@ -1,5 +1,5 @@
-import type { PropType } from 'vue';
-import { defineComponent, provide } from 'vue';
+import type { PropType } from 'vue-demi';
+import { defineComponent, provide } from 'vue-demi';
 
 import { GLOBAL_OPTIONS_PROVIDE_KEY } from './core/config';
 import type { GlobalOptions } from './core/types';
