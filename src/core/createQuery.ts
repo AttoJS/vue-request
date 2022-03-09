@@ -1,17 +1,16 @@
-import type { Ref } from 'vue';
-import { computed, ref } from 'vue';
+import type { Ref } from 'vue-demi';
+import { ref } from 'vue-demi';
 
-import type { Config, InnerQueryState, Mutate, Query, State } from './types';
-import {
-  isDocumentVisibility,
-  isFunction,
-  isNil,
-  isOnline,
-  resolvedPromise,
-} from './utils';
-import limitTrigger from './utils/limitTrigger';
-import subscriber from './utils/listener';
-import { debounce, throttle } from './utils/lodash';
+import type {
+  BaseOptions,
+  EmitResults,
+  FunctionContext,
+  PluginType,
+  Query,
+  Service,
+  State,
+} from './types';
+import { isFunction, resolvedPromise } from './utils';
 import type { UnWrapRefObject } from './utils/types';
 
 const setStateBind = <R, P extends unknown[], T extends State<R, P>>(
@@ -27,39 +26,19 @@ const setStateBind = <R, P extends unknown[], T extends State<R, P>>(
 };
 
 const createQuery = <R, P extends unknown[]>(
-  query: Query<R, P>,
-  config: Config<R, P>,
+  service: Service<R, P>,
+  config: BaseOptions<R, P>,
   initialState?: UnWrapRefObject<State<R, P>>,
-): InnerQueryState<R, P> => {
-  const {
-    initialAutoRunFlag,
-    initialData,
-    loadingDelay,
-    pollingInterval,
-    debounceInterval,
-    debounceOptions,
-    throttleInterval,
-    throttleOptions,
-    pollingWhenHidden,
-    pollingWhenOffline,
-    errorRetryCount,
-    errorRetryInterval,
-    stopPollingWhenHiddenOrOffline,
-    refreshOnWindowFocus,
-    refocusTimespan,
-    updateCache,
-    formatResult,
-    onSuccess,
-    onError,
-    onBefore,
-    onAfter,
-  } = config;
+): Query<R, P> => {
+  const { initialData, onSuccess, onError, onBefore, onAfter } = config;
 
-  const retriedCount = ref(0);
   const loading = ref(initialState?.loading ?? false);
   const data = ref(initialState?.data ?? initialData) as Ref<R>;
   const error = ref(initialState?.error);
-  const params = ref(initialState?.params ?? []) as Ref<P>;
+  const params = ref(initialState?.params) as Ref<P>;
+  const plugins = ref([]) as Query<R, P>['plugins'];
+
+  const context = {} as FunctionContext<R, P>;
 
   const setState = setStateBind(
     {
@@ -68,246 +47,96 @@ const createQuery = <R, P extends unknown[]>(
       error,
       params,
     },
-    [state => updateCache(state)],
+    [],
   );
 
-  // reset retried count
-  const resetRetriedCount = () => {
-    retriedCount.value = 0;
+  const emit = (
+    event: keyof PluginType<R, P>,
+    ...args: any[]
+  ): EmitResults<R, P> => {
+    // @ts-ignore
+    const res = plugins.value.map(i => i[event]?.(...args));
+    return Object.assign({}, ...res);
   };
 
   const count = ref(0);
-  const pollingTimer = ref();
-  const retryTimer = ref();
-  const delayLoadingTimer = ref();
 
-  const clearAllTimer = () => {
-    // clear pollingTimer
-    if (pollingTimer.value) {
-      pollingTimer.value();
-    }
-
-    // clear delayLoadingTimer
-    if (delayLoadingTimer.value) {
-      delayLoadingTimer.value();
-    }
-
-    // clear retryTimer
-    if (retryTimer.value) {
-      retryTimer.value();
-    }
-  };
-
-  const delayLoading = () => {
-    let timerId: number;
-
-    if (loadingDelay) {
-      timerId = setTimeout(setState, loadingDelay, {
-        loading: true,
-      });
-    }
-
-    return () => timerId && clearTimeout(timerId);
-  };
-
-  const polling = (pollingFunc: () => void) => {
-    // if errorRetry is enabled, then skip this method
-    if (error.value && errorRetryCount !== 0) return;
-
-    let timerId: number;
-    if (!isNil(pollingInterval) && pollingInterval! >= 0) {
-      if (
-        (pollingWhenHidden || isDocumentVisibility()) &&
-        (pollingWhenOffline || isOnline())
-      ) {
-        timerId = setTimeout(pollingFunc, pollingInterval);
-      } else {
-        // stop polling
-        stopPollingWhenHiddenOrOffline.value = true;
-        return;
-      }
-    }
-
-    return () => timerId && clearTimeout(timerId);
-  };
-
-  const actualErrorRetryInterval = computed(() => {
-    if (errorRetryInterval) return errorRetryInterval;
-    const baseTime = 1000;
-    const minCoefficient = 1;
-    const maxCoefficient = 9;
-    // When retrying for the first time, in order to avoid the coefficient being 0
-    // so replace 0 with 2, the coefficient range will become 1 - 2
-    const coefficient = Math.floor(
-      Math.random() * 2 ** Math.min(retriedCount.value, maxCoefficient) +
-        minCoefficient,
-    );
-    return baseTime * coefficient;
-  });
-
-  const errorRetryHooks = (retryFunc: () => void) => {
-    let timerId: number;
-    const isInfiniteRetry = errorRetryCount === -1;
-    const hasRetryCount = retriedCount.value < errorRetryCount;
-
-    // if errorRetryCount is -1, it will retry the request until it success
-    if (error.value && (isInfiniteRetry || hasRetryCount)) {
-      if (!isInfiniteRetry) retriedCount.value += 1;
-      timerId = setTimeout(retryFunc, actualErrorRetryInterval.value);
-    }
-    return () => timerId && clearTimeout(timerId);
-  };
-
-  const _run = (...args: P) => {
+  context._run = async (...args: P) => {
     setState({
-      loading: !loadingDelay,
+      loading: true,
       params: args,
     });
 
-    delayLoadingTimer.value = delayLoading();
     count.value += 1;
     const currentCount = count.value;
 
-    // onBefore hooks
+    const { isBreak, breakResult = resolvedPromise } = emit('onBefore', args);
+    if (isBreak) return breakResult;
+
     onBefore?.(args);
 
-    return query(...args)
-      .then(res => {
-        if (currentCount === count.value) {
-          const formattedResult = formatResult ? formatResult(res) : res;
+    try {
+      const res = await service(...args);
+      if (currentCount !== count.value) return resolvedPromise;
 
-          setState({
-            data: formattedResult,
-            loading: false,
-            error: undefined,
-          });
-
-          if (onSuccess) {
-            onSuccess(formattedResult, args);
-          }
-
-          resetRetriedCount();
-          return formattedResult;
-        }
-        return resolvedPromise;
-      })
-      .catch(error => {
-        if (currentCount === count.value) {
-          setState({
-            data: undefined,
-            loading: false,
-            error: error,
-          });
-          if (onError) {
-            onError(error, args);
-          }
-
-          console.error(error);
-        }
-        return resolvedPromise;
-      })
-      .finally(() => {
-        if (currentCount === count.value) {
-          // clear delayLoadingTimer
-          delayLoadingTimer.value();
-
-          // retry
-          retryTimer.value = errorRetryHooks(() => _run(...args));
-
-          // run for polling
-          pollingTimer.value = polling(() => _run(...args));
-
-          // onAfter hooks
-          onAfter?.(args);
-        }
+      setState({
+        data: res,
+        loading: false,
+        error: undefined,
       });
+
+      emit('onSuccess', res, args);
+      onSuccess?.(res, args);
+
+      emit('onAfter', args, res, undefined);
+      onAfter?.(args);
+
+      return res;
+    } catch (error) {
+      if (currentCount !== count.value) return resolvedPromise;
+
+      setState({
+        data: undefined,
+        loading: false,
+        error: error,
+      });
+
+      emit('onError', error, args);
+      onError?.(error, args);
+
+      emit('onAfter', args, undefined, error);
+      onAfter?.(args);
+
+      throw error;
+    }
   };
 
-  const debouncedRun =
-    !isNil(debounceInterval) &&
-    debounce(_run, debounceInterval!, debounceOptions);
-  const throttledRun =
-    !isNil(throttleInterval) &&
-    throttle(_run, throttleInterval!, throttleOptions);
-
-  const run = (...args: P) => {
-    clearAllTimer();
-    // initial auto run should not debounce
-    if (!initialAutoRunFlag.value && debouncedRun) {
-      debouncedRun(...args);
-      return resolvedPromise;
-    }
-
-    if (throttledRun) {
-      throttledRun(...args);
-      return resolvedPromise;
-    }
-    resetRetriedCount();
-
-    return _run(...args);
+  context.run = async (...args: P) => {
+    return context._run(...args).catch(error => {
+      if (!onError) {
+        console.error(error);
+      }
+    });
   };
 
-  const cancel = () => {
+  context.cancel = () => {
     count.value += 1;
     setState({ loading: false });
 
-    if (debouncedRun) {
-      debouncedRun.cancel();
-    }
-    if (throttledRun) {
-      throttledRun.cancel();
-    }
-
-    clearAllTimer();
+    emit('onCancel');
   };
 
-  const refresh = () => {
-    return run(...params.value);
+  context.refresh = () => {
+    return context.run(...params.value);
   };
 
-  const mutate: Mutate<R> = x => {
+  context.mutate = x => {
     const mutateData = isFunction(x) ? x(data.value) : x;
     setState({
       data: mutateData,
     });
-  };
 
-  // collect subscribers, in order to unsubscribe when the component unmounted
-  const unsubscribeList: (() => void)[] = [];
-  const addUnsubscribeList = (event?: () => void) => {
-    event && unsubscribeList.push(event);
-  };
-
-  const rePolling = () => {
-    if (
-      stopPollingWhenHiddenOrOffline.value &&
-      (pollingWhenHidden || isDocumentVisibility()) &&
-      (pollingWhenOffline || isOnline())
-    ) {
-      refresh();
-      stopPollingWhenHiddenOrOffline.value = false;
-    }
-  };
-
-  // subscribe polling
-  if (!pollingWhenHidden) {
-    addUnsubscribeList(subscriber('VISIBLE_LISTENER', rePolling));
-  }
-
-  // subscribe online when pollingWhenOffline is false
-  if (!pollingWhenOffline) {
-    addUnsubscribeList(subscriber('RECONNECT_LISTENER', rePolling));
-  }
-
-  const limitRefresh = limitTrigger(refresh, refocusTimespan!);
-  // subscribe window focus or visible
-  if (refreshOnWindowFocus) {
-    addUnsubscribeList(subscriber('VISIBLE_LISTENER', limitRefresh));
-    addUnsubscribeList(subscriber('FOCUS_LISTENER', limitRefresh));
-  }
-
-  const unmount = () => {
-    unsubscribeList.forEach(unsubscribe => unsubscribe());
+    emit('onMutate', mutateData);
   };
 
   return {
@@ -315,11 +144,9 @@ const createQuery = <R, P extends unknown[]>(
     data,
     error,
     params,
-    run,
-    cancel,
-    refresh,
-    mutate,
-    unmount,
+    plugins,
+    context,
+    ...context,
   };
 };
 

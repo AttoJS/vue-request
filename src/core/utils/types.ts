@@ -1,4 +1,4 @@
-import type { Ref } from 'vue';
+import type { Ref } from 'vue-demi';
 
 import type { Query } from '../types';
 
@@ -11,6 +11,7 @@ export type RefObject = {
 };
 
 export type UnRef<T> = T extends Ref<infer V> ? V : T;
+export type EmitVoid<T> = T extends void ? never : T;
 
 export type UnWrapRefObject<T> = {
   [P in keyof T]: UnRef<T[P]>;
@@ -22,9 +23,3 @@ export type ServiceObject = Partial<RequestInit> & {
 };
 
 export type ServiceParams = string | ServiceObject;
-
-export type IService<R, P extends unknown[]> =
-  | ((...args: P) => ServiceParams)
-  | ServiceParams
-  | Query<R, P>
-  | Promise<R>;

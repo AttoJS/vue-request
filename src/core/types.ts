@@ -1,27 +1,13 @@
 /* istanbul ignore next */
 
-import type { Ref, WatchSource } from 'vue';
+import type { Ref, WatchSource } from 'vue-demi';
 
-import type { LoadMoreExtendsOption } from '../useLoadMore';
-import type { PaginationExtendsOption } from '../usePagination';
-import type { UnWrapRefObject } from './utils/types';
+import type { EmitVoid } from './utils/types';
 
-export interface BaseResult<R, P extends unknown[]> extends QueryState<R, P> {
-  queries: Queries<R, P>;
-  reset: () => void;
-}
-
-export type UnWrapState<R, P extends unknown[]> = UnWrapRefObject<
-  InnerQueryState<R, P>
->;
-
-export type Queries<R, P extends unknown[]> = {
-  [key: string]: UnWrapState<R, P>;
-};
 type MutateData<R> = (newData: R) => void;
 type MutateFunction<R> = (arg: (oldData: R) => R) => void;
 // P means params, R means Response
-export type Query<R, P extends unknown[]> = (...args: P) => Promise<R>;
+export type Service<R, P extends unknown[]> = (...args: P) => Promise<R>;
 export interface Mutate<R> extends MutateData<R>, MutateFunction<R> {}
 
 export type State<R, P> = {
@@ -31,16 +17,19 @@ export type State<R, P> = {
   params: Ref<P>;
 };
 
-export interface QueryState<R, P extends unknown[]> extends State<R, P> {
-  run: (...arg: P) => Promise<R | null>;
-  cancel: () => void;
-  refresh: () => Promise<R | null>;
-  mutate: Mutate<R>;
+export interface Query<R, P extends unknown[]>
+  extends State<R, P>,
+    FunctionContext<R, P> {
+  context: FunctionContext<R, P>;
+  plugins: Ref<Partial<PluginType<R, P>>[]>;
 }
 
-export interface InnerQueryState<R, P extends unknown[]>
-  extends QueryState<R, P> {
-  unmount: () => void;
+export interface FunctionContext<R, P extends unknown[]> {
+  _run: (...arg: P) => Promise<R | null | void>;
+  run: (...arg: P) => Promise<R | null | void>;
+  cancel: () => void;
+  refresh: () => Promise<R | null | void>;
+  mutate: Mutate<R>;
 }
 
 interface DebounceOptions {
@@ -50,11 +39,7 @@ interface DebounceOptions {
 }
 type ThrottleOptions = Omit<DebounceOptions, 'maxWait'>;
 
-export interface GlobalOptions
-  // usePagination config
-  extends PaginationExtendsOption,
-    // useLoadMore config
-    LoadMoreExtendsOption {
+export interface GlobalOptions {
   loadingDelay?: number;
   pollingInterval?: number;
   pollingWhenHidden?: boolean;
@@ -80,48 +65,33 @@ export type BaseOptions<R, P extends unknown[]> = GlobalOptions & {
   initialData?: R;
   refreshDeps?: WatchSource<any>[];
   cacheKey?: string;
-  queryKey?: (...args: P) => string;
   onSuccess?: (data: R, params: P) => void;
   onError?: (error: Error, params: P) => void;
   onBefore?: (params: P) => void;
   onAfter?: (params: P) => void;
 };
 
-const FRPlaceholderType = Symbol('FR');
-export type FRPlaceholderType = typeof FRPlaceholderType;
+export type PluginImplementType<R, P extends any[]> = {
+  (queryInstance: Query<R, P>, config: BaseOptions<R, P>): Partial<
+    PluginType<R, P>
+  >;
+};
 
-// temporary fix: https://github.com/AttoJS/vue-request/issues/31
-// When `formatResult` and `onSuccess` are used at the same time
-// the type of the parameter `data` of `onSuccess` is temporarily set to `any`
-export type FormatOptions<R, P extends unknown[], FR> = {
-  formatResult: (data: R) => FR;
-  onSuccess?: (
-    data: FR extends FRPlaceholderType ? any : FR,
+export type PluginType<R, P extends unknown[]> = {
+  onBefore: (
     params: P,
-  ) => void;
-} & Omit<BaseOptions<FR, P>, 'onSuccess'>;
+  ) => {
+    isBreak?: Boolean;
+    breakResult?: any;
+  } | void;
 
-export type MixinOptions<R, P extends unknown[], FR> =
-  | BaseOptions<R, P>
-  | FormatOptions<R, P, FR>;
+  onSuccess(data: R, params: P): void;
+  onError(error: Error, params: P): void;
+  onAfter(params: P, data: R, error: Error): void;
+  onCancel(): void;
+  onMutate(data: R): void;
+};
 
-export type Config<R, P extends unknown[]> = Omit<
-  BaseOptions<R, P>,
-  'defaultParams' | 'manual' | 'ready' | 'refreshDeps' | 'queryKey'
-> &
-  Required<
-    Pick<
-      BaseOptions<R, P>,
-      | 'loadingDelay'
-      | 'pollingWhenHidden'
-      | 'pollingWhenOffline'
-      | 'refreshOnWindowFocus'
-      | 'errorRetryCount'
-      | 'errorRetryInterval'
-    >
-  > & {
-    stopPollingWhenHiddenOrOffline: Ref<boolean>;
-    initialAutoRunFlag: Ref<boolean>;
-    formatResult?: (data: any) => R;
-    updateCache: (state: State<R, P>) => void;
-  };
+export type EmitResults<R, P extends unknown[]> = EmitVoid<
+  ReturnType<PluginType<R, P>['onBefore']>
+>;
