@@ -1,60 +1,30 @@
-import type { Ref } from 'vue';
-import { ref } from 'vue';
+import useCachePlugin from './core/plugins/useCachePlugin';
+import useDebouncePlugin from './core/plugins/useDebouncePlugin';
+import useErrorRetryPlugin from './core/plugins/useErrorRetryPlugin';
+import useLoadingDelayPlugin from './core/plugins/useLoadingDelayPlugin';
+import usePollingPlugin from './core/plugins/usePollingPlugin';
+import useReadyPlugin from './core/plugins/useReadyPlugin';
+import useRefreshDepsPlugin from './core/plugins/useRefreshDepsPlugin';
+import useRefreshOnWindowFocus from './core/plugins/useRefreshOnWindowFocus';
+import useThrottlePlugin from './core/plugins/useThrottlePlugin';
+import type { BaseOptions, Service } from './core/types';
+import useQuery from './core/useQuery';
 
-import type {
-  BaseOptions,
-  BaseResult,
-  FormatOptions,
-  FRPlaceholderType,
-  MixinOptions,
-} from './core/types';
-import useAsyncQuery from './core/useAsyncQuery';
-import generateService from './core/utils/generateService';
-import type { IService } from './core/utils/types';
-
-export interface RequestResult<R, P extends unknown[]>
-  extends Omit<BaseResult<R, P>, 'reset'> {
-  reloading: Ref<boolean>;
-  reload: () => void;
-}
 function useRequest<R, P extends unknown[] = any>(
-  service: IService<R, P>,
-): RequestResult<R, P>;
-function useRequest<R, P extends unknown[] = any, FR = FRPlaceholderType>(
-  service: IService<R, P>,
-  options: FormatOptions<R, P, FR>,
-): RequestResult<FR, P>;
-function useRequest<R, P extends unknown[] = any>(
-  service: IService<R, P>,
-  options: BaseOptions<R, P>,
-): RequestResult<R, P>;
-function useRequest<R, P extends unknown[], FR>(
-  service: IService<R, P>,
-  options?: MixinOptions<R, P, FR>,
+  service: Service<R, P>,
+  options?: BaseOptions<R, P>,
 ) {
-  const promiseQuery = generateService(service);
-  const { reset, run, ...rest } = useAsyncQuery<R, P>(
-    promiseQuery,
-    (options ?? {}) as any,
-  );
-
-  const reloading = ref(false);
-  const reload = async () => {
-    const { defaultParams = ([] as unknown) as P, manual } = options!;
-    reset();
-    if (!manual) {
-      reloading.value = true;
-      await run(...defaultParams);
-      reloading.value = false;
-    }
-  };
-
-  return {
-    reload,
-    run,
-    reloading,
-    ...rest,
-  };
+  return useQuery<R, P>(service, options || {}, [
+    useLoadingDelayPlugin,
+    useErrorRetryPlugin,
+    useDebouncePlugin,
+    usePollingPlugin,
+    useThrottlePlugin,
+    useRefreshOnWindowFocus,
+    useRefreshDepsPlugin,
+    useReadyPlugin,
+    useCachePlugin,
+  ]);
 }
 
 export default useRequest;
