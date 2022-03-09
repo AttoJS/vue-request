@@ -1,4 +1,5 @@
 import { isNil } from './index';
+import type { Timeout } from './types';
 
 export type CacheData<R = any, P = any> = {
   data: R;
@@ -7,7 +8,7 @@ export type CacheData<R = any, P = any> = {
 };
 
 export type CacheResultType = CacheData & {
-  timer?: ReturnType<typeof setTimeout>;
+  timer?: Timeout;
 };
 type CacheKey = string;
 

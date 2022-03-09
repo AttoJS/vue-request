@@ -23,3 +23,5 @@ export type ServiceObject = Partial<RequestInit> & {
 };
 
 export type ServiceParams = string | ServiceObject;
+
+export type Timeout = ReturnType<typeof setTimeout>;

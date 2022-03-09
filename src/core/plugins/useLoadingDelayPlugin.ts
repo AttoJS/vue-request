@@ -1,12 +1,13 @@
 import { ref } from 'vue-demi';
 
 import { definePlugin } from '../definePlugin';
+import type { Timeout } from '../utils/types';
 
 export default definePlugin((queryInstance, { loadingDelay = 0 }) => {
   const delayLoadingTimer = ref();
 
   const delayLoading = () => {
-    let timerId: ReturnType<typeof setTimeout> | undefined;
+    let timerId: Timeout | undefined;
 
     if (loadingDelay) {
       timerId = setTimeout(() => {

@@ -3,6 +3,7 @@ import { onUnmounted, ref } from 'vue-demi';
 import { definePlugin } from '../definePlugin';
 import { isDocumentVisibility, isNil, isOnline } from '../utils';
 import subscriber from '../utils/listener';
+import type { Timeout } from '../utils/types';
 
 export default definePlugin(
   (
@@ -25,7 +26,7 @@ export default definePlugin(
       // if errorRetry is enabled, then skip this method
       if (queryInstance.error.value && errorRetryCount !== 0) return;
 
-      let timerId: ReturnType<typeof setTimeout> | undefined;
+      let timerId: Timeout | undefined;
       if (!isNil(pollingInterval) && pollingInterval! >= 0) {
         if (
           (pollingWhenHidden || isDocumentVisibility()) &&

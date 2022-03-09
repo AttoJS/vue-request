@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue-demi';
 
 import { definePlugin } from '../definePlugin';
+import type { Timeout } from '../utils/types';
 
 export default definePlugin(
   (queryInstance, { errorRetryCount = 0, errorRetryInterval = 0 }) => {
@@ -28,7 +29,7 @@ export default definePlugin(
     });
 
     const errorRetryHooks = () => {
-      let timerId: ReturnType<typeof setTimeout> | undefined;
+      let timerId: Timeout | undefined;
       const isInfiniteRetry = errorRetryCount === -1;
       const hasRetryCount = retriedCount.value < errorRetryCount;
 

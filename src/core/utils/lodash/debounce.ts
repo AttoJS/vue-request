@@ -4,6 +4,7 @@
  */
 /* istanbul ignore next */
 import { isObject } from '../index';
+import type { Timeout } from '../types';
 
 function debounce(
   func: (...args: any[]) => any,
@@ -14,7 +15,7 @@ function debounce(
     lastThis: undefined,
     maxWait: number,
     result: any,
-    timerId: number | undefined,
+    timerId: number | Timeout | undefined,
     lastCallTime: number | undefined;
 
   let lastInvokeTime = 0;
@@ -49,7 +50,7 @@ function debounce(
 
   function startTimer(pendingFunc: () => void, wait: number) {
     if (useRAF) {
-      window.cancelAnimationFrame(timerId!);
+      window.cancelAnimationFrame(timerId as number);
       return window.requestAnimationFrame(pendingFunc);
     }
     return setTimeout(pendingFunc, wait);
@@ -119,7 +120,7 @@ function debounce(
 
   function cancel() {
     if (timerId !== undefined) {
-      cancelTimer(timerId);
+      cancelTimer(timerId as number);
     }
     lastInvokeTime = 0;
     lastArgs = lastCallTime = lastThis = timerId = undefined;
