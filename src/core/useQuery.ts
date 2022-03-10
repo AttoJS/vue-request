@@ -11,8 +11,8 @@ import type {
 
 function useQuery<R, P extends unknown[]>(
   service: Service<R, P>,
-  options: BaseOptions<R, P>,
-  plugins: PluginImplementType<R, P>[],
+  options: BaseOptions<R, P> = {},
+  plugins: PluginImplementType<R, P>[] = [],
 ) {
   const injectedGlobalOptions = inject<GlobalOptions>(
     GLOBAL_OPTIONS_PROVIDE_KEY,

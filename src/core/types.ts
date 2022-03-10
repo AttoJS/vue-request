@@ -2,6 +2,7 @@
 
 import type { Ref, WatchSource } from 'vue-demi';
 
+import type { CacheData } from './utils/cache';
 import type { EmitVoid } from './utils/types';
 
 type MutateData<R> = (newData: R) => void;
@@ -57,6 +58,9 @@ export interface GlobalOptions {
   // error retry
   errorRetryCount?: number;
   errorRetryInterval?: number;
+  // custom cache
+  getCache?: (cacheKey: string) => CacheData;
+  setCache?: (cacheKey: string, cacheData: CacheData) => void;
 }
 
 export type BaseOptions<R, P extends unknown[]> = GlobalOptions & {

@@ -14,7 +14,7 @@ function useRequest<R, P extends unknown[] = any>(
   service: Service<R, P>,
   options?: BaseOptions<R, P>,
 ) {
-  return useQuery<R, P>(service, options || {}, [
+  return useQuery<R, P>(service, options, [
     useLoadingDelayPlugin,
     useErrorRetryPlugin,
     useDebouncePlugin,

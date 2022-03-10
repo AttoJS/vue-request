@@ -1406,6 +1406,271 @@ describe('useRequest', () => {
     expect(wrapper.data).toBe('5');
   });
 
+  test('custom cache should work', async () => {
+    const store = {};
+    const key = 'cacheKey';
+    let count = 0;
+    const TestComponent = defineComponent({
+      template: '<div/>',
+      setup() {
+        const { data, run } = useRequest(request, {
+          cacheKey: 'cacheKey',
+          setCache: (key, data) => {
+            store[key] = data;
+          },
+          getCache: key => store[key],
+        });
+        return {
+          run: () => run((count += 1)),
+          data,
+        };
+      },
+    });
+
+    let wrapper = mount(TestComponent);
+    expect(wrapper.data).toBeUndefined();
+    expect(store[key]).toBeUndefined();
+    await waitForTime(1000);
+    expect(wrapper.data).toBe('success');
+    expect(store[key].data).toBe('success');
+    expect(store[key].params).toMatchObject([]);
+
+    for (let index = 0; index < 5; index++) {
+      wrapper.run();
+      await waitForTime(1000);
+    }
+
+    expect(wrapper.data).toBe('5');
+    expect(store[key].data).toBe('5');
+    expect(store[key].params).toMatchObject([5]);
+    wrapper.unmount();
+
+    // remount component
+    wrapper = mount(TestComponent);
+    expect(wrapper.data).toBe('5');
+    expect(store[key].data).toBe('5');
+    expect(store[key].params).toMatchObject([5]);
+    await waitForTime(1000);
+    expect(wrapper.data).toBe('5');
+    expect(store[key].data).toBe('5');
+    expect(store[key].params).toMatchObject([5]);
+    for (let index = 0; index < 5; index++) {
+      wrapper.run();
+      await waitForTime(1000);
+    }
+    expect(wrapper.data).toBe('10');
+    expect(store[key].params).toMatchObject([10]);
+    expect(store[key].data).toBe('10');
+  });
+
+  test('custom cache should work with staleTime', async () => {
+    const store = {};
+    const key = 'cacheKey';
+    let count = 0;
+    const TestComponent = defineComponent({
+      template: '<div/>',
+      setup() {
+        const { data, run, loading } = useRequest(request, {
+          cacheKey: 'cacheKey',
+          staleTime: 5000,
+          setCache: (key, data) => {
+            store[key] = data;
+          },
+          getCache: key => store[key],
+        });
+        return {
+          run: () => run((count += 1)),
+          data,
+          loading,
+        };
+      },
+    });
+
+    let wrapper = mount(TestComponent);
+    expect(wrapper.data).toBeUndefined();
+    expect(store[key]).toBeUndefined();
+    expect(wrapper.loading).toBe(true);
+
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+    expect(store[key].data).toBe('success');
+    expect(wrapper.data).toBe('success');
+
+    wrapper.run();
+    expect(wrapper.loading).toBe(false);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+    expect(store[key].data).toBe('success');
+    expect(wrapper.data).toBe('success');
+
+    // waiting for stale timeout
+    jest.setSystemTime(new Date().getTime() + 4000);
+    expect(wrapper.loading).toBe(false);
+    expect(wrapper.data).toBe('success');
+    expect(store[key].data).toBe('success');
+
+    wrapper.run();
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+    expect(wrapper.data).toBe('2');
+    expect(store[key].data).toBe('2');
+    wrapper.unmount();
+
+    // remount component
+    wrapper = mount(TestComponent);
+    expect(wrapper.loading).toBe(false);
+    expect(wrapper.data).toBe('2');
+    expect(store[key].data).toBe('2');
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+    expect(wrapper.data).toBe('2');
+    expect(store[key].data).toBe('2');
+
+    // waiting for stale timeout
+    jest.setSystemTime(new Date().getTime() + 4000);
+    wrapper.run();
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+    expect(wrapper.data).toBe('3');
+    expect(store[key].data).toBe('3');
+
+    wrapper.run();
+    expect(wrapper.loading).toBe(false);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+    expect(wrapper.data).toBe('3');
+    expect(store[key].data).toBe('3');
+
+    // waiting for stale timeout
+    jest.setSystemTime(new Date().getTime() + 4000);
+    wrapper.run();
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+    expect(wrapper.data).toBe('5');
+    expect(store[key].data).toBe('5');
+
+    // remount component
+    wrapper = mount(TestComponent);
+    expect(wrapper.loading).toBe(false);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+    expect(wrapper.data).toBe('5');
+    expect(store[key].data).toBe('5');
+  });
+
+  test('global custom cache should work', async () => {
+    const store = {};
+    const keyA = 'A';
+    const keyB = 'B';
+    let countA = 0;
+    let countB = 0;
+    const ComponentA = defineComponent({
+      template: '<div/>',
+      setup() {
+        const { data, run } = useRequest(request, {
+          cacheKey: keyA,
+        });
+        return {
+          run: () => run((countA += 1)),
+          data,
+        };
+      },
+    });
+    const ComponentB = defineComponent({
+      template: '<div/>',
+      setup() {
+        const { data, run } = useRequest(request, {
+          cacheKey: keyB,
+        });
+        return {
+          run: () => run((countB += 2)),
+          data,
+        };
+      },
+    });
+
+    setGlobalOptions({
+      setCache: (key, data) => {
+        store[key] = data;
+      },
+      getCache: key => store[key],
+    });
+
+    let wrapperA = mount(ComponentA);
+    let wrapperB = mount(ComponentB);
+
+    expect(store[keyA]).toBeUndefined();
+    expect(store[keyB]).toBeUndefined();
+    expect(wrapperA.data).toBeUndefined();
+    expect(wrapperB.data).toBeUndefined();
+
+    await waitForTime(1000);
+    expect(wrapperA.data).toBe('success');
+    expect(wrapperB.data).toBe('success');
+    expect(store[keyA].data).toBe('success');
+    expect(store[keyB].data).toBe('success');
+    expect(store[keyA].params).toMatchObject([]);
+    expect(store[keyB].params).toMatchObject([]);
+
+    wrapperA.run();
+    wrapperB.run();
+    await waitForTime(1000);
+    expect(wrapperA.data).toBe('1');
+    expect(wrapperB.data).toBe('2');
+
+    expect(store[keyA].data).toBe('1');
+    expect(store[keyB].data).toBe('2');
+
+    expect(store[keyA].params).toMatchObject([1]);
+    expect(store[keyB].params).toMatchObject([2]);
+
+    wrapperA.unmount();
+    wrapperB.unmount();
+
+    expect(store[keyA].data).toBe('1');
+    expect(store[keyB].data).toBe('2');
+
+    expect(store[keyA].params).toMatchObject([1]);
+    expect(store[keyB].params).toMatchObject([2]);
+
+    wrapperA = mount(ComponentA);
+    wrapperB = mount(ComponentB);
+    expect(wrapperA.data).toBe('1');
+    expect(wrapperB.data).toBe('2');
+
+    expect(store[keyA].data).toBe('1');
+    expect(store[keyB].data).toBe('2');
+
+    expect(store[keyA].params).toMatchObject([1]);
+    expect(store[keyB].params).toMatchObject([2]);
+
+    wrapperA.run();
+    wrapperB.run();
+    await waitForTime(1000);
+    expect(wrapperA.data).toBe('2');
+    expect(wrapperB.data).toBe('4');
+
+    expect(store[keyA].data).toBe('2');
+    expect(store[keyB].data).toBe('4');
+
+    expect(store[keyA].params).toMatchObject([2]);
+    expect(store[keyB].params).toMatchObject([4]);
+
+    // clear global options
+    clearGlobalOptions();
+    wrapperA = mount(ComponentA);
+    wrapperB = mount(ComponentB);
+
+    expect(wrapperA.data).toBeUndefined();
+    expect(wrapperB.data).toBeUndefined();
+    await waitForTime(1000);
+    expect(wrapperA.data).toBe('success');
+    expect(wrapperB.data).toBe('success');
+  });
+
   test('errorRetry should work. case 1', async () => {
     const wrapper = mount(
       defineComponent({
