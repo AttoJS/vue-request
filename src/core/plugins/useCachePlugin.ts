@@ -1,6 +1,9 @@
+import { onUnmounted, ref } from 'vue-demi';
+
 import { definePlugin } from '../definePlugin';
 import type { CacheData } from '../utils/cache';
 import { getCache, setCache } from '../utils/cache';
+import { subscribe, trigger } from '../utils/cacheSubscribe';
 
 export default definePlugin(
   (
@@ -14,6 +17,9 @@ export default definePlugin(
     },
   ) => {
     if (!cacheKey) return {};
+
+    const unSubscribe = ref();
+
     const _getCache = (key: string) => {
       if (customGetCache) {
         return customGetCache(key);
@@ -24,10 +30,11 @@ export default definePlugin(
 
     const _setCache = (key: string, time: number, cacheData: CacheData) => {
       if (customSetCache) {
-        return customSetCache(key, cacheData);
+        customSetCache(key, cacheData);
       } else {
-        return setCache(key, time, cacheData);
+        setCache(key, time, cacheData);
       }
+      trigger(key, cacheData.data);
     };
 
     const isFresh = (time: number) =>
@@ -38,12 +45,23 @@ export default definePlugin(
     const hasProp = <T>(object: Partial<Record<keyof T, any>>, prop: keyof T) =>
       Object.prototype.hasOwnProperty.call(object, prop);
 
+    const subscribeCache = () =>
+      subscribe(cacheKey, data => {
+        queryInstance.data.value = data;
+      });
+
     // When initializing, restore if there is a cache
     const cache = _getCache(cacheKey);
     if (cache && hasProp(cache, 'data')) {
       queryInstance.data.value = cache.data;
       queryInstance.params.value = cache.params || [];
     }
+
+    unSubscribe.value = subscribeCache();
+
+    onUnmounted(() => {
+      unSubscribe.value?.();
+    });
 
     return {
       onBefore() {
@@ -65,18 +83,26 @@ export default definePlugin(
         }
       },
       onSuccess(data, params) {
+        unSubscribe.value?.();
+
         _setCache(cacheKey, cacheTime, {
           data,
           params,
           time: new Date().getTime(),
         });
+
+        unSubscribe.value = subscribeCache();
       },
       onMutate(data) {
+        unSubscribe.value?.();
+
         _setCache(cacheKey, cacheTime, {
           data,
           params: queryInstance.params,
           time: new Date().getTime(),
         });
+
+        unSubscribe.value = subscribeCache();
       },
     };
   },

@@ -1561,6 +1561,78 @@ describe('useRequest', () => {
     expect(store[key].data).toBe('5');
   });
 
+  test('cache can be shared', async () => {
+    let count = 0;
+    const TestComponentA = defineComponent({
+      template: '<div/>',
+      setup() {
+        const { data, run } = useRequest(request, {
+          cacheKey: 'cacheKey',
+          cacheTime: 10000,
+        });
+        return {
+          run: () => run((count += 1)),
+          data,
+        };
+      },
+    });
+
+    const TestComponentB = defineComponent({
+      template: '<div/>',
+      setup() {
+        const { data, run } = useRequest(request, {
+          cacheKey: 'cacheKey',
+          cacheTime: 10000,
+        });
+        return {
+          run: () => run((count += 1)),
+          data,
+        };
+      },
+    });
+
+    let wrapperA = mount(TestComponentA);
+    let wrapperB = mount(TestComponentB);
+    expect(wrapperA.data).toBeUndefined();
+    await waitForTime(1000);
+    expect(wrapperA.data).toBe('success');
+    expect(wrapperB.data).toBe('success');
+    for (let index = 0; index < 5; index++) {
+      wrapperA.run();
+      await waitForTime(1000);
+    }
+
+    expect(wrapperA.data).toBe('5');
+    expect(wrapperB.data).toBe('5');
+    wrapperA.unmount();
+    wrapperB.unmount();
+
+    // remount component
+    wrapperA = mount(TestComponentA);
+    wrapperB = mount(TestComponentB);
+    expect(wrapperA.data).toBe('5');
+    expect(wrapperB.data).toBe('5');
+    await waitForTime(1000);
+    expect(wrapperA.data).toBe('5');
+    expect(wrapperB.data).toBe('5');
+    for (let index = 0; index < 5; index++) {
+      wrapperA.run();
+      await waitForTime(1000);
+    }
+    expect(wrapperA.data).toBe('10');
+    expect(wrapperB.data).toBe('10');
+    wrapperA.unmount();
+    wrapperB.unmount();
+    // waiting for cache timeout
+    waitForTime(10000);
+
+    // remount component
+    wrapperA = mount(TestComponentA);
+    wrapperB = mount(TestComponentB);
+    expect(wrapperA.data).toBeUndefined();
+    expect(wrapperB.data).toBeUndefined();
+  });
+
   test('global custom cache should work', async () => {
     const store = {};
     const keyA = 'A';
