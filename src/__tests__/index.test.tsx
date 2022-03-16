@@ -319,7 +319,7 @@ describe('useRequest', () => {
     expect(wrapper.data).toBe('success');
   });
 
-  test('ready should save the first time request params : case 1', async () => {
+  test('ready should save the first time request params', async () => {
     const wrapper = mount(
       defineComponent({
         template: '<div/>',
@@ -350,45 +350,14 @@ describe('useRequest', () => {
     expect(wrapper.data).toBe('run');
   });
 
-  test('ready should save the first time request params : case 2', async () => {
-    const wrapper = mount(
-      defineComponent({
-        template: '<div/>',
-        setup() {
-          const readyRef = ref(false);
-          const { data, run } = useRequest(request, {
-            ready: readyRef,
-            defaultParams: ['default'],
-          });
-
-          const handleUpdateReady = () => {
-            readyRef.value = true;
-          };
-
-          return {
-            handleUpdateReady,
-            run: () => run('run'),
-            data,
-          };
-        },
-      }),
-    );
-    await waitForAll();
-    expect(wrapper.data).toBeUndefined();
-    wrapper.handleUpdateReady();
-    wrapper.run();
-    await waitForAll();
-    expect(wrapper.data).toBe('run');
-  });
-
-  test('track ready when ready initial value is false', async () => {
+  test('track ready when ready initial value is true', async () => {
     const wrapper = mount(
       defineComponent({
         template: '<div/>',
         setup() {
           const readyRef = ref(true);
           const count = ref(0);
-          const { data, run } = useRequest(request, {
+          const { data, run, loading } = useRequest(request, {
             ready: readyRef,
             defaultParams: [count.value],
           });
@@ -400,6 +369,7 @@ describe('useRequest', () => {
           };
           return {
             data,
+            loading,
             handleUpdateReady,
           };
         },
@@ -408,44 +378,240 @@ describe('useRequest', () => {
     await waitForAll();
     expect(wrapper.data).toBe('0');
     wrapper.handleUpdateReady();
+    expect(wrapper.loading).toBe(false);
     await waitForAll();
-    expect(wrapper.data).toBe('1');
+    expect(wrapper.data).toBe('0');
+
+    wrapper.handleUpdateReady();
+    expect(wrapper.loading).toBe(true);
+    await waitForAll();
+    expect(wrapper.data).toBe('2');
   });
 
-  test('ready should work only once', async () => {
+  test('ready should work when manual is true', async () => {
+    let count = 0;
     const wrapper = mount(
       defineComponent({
         template: '<div/>',
         setup() {
           const readyRef = ref(false);
-          const count = ref(0);
-          const { data, run } = useRequest(request, {
+          const { data, loading, run } = useRequest(request, {
             ready: readyRef,
-            defaultParams: [count.value],
+            defaultParams: ['default'],
+            manual: true,
           });
-
           const handleUpdateReady = () => {
             readyRef.value = !readyRef.value;
-            count.value += 1;
-            run(count.value);
           };
           return {
-            data,
             handleUpdateReady,
+            run: () => run(`${(count += 1)}`),
+            data,
+            loading,
           };
         },
       }),
     );
+    // ready = false
+    expect(wrapper.loading).toBe(false);
+    await waitForAll();
+    wrapper.run();
+    expect(wrapper.loading).toBe(false);
     await waitForAll();
     expect(wrapper.data).toBeUndefined();
+
+    // ready = true
     wrapper.handleUpdateReady();
-    // first click
+    expect(wrapper.loading).toBe(false);
     await waitForAll();
-    expect(wrapper.data).toBe('1');
-    wrapper.handleUpdateReady();
-    // second click
+    wrapper.run();
+    expect(wrapper.loading).toBe(true);
     await waitForAll();
     expect(wrapper.data).toBe('2');
+
+    // ready = false
+    wrapper.handleUpdateReady();
+    expect(wrapper.loading).toBe(false);
+    await waitForAll();
+    wrapper.run();
+    expect(wrapper.loading).toBe(false);
+    await waitForAll();
+    expect(wrapper.data).toBe('2');
+
+    // ready = true
+    wrapper.handleUpdateReady();
+    expect(wrapper.loading).toBe(false);
+    await waitForAll();
+    wrapper.run();
+    expect(wrapper.loading).toBe(true);
+    await waitForAll();
+    expect(wrapper.data).toBe('4');
+  });
+
+  test('ready should work when manual is false', async () => {
+    let count = 0;
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const readyRef = ref(false);
+          const { data, loading, run } = useRequest(request, {
+            ready: readyRef,
+            defaultParams: ['default'],
+          });
+          const handleUpdateReady = () => {
+            readyRef.value = !readyRef.value;
+          };
+          return {
+            handleUpdateReady,
+            run: () => run(`${(count += 1)}`),
+            data,
+            loading,
+          };
+        },
+      }),
+    );
+    // ready = false
+    expect(wrapper.loading).toBe(false);
+    await waitForAll();
+    wrapper.run();
+    expect(wrapper.loading).toBe(false);
+    await waitForAll();
+    expect(wrapper.data).toBeUndefined();
+
+    // ready = true
+    wrapper.handleUpdateReady();
+    expect(wrapper.loading).toBe(true);
+    await waitForAll();
+    expect(wrapper.data).toBe('default');
+    wrapper.run();
+    expect(wrapper.loading).toBe(true);
+    await waitForAll();
+    expect(wrapper.data).toBe('2');
+
+    // ready = false
+    wrapper.handleUpdateReady();
+    expect(wrapper.loading).toBe(false);
+    await waitForAll();
+    wrapper.run();
+    expect(wrapper.loading).toBe(false);
+    await waitForAll();
+    expect(wrapper.data).toBe('2');
+
+    // ready = true
+    wrapper.handleUpdateReady();
+    expect(wrapper.loading).toBe(true);
+    await waitForAll();
+    expect(wrapper.data).toBe('default');
+    wrapper.run();
+    expect(wrapper.loading).toBe(true);
+    await waitForAll();
+    expect(wrapper.data).toBe('4');
+  });
+
+  test('ready should work when manual is true and ready is true', async () => {
+    let count = 0;
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const readyRef = ref(true);
+          const { data, loading, run } = useRequest(request, {
+            ready: readyRef,
+            defaultParams: ['default'],
+            manual: true,
+          });
+          const handleUpdateReady = () => {
+            readyRef.value = !readyRef.value;
+          };
+          return {
+            handleUpdateReady,
+            run: () => run(`${(count += 1)}`),
+            data,
+            loading,
+          };
+        },
+      }),
+    );
+    // ready = true
+    expect(wrapper.loading).toBe(false);
+    await waitForAll();
+    expect(wrapper.data).toBeUndefined();
+    wrapper.run();
+    expect(wrapper.loading).toBe(true);
+    await waitForAll();
+    expect(wrapper.data).toBe('1');
+
+    // ready = false
+    wrapper.handleUpdateReady();
+    expect(wrapper.loading).toBe(false);
+    await waitForAll();
+    wrapper.run();
+    expect(wrapper.loading).toBe(false);
+    await waitForAll();
+    expect(wrapper.data).toBe('1');
+
+    // ready = true
+    wrapper.handleUpdateReady();
+    expect(wrapper.loading).toBe(false);
+    await waitForAll();
+    expect(wrapper.data).toBe('1');
+    wrapper.run();
+    expect(wrapper.loading).toBe(true);
+    await waitForAll();
+    expect(wrapper.data).toBe('3');
+  });
+
+  test('ready should work when manual is false and ready is true', async () => {
+    let count = 0;
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const readyRef = ref(true);
+          const { data, loading, run } = useRequest(request, {
+            ready: readyRef,
+            defaultParams: ['default'],
+          });
+          const handleUpdateReady = () => {
+            readyRef.value = !readyRef.value;
+          };
+          return {
+            handleUpdateReady,
+            run: () => run(`${(count += 1)}`),
+            data,
+            loading,
+          };
+        },
+      }),
+    );
+    // ready = true
+    expect(wrapper.loading).toBe(true);
+    await waitForAll();
+    expect(wrapper.data).toBe('default');
+    wrapper.run();
+    expect(wrapper.loading).toBe(true);
+    await waitForAll();
+    expect(wrapper.data).toBe('1');
+
+    // ready = false
+    wrapper.handleUpdateReady();
+    expect(wrapper.loading).toBe(false);
+    await waitForAll();
+    wrapper.run();
+    expect(wrapper.loading).toBe(false);
+    await waitForAll();
+    expect(wrapper.data).toBe('1');
+
+    // ready = true
+    wrapper.handleUpdateReady();
+    expect(wrapper.loading).toBe(true);
+    await waitForAll();
+    expect(wrapper.data).toBe('default');
+    wrapper.run();
+    expect(wrapper.loading).toBe(true);
+    await waitForAll();
+    expect(wrapper.data).toBe('3');
   });
 
   test('refreshDeps should work', async () => {
