@@ -210,24 +210,24 @@ describe('useRequest', () => {
     expect(wrapper.loading).toBe(false);
   });
 
-  // test('log request error by default', async () => {
-  //   console.error = jest.fn();
+  test('log request error by default', async () => {
+    console.error = jest.fn();
 
-  //   const wrapper = mount(
-  //     defineComponent({
-  //       template: '<div/>',
-  //       setup() {
-  //         const { run } = useRequest(failedRequest, { manual: true });
-  //         return {
-  //           run,
-  //         };
-  //       },
-  //     }),
-  //   );
-  //   wrapper.run();
-  //   await waitForAll();
-  //   expect(console.error).toHaveBeenCalledWith(new Error('fail'));
-  // });
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const { run } = useRequest(failedRequest, { manual: true });
+          return {
+            run,
+          };
+        },
+      }),
+    );
+    wrapper.run();
+    await waitForAll();
+    expect(console.error).toHaveBeenCalledWith(new Error('fail'));
+  });
 
   test('onSuccess should work', async () => {
     const mockSuccessCallback = jest.fn();
@@ -1909,6 +1909,47 @@ describe('useRequest', () => {
     expect(wrapperB.data).toBe('success');
   });
 
+  test('when the request fails, data will not be cleared', async () => {
+    let flag = true;
+    const mixinRequest = () => {
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          if (flag) {
+            resolve('success');
+          } else {
+            reject(new Error('fail'));
+          }
+        }, 1000);
+      });
+    };
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const { loading, error, data, run } = useRequest(mixinRequest);
+          return {
+            loading,
+            error,
+            data,
+            run,
+          };
+        },
+      }),
+    );
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.data).toBe('success');
+
+    // mock API error request
+    flag = false;
+
+    wrapper.run();
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.data).toBe('success');
+    expect(wrapper.error?.message).toBe('fail');
+  });
+
   test('errorRetry should work. case 1', async () => {
     const wrapper = mount(
       defineComponent({
@@ -2071,25 +2112,21 @@ describe('useRequest', () => {
     // retrying
     for (let index = 0; index < 3; index++) {
       expect(wrapper.loading).toBe(true);
-      if (index === 0) {
-        expect(wrapper.data).toBe('success');
-      } else {
-        expect(wrapper.data).toBeUndefined();
-      }
+      expect(wrapper.data).toBe('success');
       await waitForTime(1000);
-      expect(wrapper.data).toBeUndefined();
+      expect(wrapper.data).toBe('success');
       expect(wrapper.error?.message).toBe('fail');
       await waitForTime(600);
     }
 
     // stop retry
     expect(wrapper.loading).toBe(true);
-    expect(wrapper.data).toBeUndefined();
+    expect(wrapper.data).toBe('success');
     await waitForTime(1000);
-    expect(wrapper.data).toBeUndefined();
+    expect(wrapper.data).toBe('success');
     expect(wrapper.error?.message).toBe('fail');
     await waitForTime(600);
-    expect(wrapper.data).toBeUndefined();
+    expect(wrapper.data).toBe('success');
     expect(wrapper.error?.message).toBe('fail');
   });
 

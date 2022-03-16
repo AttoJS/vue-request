@@ -96,7 +96,6 @@ const createQuery = <R, P extends unknown[]>(
       if (currentCount !== count.value) return resolvedPromise;
 
       setState({
-        data: undefined,
         loading: false,
         error: error,
       });
