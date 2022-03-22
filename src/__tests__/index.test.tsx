@@ -4,6 +4,7 @@ import { defineComponent, reactive, ref } from 'vue-demi';
 
 import { clearGlobalOptions, setGlobalOptions } from '../core/config';
 import { clearCache } from '../core/utils/cache';
+import { clearCacheQuery } from '../core/utils/cacheQuery';
 import {
   FOCUS_LISTENER,
   RECONNECT_LISTENER,
@@ -30,6 +31,8 @@ describe('useRequest', () => {
     console.error = jest.fn();
     // clear cache
     clearCache();
+    // clear query cache
+    clearCacheQuery();
     // clear global options
     clearGlobalOptions();
 
@@ -1490,6 +1493,79 @@ describe('useRequest', () => {
     // remount component
     wrapper = mount(TestComponent);
     expect(wrapper.data).toBeUndefined();
+  });
+
+  test('cache query should work', async () => {
+    const mockFn = jest.fn();
+    const commonRequest = (...args: any[]) => {
+      mockFn();
+      return request(...args);
+    };
+    const TestComponentA = defineComponent({
+      template: '<div/>',
+      setup() {
+        const { data, loading, run } = useRequest(commonRequest, {
+          cacheKey: 'cacheKey',
+          cacheTime: 10000,
+        });
+        let count = 0;
+        return {
+          run: () => run((count += 1)),
+          loading,
+          data,
+        };
+      },
+    });
+
+    const TestComponentB = defineComponent({
+      template: '<div/>',
+      setup() {
+        const { data, loading, run } = useRequest(commonRequest, {
+          cacheKey: 'cacheKey',
+          cacheTime: 10000,
+        });
+        let count = 0;
+        return {
+          run: () => run((count += 1)),
+          loading,
+          data,
+        };
+      },
+    });
+
+    const wrapperA = mount(TestComponentA);
+    const wrapperB = mount(TestComponentB);
+    expect(wrapperA.data).toBeUndefined();
+    expect(wrapperB.data).toBeUndefined();
+    await waitForTime(1000);
+    expect(wrapperA.data).toBe('success');
+    expect(wrapperB.data).toBe('success');
+
+    expect(mockFn).toHaveBeenCalledTimes(1);
+
+    wrapperA.run();
+    expect(wrapperA.loading).toBe(true);
+    expect(wrapperB.loading).toBe(false);
+    await waitForTime(500);
+    wrapperB.run();
+    expect(wrapperA.loading).toBe(true);
+    expect(wrapperB.loading).toBe(true);
+    await waitForTime(500);
+    expect(wrapperA.loading).toBe(false);
+    expect(wrapperB.loading).toBe(false);
+
+    wrapperB.run();
+    expect(wrapperB.loading).toBe(true);
+    expect(wrapperA.loading).toBe(false);
+    await waitForTime(500);
+    wrapperA.run();
+    expect(wrapperB.loading).toBe(true);
+    expect(wrapperA.loading).toBe(true);
+    await waitForTime(500);
+    expect(wrapperB.loading).toBe(false);
+    expect(wrapperA.loading).toBe(false);
+
+    expect(mockFn).toHaveBeenCalledTimes(3);
   });
 
   test('cache staleTime should work', async () => {

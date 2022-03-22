@@ -82,12 +82,17 @@ export type PluginImplementType<R, P extends any[]> = {
 };
 
 export type PluginType<R, P extends unknown[]> = {
-  onBefore: (
-    params: P,
-  ) => {
+  onBefore: (params: P) => {
     isBreak?: Boolean;
     breakResult?: any;
   } | void;
+
+  onQuery: (
+    service: Service<R, P>,
+    params: P,
+  ) => {
+    servicePromise?: Promise<R>;
+  };
 
   onSuccess(data: R, params: P): void;
   onError(error: Error, params: P): void;
@@ -98,4 +103,5 @@ export type PluginType<R, P extends unknown[]> = {
 
 export type EmitResults<R, P extends unknown[]> = EmitVoid<
   ReturnType<PluginType<R, P>['onBefore']>
->;
+> &
+  EmitVoid<ReturnType<PluginType<R, P>['onQuery']>>;

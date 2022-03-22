@@ -76,7 +76,13 @@ const createQuery = <R, P extends unknown[]>(
     onBefore?.(args);
 
     try {
-      const res = await service(...args);
+      let { servicePromise } = emit('onQuery', service, params.value);
+      if (!servicePromise) {
+        servicePromise = service(...params.value);
+      }
+
+      const res = await servicePromise;
+
       if (currentCount !== count.value) return resolvedPromise;
 
       setState({

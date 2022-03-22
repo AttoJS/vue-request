@@ -3,6 +3,7 @@ import { onUnmounted, ref } from 'vue-demi';
 import { definePlugin } from '../definePlugin';
 import type { CacheData } from '../utils/cache';
 import { getCache, setCache } from '../utils/cache';
+import { getCacheQuery, setCacheQuery } from '../utils/cacheQuery';
 import { subscribe, trigger } from '../utils/cacheSubscribe';
 
 export default definePlugin(
@@ -19,6 +20,7 @@ export default definePlugin(
     if (!cacheKey) return {};
 
     const unSubscribe = ref();
+    let currentQuery: Promise<any>;
 
     const _getCache = (key: string) => {
       if (customGetCache) {
@@ -81,6 +83,18 @@ export default definePlugin(
           // If it is not fresh, set data and request
           queryInstance.data.value = cache.data;
         }
+      },
+      onQuery(service, params) {
+        let servicePromise = getCacheQuery(cacheKey);
+
+        if (servicePromise && servicePromise !== currentQuery) {
+          return { servicePromise };
+        }
+
+        servicePromise = service(...params);
+        currentQuery = servicePromise;
+        setCacheQuery(cacheKey, servicePromise);
+        return { servicePromise };
       },
       onSuccess(data, params) {
         unSubscribe.value?.();
