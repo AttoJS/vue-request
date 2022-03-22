@@ -9,6 +9,7 @@ describe('utils', () => {
   const cacheData: CacheResultType = {
     data: ref(1),
     time: new Date().getTime(),
+    params: ['1'],
   };
   beforeAll(() => {
     jest.useFakeTimers();
@@ -18,25 +19,25 @@ describe('utils', () => {
   test('setCache and getCache should work', () => {
     setCache(cacheKey, 10000, cacheData);
     const data = getCache(cacheKey);
-    expect(data?.data).toMatchObject(cacheData);
+    expect(data).toMatchObject(cacheData);
   });
 
   test('cacheTime should work', async () => {
     setCache(cacheKey, 10000, cacheData);
-    expect(getCache(cacheKey)?.data).toMatchObject(cacheData);
+    expect(getCache(cacheKey)).toMatchObject(cacheData);
     await waitForTime(5000);
     setCache(cacheKey, 10000, cacheData);
     await waitForTime(5000);
-    expect(getCache(cacheKey)?.data).toMatchObject(cacheData);
+    expect(getCache(cacheKey)).toMatchObject(cacheData);
     await waitForTime(5000);
     expect(getCache(cacheKey)).toBeUndefined();
   });
 
   test('clearCache should work', async () => {
     setCache(cacheKey, 10000, cacheData);
-    expect(getCache(cacheKey)?.data).toMatchObject(cacheData);
+    expect(getCache(cacheKey)).toMatchObject(cacheData);
     clearCache();
-    expect(getCache(cacheKey)?.data).toBeUndefined();
+    expect(getCache(cacheKey)).toBeUndefined();
   });
 
   test('clear a single cache should work', async () => {
@@ -44,10 +45,10 @@ describe('utils', () => {
     const cache2 = '2';
     setCache(cache1, 10000, cacheData);
     setCache(cache2, 10000, cacheData);
-    expect(getCache(cache1)?.data).toMatchObject(cacheData);
-    expect(getCache(cache2)?.data).toMatchObject(cacheData);
+    expect(getCache(cache1)).toMatchObject(cacheData);
+    expect(getCache(cache2)).toMatchObject(cacheData);
     clearCache(cache1);
-    expect(getCache(cache1)?.data).toBeUndefined();
-    expect(getCache(cache2)?.data).toMatchObject(cacheData);
+    expect(getCache(cache1)).toBeUndefined();
+    expect(getCache(cache2)).toMatchObject(cacheData);
   });
 });
