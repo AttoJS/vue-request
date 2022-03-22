@@ -18,18 +18,17 @@ export type State<R, P> = {
   params: Ref<P>;
 };
 
-export interface Query<R, P extends unknown[]>
-  extends State<R, P>,
-    FunctionContext<R, P> {
+export interface Query<R, P extends unknown[]> extends State<R, P> {
   context: FunctionContext<R, P>;
   plugins: Ref<Partial<PluginType<R, P>>[]>;
 }
 
 export interface FunctionContext<R, P extends unknown[]> {
-  _run: (...arg: P) => Promise<R | null | void>;
-  run: (...arg: P) => Promise<R | null | void>;
+  runAsync: (...arg: P) => Promise<R | null | void>;
+  run: (...arg: P) => void;
   cancel: () => void;
-  refresh: () => Promise<R | null | void>;
+  refresh: () => void;
+  refreshAsync: () => Promise<R | null | void>;
   mutate: Mutate<R>;
 }
 

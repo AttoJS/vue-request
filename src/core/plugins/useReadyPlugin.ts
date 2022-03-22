@@ -9,7 +9,7 @@ export default definePlugin(
       ready,
       val => {
         if (!manual && val) {
-          queryInstance._run(...defaultParams);
+          queryInstance.context.run(...defaultParams);
         }
       },
       {

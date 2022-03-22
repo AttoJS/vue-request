@@ -11,14 +11,14 @@ export default definePlugin(
 
     if (isNil(throttleInterval)) return {};
 
-    const originRun = queryInstance._run;
+    const originRun = queryInstance.context.runAsync;
     throttledRun.value = throttle(
       callback => callback(),
       throttleInterval!,
       throttleOptions,
     );
 
-    queryInstance.context._run = (...args) =>
+    queryInstance.context.runAsync = (...args) =>
       new Promise((resolve, reject) => {
         throttledRun.value?.(() => {
           originRun(...args)

@@ -15,7 +15,7 @@ export default definePlugin(
       initialAutoRunFlag.value = true;
     }
 
-    const originRun = queryInstance._run;
+    const originRun = queryInstance.context.runAsync;
 
     debouncedRun.value = debounce(
       callback => callback(),
@@ -23,7 +23,7 @@ export default definePlugin(
       debounceOptions,
     );
 
-    queryInstance.context._run = (...args) =>
+    queryInstance.context.runAsync = (...args) =>
       new Promise((resolve, reject) => {
         if (initialAutoRunFlag.value) {
           initialAutoRunFlag.value = false;

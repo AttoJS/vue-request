@@ -6,7 +6,7 @@ export default definePlugin((queryInstance, { refreshDeps = [], manual }) => {
   // watch refreshDeps
   if (refreshDeps?.length) {
     watch(refreshDeps, () => {
-      !manual && queryInstance.refresh();
+      !manual && queryInstance.context.refresh();
     });
   }
   return {};

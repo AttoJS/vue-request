@@ -1,7 +1,5 @@
 import type { Ref } from 'vue-demi';
 
-import type { Query } from '../types';
-
 export type PartialRecord<T> = {
   [P in keyof T]: Partial<T[P]>;
 };

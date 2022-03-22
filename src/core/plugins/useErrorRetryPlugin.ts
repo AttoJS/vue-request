@@ -38,7 +38,7 @@ export default definePlugin(
         if (!isInfiniteRetry) retriedCount.value += 1;
         timerId = setTimeout(() => {
           isRetrying = true;
-          queryInstance.refresh();
+          queryInstance.context.refresh();
         }, actualErrorRetryInterval.value);
       }
       return () => timerId && clearTimeout(timerId);

@@ -48,7 +48,7 @@ export default definePlugin(
         (pollingWhenHidden || isDocumentVisibility()) &&
         (pollingWhenOffline || isOnline())
       ) {
-        queryInstance.refresh();
+        queryInstance.context.refresh();
         stopPollingWhenHiddenOrOffline.value = false;
       }
     };
@@ -73,7 +73,7 @@ export default definePlugin(
         pollingTimer.value?.();
       },
       onAfter() {
-        pollingTimer.value = polling(() => queryInstance.refresh());
+        pollingTimer.value = polling(() => queryInstance.context.refresh());
       },
     };
   },

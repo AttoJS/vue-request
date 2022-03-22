@@ -213,6 +213,70 @@ describe('useRequest', () => {
     expect(wrapper.loading).toBe(false);
   });
 
+  test('refreshAsync should work', async () => {
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const { refreshAsync, loading } = useRequest(request);
+
+          return {
+            refreshAsync,
+            loading,
+          };
+        },
+      }),
+    );
+    wrapper.refreshAsync().then((res: any) => {
+      expect(res).toBe('success');
+    });
+    expect(wrapper.loading).toBe(true);
+    await waitForAll();
+    expect(wrapper.loading).toBe(false);
+  });
+
+  test('run should work', async () => {
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const { run, loading } = useRequest(request);
+
+          return {
+            run,
+            loading,
+          };
+        },
+      }),
+    );
+    wrapper.run();
+    expect(wrapper.loading).toBe(true);
+    await waitForAll();
+    expect(wrapper.loading).toBe(false);
+  });
+
+  test('runAsync should work', async () => {
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const { runAsync, loading } = useRequest(request);
+
+          return {
+            runAsync,
+            loading,
+          };
+        },
+      }),
+    );
+    wrapper.runAsync().then((res: any) => {
+      expect(res).toBe('success');
+    });
+    expect(wrapper.loading).toBe(true);
+    await waitForAll();
+    expect(wrapper.loading).toBe(false);
+  });
+
   test('log request error by default', async () => {
     console.error = jest.fn();
 
@@ -1027,6 +1091,46 @@ describe('useRequest', () => {
     expect(mockFn).toHaveBeenCalledTimes(2);
   });
 
+  test('debounceInterval should work with runAsync', async () => {
+    const mockFn = jest.fn();
+
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const { runAsync } = useRequest(
+            () => {
+              mockFn();
+              return request();
+            },
+            {
+              debounceInterval: 100,
+              manual: true,
+            },
+          );
+          return {
+            runAsync,
+          };
+        },
+      }),
+    );
+    for (let index = 0; index < 100; index++) {
+      wrapper.runAsync();
+      await waitForTime(50);
+    }
+
+    await waitForTime(100);
+    expect(mockFn).toHaveBeenCalledTimes(1);
+
+    for (let index = 0; index < 100; index++) {
+      wrapper.runAsync();
+      await waitForTime(50);
+    }
+
+    await waitForTime(100);
+    expect(mockFn).toHaveBeenCalledTimes(2);
+  });
+
   test('debounceOptions should work: case 1', async () => {
     const mockFn = jest.fn();
 
@@ -1271,6 +1375,46 @@ describe('useRequest', () => {
 
     await waitForTime(50);
     wrapper.run();
+
+    await waitForAll();
+    // have been call 3 times
+    // because the function will invoking on the leading edge and trailing edge of the timeout
+    expect(mockFn).toHaveBeenCalledTimes(3);
+  });
+
+  test('throttleInterval should work with runAsync', async () => {
+    const mockFn = jest.fn();
+
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const { runAsync } = useRequest(
+            () => {
+              mockFn();
+              return request();
+            },
+            {
+              throttleInterval: 100,
+              manual: true,
+            },
+          );
+          return {
+            runAsync,
+          };
+        },
+      }),
+    );
+
+    wrapper.runAsync();
+
+    await waitForTime(50);
+    wrapper.runAsync();
+    wrapper.runAsync();
+    wrapper.runAsync();
+
+    await waitForTime(50);
+    wrapper.runAsync();
 
     await waitForAll();
     // have been call 3 times

@@ -6,7 +6,10 @@ import subscriber from '../utils/listener';
 
 export default definePlugin(
   (queryInstance, { refreshOnWindowFocus = false, refocusTimespan = 5000 }) => {
-    const limitRefresh = limitTrigger(queryInstance.refresh, refocusTimespan!);
+    const limitRefresh = limitTrigger(
+      queryInstance.context.refresh,
+      refocusTimespan!,
+    );
     const unsubscribeList: (() => void)[] = [];
     const addUnsubscribeList = (event?: () => void) => {
       event && unsubscribeList.push(event);

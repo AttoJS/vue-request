@@ -61,7 +61,7 @@ const createQuery = <R, P extends unknown[]>(
 
   const count = ref(0);
 
-  context._run = async (...args: P) => {
+  context.runAsync = async (...args: P) => {
     setState({
       loading: true,
       params: args,
@@ -117,7 +117,7 @@ const createQuery = <R, P extends unknown[]>(
   };
 
   context.run = async (...args: P) => {
-    return context._run(...args).catch(error => {
+    context.runAsync(...args).catch(error => {
       if (!onError) {
         console.error(error);
       }
@@ -132,7 +132,11 @@ const createQuery = <R, P extends unknown[]>(
   };
 
   context.refresh = () => {
-    return context.run(...params.value);
+    context.run(...params.value);
+  };
+
+  context.refreshAsync = () => {
+    return context.runAsync(...params.value);
   };
 
   context.mutate = x => {
@@ -151,7 +155,6 @@ const createQuery = <R, P extends unknown[]>(
     params,
     plugins,
     context,
-    ...context,
   };
 };
 

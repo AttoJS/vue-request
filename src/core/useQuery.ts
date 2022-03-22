@@ -34,11 +34,11 @@ function useQuery<R, P extends unknown[]>(
   // initial run
   if (!manual) {
     const params = queryInstance.params.value || defaultParams;
-    queryInstance.run(...params);
+    queryInstance.context.run(...params);
   }
 
   onUnmounted(() => {
-    queryInstance.cancel();
+    queryInstance.context.cancel();
   });
 
   return {
@@ -46,10 +46,12 @@ function useQuery<R, P extends unknown[]>(
     data: queryInstance.data,
     error: queryInstance.error,
     params: queryInstance.params,
-    cancel: queryInstance.cancel,
-    refresh: queryInstance.refresh,
-    mutate: queryInstance.mutate,
-    run: queryInstance.run,
+    cancel: queryInstance.context.cancel,
+    refresh: queryInstance.context.refresh,
+    refreshAsync: queryInstance.context.refreshAsync,
+    mutate: queryInstance.context.mutate,
+    run: queryInstance.context.run,
+    runAsync: queryInstance.context.runAsync,
   };
 }
 
