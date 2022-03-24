@@ -1,7 +1,3 @@
-import { unref } from 'vue-demi';
-
-import type { RefObject, UnRef } from './types';
-
 export const objectToString = Object.prototype.toString;
 export const toTypeString = (val: unknown): string => objectToString.call(val);
 
@@ -29,27 +25,7 @@ export const isDocumentVisibility = () =>
 
 export const isOnline = () => (!isServer && window?.navigator?.onLine) ?? true;
 
-export const unRefObject = <T extends RefObject>(val: T) => {
-  const obj = {};
-
-  Object.keys(val).forEach(key => {
-    obj[key] = unref(val[key]);
-  });
-
-  return obj as {
-    [K in keyof T]: UnRef<T[K]>;
-  };
-};
-
 export const resolvedPromise = Promise.resolve(null);
-
-export const requestProxy = async (...args: [url: string, ...rest: any[]]) => {
-  const res = await fetch(...args);
-  if (res.ok) {
-    return res.json();
-  }
-  throw new Error(res.statusText);
-};
 
 export const get = (
   source: Record<string, any>,
