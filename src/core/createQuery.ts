@@ -2,9 +2,9 @@ import type { Ref } from 'vue-demi';
 import { ref, shallowRef } from 'vue-demi';
 
 import type {
-  BaseOptions,
   EmitResults,
   FunctionContext,
+  Options,
   PluginType,
   Query,
   Service,
@@ -27,7 +27,7 @@ const setStateBind = <R, P extends unknown[], T extends State<R, P>>(
 
 const createQuery = <R, P extends unknown[]>(
   service: Service<R, P>,
-  config: BaseOptions<R, P>,
+  config: Options<R, P>,
   initialState?: UnWrapRefObject<State<R, P>>,
 ): Query<R, P> => {
   const { initialData, onSuccess, onError, onBefore, onAfter } = config;

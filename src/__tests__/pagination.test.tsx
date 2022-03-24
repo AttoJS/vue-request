@@ -1,4 +1,3 @@
-import fetchMock from 'fetch-mock';
 import Mock from 'mockjs';
 import { defineComponent } from 'vue-demi';
 
@@ -27,9 +26,27 @@ describe('usePagination', () => {
     jest.useFakeTimers('modern');
   });
 
-  const normalApi = 'http://example.com/normal';
-  const customPropertyApi = 'http://example.com/custom';
-  const customConfigApi = 'http://example.com/customConfig';
+  const normalApi = (page: { pageSize: number; current: number }) => {
+    return new Promise<NormalMockDataType>(resolve => {
+      setTimeout(() => {
+        resolve(normalMockData);
+      }, 1000);
+    });
+  };
+  const customPropertyApi = (page: { pageSize: number; current: number }) => {
+    return new Promise<CustomPropertyMockDataType>(resolve => {
+      setTimeout(() => {
+        resolve(customPropertyMockData);
+      }, 1000);
+    });
+  };
+  const customConfigApi = (page: { pageSize: number; current: number }) => {
+    return new Promise<CustomPropertyMockDataType>(resolve => {
+      setTimeout(() => {
+        resolve(customConfigMockData);
+      }, 1000);
+    });
+  };
 
   // mock fetch
   const normalMockData: NormalMockDataType = Mock.mock({
@@ -63,10 +80,6 @@ describe('usePagination', () => {
     total5: 5,
   });
 
-  fetchMock.get(normalApi, normalMockData, { delay: 1000 });
-  fetchMock.get(customPropertyApi, customPropertyMockData, { delay: 1000 });
-  fetchMock.get(customConfigApi, customConfigMockData, { delay: 1000 });
-
   const originalError = console.error;
   beforeEach(() => {
     console.error = jest.fn();
@@ -92,14 +105,8 @@ describe('usePagination', () => {
       defineComponent({
         template: '<div/>',
         setup() {
-          const {
-            data,
-            total,
-            params,
-            current,
-            pageSize,
-            totalPage,
-          } = usePagination<NormalMockDataType>(normalApi);
+          const { data, total, params, current, pageSize, totalPage } =
+            usePagination<NormalMockDataType>(normalApi);
           return {
             data,
             total,
@@ -112,7 +119,7 @@ describe('usePagination', () => {
       }),
     );
 
-    expect(JSON.stringify(wrapper.data?.result)).toBe('');
+    expect(JSON.stringify(wrapper.data?.result)).toBeUndefined();
     expect(wrapper.current).toBe(1);
     expect(wrapper.pageSize).toBe(10);
     expect(JSON.stringify(wrapper.params)).toBe(
@@ -140,14 +147,8 @@ describe('usePagination', () => {
       defineComponent({
         template: '<div/>',
         setup() {
-          const {
-            total,
-            params,
-            current,
-            pageSize,
-            totalPage,
-            changeCurrent,
-          } = usePagination(normalApi);
+          const { total, params, current, pageSize, totalPage, changeCurrent } =
+            usePagination(normalApi);
           return {
             total,
             params,
@@ -159,8 +160,6 @@ describe('usePagination', () => {
         },
       }),
     );
-
-    const paramsEl = wrapper.find('.params');
 
     for (let index = 0; index < 100; index++) {
       wrapper.changeCurrent();
@@ -251,24 +250,6 @@ describe('usePagination', () => {
     expect(wrapper.totalPage).toBe(99);
   });
 
-  test('concurrent request should not work', async () => {
-    mount(
-      defineComponent({
-        template: '<div/>',
-        setup() {
-          usePagination(customPropertyApi, {
-            // @ts-ignore
-            queryKey: () => '1',
-          });
-
-          return {};
-        },
-      }),
-    );
-
-    expect(console.error).toHaveBeenCalledTimes(1);
-  });
-
   test('`current` and `pageSize` `current` and `pageSize` can modify and can trigger request', async () => {
     let _current = 1;
     let _pageSize = 10;
@@ -276,16 +257,15 @@ describe('usePagination', () => {
       defineComponent({
         template: '<div/>',
         setup() {
-          const { loading, current, pageSize, params } = usePagination(
-            normalApi,
-          );
+          const { loading, current, pageSize, params } =
+            usePagination(normalApi);
           return {
             loading,
             current,
             pageSize,
             params,
-            changeCurrent: () => (_pageSize = ++current.value),
-            changePageSize: () => (_current = ++pageSize.value),
+            changeCurrent: () => (_current = ++current.value),
+            changePageSize: () => (_pageSize = ++pageSize.value),
           };
         },
       }),
@@ -394,16 +374,10 @@ describe('usePagination', () => {
       defineComponent({
         template: '<div/>',
         setup() {
-          const {
-            total,
-            params,
-            current,
-            pageSize,
-            totalPage,
-            changeCurrent,
-          } = usePagination(normalApi, {
-            manual: true,
-          });
+          const { total, params, current, pageSize, totalPage, changeCurrent } =
+            usePagination(normalApi, {
+              manual: true,
+            });
           return {
             total,
             params,
@@ -416,9 +390,7 @@ describe('usePagination', () => {
       }),
     );
 
-    const paramsEl = wrapper.find('.params');
-
-    expect(JSON.stringify(wrapper.params)).toBe('[]');
+    expect(JSON.stringify(wrapper.params)).toBeUndefined();
     expect(wrapper.total).toBe(0);
     expect(wrapper.current).toBe(1);
     expect(wrapper.pageSize).toBe(10);
@@ -469,7 +441,7 @@ describe('usePagination', () => {
       }),
     );
 
-    expect(JSON.stringify(wrapper.params)).toBe('[]');
+    expect(JSON.stringify(wrapper.params)).toBeUndefined();
     expect(wrapper.total).toBe(0);
     expect(wrapper.current).toBe(_current);
     expect(wrapper.pageSize).toBe(10);
@@ -495,22 +467,16 @@ describe('usePagination', () => {
       defineComponent({
         template: '<div/>',
         setup() {
-          const {
-            total,
-            params,
-            current,
-            pageSize,
-            totalPage,
-            changeCurrent,
-          } = usePagination(normalApi, {
-            manual: true,
-            defaultParams: [
-              {
-                pageSize: 20,
-                current: 2,
-              },
-            ],
-          });
+          const { total, params, current, pageSize, totalPage, changeCurrent } =
+            usePagination(normalApi, {
+              manual: true,
+              defaultParams: [
+                {
+                  pageSize: 20,
+                  current: 2,
+                },
+              ],
+            });
           return {
             total,
             params,
@@ -523,7 +489,7 @@ describe('usePagination', () => {
       }),
     );
 
-    expect(JSON.stringify(wrapper.params)).toBe('[]');
+    expect(JSON.stringify(wrapper.params)).toBeUndefined();
     expect(wrapper.total).toBe(0);
     expect(wrapper.current).toBe(2);
     expect(wrapper.pageSize).toBe(20);
@@ -540,72 +506,6 @@ describe('usePagination', () => {
       expect(wrapper.totalPage).toBe(5);
     }
   });
-
-  // test('global config should work', async () => {
-  //   const createComponent = (id: string, requestOptions: GlobalOptions = {}) =>
-  //     defineComponent({
-  //       setup() {
-  //         const { total } = usePagination(customConfigApi, requestOptions);
-
-  //         return () => <div id={id}>{`${total.value}`}</div>;
-  //       },
-  //     });
-
-  //   const ComponentA = createComponent('A');
-  //   const ComponentB = createComponent('B');
-  //   const ComponentC = createComponent('C');
-  //   const ComponentD = createComponent('D');
-  //   const ComponentE = createComponent('E', {
-  //     pagination: { totalKey: 'total5' },
-  //   });
-
-  //   setGlobalOptions({
-  //     pagination: {
-  //       totalKey: 'total1',
-  //     },
-  //   });
-
-  //   const Wrapper = defineComponent({
-  //     setup() {
-  //       return () => (
-  //         <div id="root">
-  //           <RequestConfig config={{ pagination: { totalKey: 'total2' } }}>
-  //             <ComponentA />
-  //           </RequestConfig>
-
-  //           <RequestConfig config={{ pagination: { totalKey: 'total3' } }}>
-  //             <ComponentB />
-
-  //             <ComponentE />
-
-  //             {/* nested */}
-  //             <RequestConfig config={{ pagination: { totalKey: 'total4' } }}>
-  //               <ComponentC />
-  //             </RequestConfig>
-  //           </RequestConfig>
-
-  //           <ComponentD />
-  //         </div>
-  //       );
-  //     },
-  //   });
-
-  //   const wrapper = mount(Wrapper);
-
-  //   expect(wrapper.find('#A').text()).toBe('0');
-  //   expect(wrapper.find('#B').text()).toBe('0');
-  //   expect(wrapper.find('#C').text()).toBe('0');
-  //   expect(wrapper.find('#D').text()).toBe('0');
-  //   expect(wrapper.find('#E').text()).toBe('0');
-
-  //   await waitForTime(1000);
-
-  //   expect(wrapper.find('#A').text()).toBe('2');
-  //   expect(wrapper.find('#B').text()).toBe('3');
-  //   expect(wrapper.find('#C').text()).toBe('4');
-  //   expect(wrapper.find('#D').text()).toBe('1');
-  //   expect(wrapper.find('#E').text()).toBe('5');
-  // });
 
   test('onBefore and onAfter hooks can use in `usePagination`', async () => {
     const onBefore = jest.fn();

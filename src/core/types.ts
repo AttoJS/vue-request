@@ -2,6 +2,8 @@
 
 import type { Ref, WatchSource } from 'vue-demi';
 
+import type { LoadMoreExtendsOption } from '../useLoadMore';
+import type { PaginationExtendsOption } from '../usePagination';
 import type { CacheData } from './utils/cache';
 import type { EmitVoid } from './utils/types';
 
@@ -39,7 +41,11 @@ interface DebounceOptions {
 }
 type ThrottleOptions = Omit<DebounceOptions, 'maxWait'>;
 
-export interface GlobalOptions {
+export type GlobalOptions = BaseOptions &
+  PaginationExtendsOption &
+  LoadMoreExtendsOption;
+
+export type BaseOptions = {
   loadingDelay?: number;
   pollingInterval?: number;
   pollingWhenHidden?: boolean;
@@ -60,9 +66,9 @@ export interface GlobalOptions {
   // custom cache
   getCache?: (cacheKey: string) => CacheData;
   setCache?: (cacheKey: string, cacheData: CacheData) => void;
-}
+};
 
-export type BaseOptions<R, P extends unknown[]> = GlobalOptions & {
+export type Options<R, P extends unknown[]> = BaseOptions & {
   defaultParams?: P;
   ready?: Ref<boolean>;
   initialData?: R;
@@ -75,7 +81,7 @@ export type BaseOptions<R, P extends unknown[]> = GlobalOptions & {
 };
 
 export type PluginImplementType<R, P extends any[]> = {
-  (queryInstance: Query<R, P>, config: BaseOptions<R, P>): Partial<
+  (queryInstance: Query<R, P>, config: Options<R, P>): Partial<
     PluginType<R, P>
   >;
 };

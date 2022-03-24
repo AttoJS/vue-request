@@ -3,15 +3,15 @@ import { inject, onUnmounted } from 'vue-demi';
 import { getGlobalOptions, GLOBAL_OPTIONS_PROVIDE_KEY } from './config';
 import createQuery from './createQuery';
 import type {
-  BaseOptions,
   GlobalOptions,
+  Options,
   PluginImplementType,
   Service,
 } from './types';
 
 function useQuery<R, P extends unknown[]>(
   service: Service<R, P>,
-  options: BaseOptions<R, P> = {},
+  options: Options<R, P> = {},
   plugins: PluginImplementType<R, P>[] = [],
 ) {
   const injectedGlobalOptions = inject<GlobalOptions>(

@@ -1,99 +1,39 @@
-import type { Ref } from 'vue';
-import { computed, inject, ref, watchEffect } from 'vue';
+import type { Ref } from 'vue-demi';
+import { computed, inject, ref, watch } from 'vue-demi';
 
 import { getGlobalOptions, GLOBAL_OPTIONS_PROVIDE_KEY } from './core/config';
-import type {
-  BaseOptions,
-  BaseResult,
-  FormatOptions,
-  FRPlaceholderType,
-  GlobalOptions,
-} from './core/types';
-import useAsyncQuery from './core/useAsyncQuery';
-import { get, isFunction, omit, warning } from './core/utils';
-import generateService from './core/utils/generateService';
-import type { ServiceParams } from './core/utils/types';
-
-export interface LoadMoreResult<R, P extends unknown[], LR extends unknown[]>
-  extends Omit<BaseResult<R, P>, 'queries' | 'refresh' | 'mutate'> {
-  dataList: Ref<LR>;
-  noMore: Ref<boolean>;
-  loadingMore: Ref<boolean>;
-  refreshing: Ref<boolean>;
-  reloading: Ref<boolean>;
-  loadMore: () => void;
-  reload: () => void;
-  refresh: () => void;
-}
+import type { GlobalOptions, Options } from './core/types';
+import { get, isFunction, omit } from './core/utils';
+import useRequest from './useRequest';
 
 export type LoadMoreExtendsOption = {
   listKey?: string;
 };
 
 export type LoadMoreGenericExtendsOption<R> = {
-  isNoMore?: (data: R) => boolean;
+  isNoMore?: (data: R | undefined) => boolean;
 };
 
-export type LoadMoreService<R, P extends unknown[], LR> =
-  | ((r: { data: R; dataList: LR }, ...args: P) => Promise<R>)
-  | ((r: { data: R; dataList: LR }, ...args: P) => ServiceParams);
+export type LoadMoreService<R, P extends unknown[], LR> = (
+  r: { data: R; dataList: LR },
+  ...args: P
+) => Promise<R>;
 
-export type LoadMoreFormatOptions<R, P extends unknown[], FR> = Omit<
-  FormatOptions<R, P, FR>,
-  'queryKey'
-> &
+export type LoadMoreBaseOptions<R, P extends unknown[]> = Options<R, P> &
   LoadMoreGenericExtendsOption<R> &
   LoadMoreExtendsOption;
 
-export type LoadMoreBaseOptions<R, P extends unknown[]> = Omit<
-  BaseOptions<R, P>,
-  'queryKey'
-> &
-  LoadMoreGenericExtendsOption<R> &
-  LoadMoreExtendsOption;
-
-export type LoadMoreMixinOptions<R, P extends unknown[], FR> =
-  | LoadMoreBaseOptions<R, P>
-  | LoadMoreFormatOptions<R, P, FR>;
-
 function useLoadMore<
   R,
   P extends unknown[] = any,
-  LR extends unknown[] = any[]
->(service: LoadMoreService<R, P, LR>): LoadMoreResult<R, P, LR>;
-function useLoadMore<
-  R,
-  P extends unknown[] = any,
-  FR = FRPlaceholderType,
-  LR extends unknown[] = any[]
->(
-  service: LoadMoreService<R, P, LR>,
-  options: LoadMoreFormatOptions<R, P, FR>,
-): LoadMoreResult<FR, P, LR>;
-function useLoadMore<
-  R,
-  P extends unknown[] = any,
-  LR extends unknown[] = any[]
->(
-  service: LoadMoreService<R, P, LR>,
-  options: LoadMoreBaseOptions<R, P>,
-): LoadMoreResult<R, P, LR>;
-function useLoadMore<R, P extends unknown[], FR, LR extends unknown[]>(
-  service: LoadMoreService<R, P, LR>,
-  options?: LoadMoreMixinOptions<R, P, FR>,
-) {
-  if (!isFunction(service)) {
-    warning('useLoadMore only support function service');
-  }
-  const promiseQuery = generateService<R, P>(service as any);
-
+  LR extends unknown[] = any[],
+>(service: LoadMoreService<R, P, LR>, options?: LoadMoreBaseOptions<R, P>) {
   const injectedGlobalOptions = inject<GlobalOptions>(
     GLOBAL_OPTIONS_PROVIDE_KEY,
     {},
   );
 
   const {
-    queryKey,
     isNoMore,
     listKey = 'list',
     ...restOptions
@@ -104,59 +44,50 @@ function useLoadMore<R, P extends unknown[], FR, LR extends unknown[]>(
     options ?? ({} as any),
   );
 
-  if (queryKey) {
-    warning('useLoadMore does not support concurrent request');
-  }
-
   const refreshing = ref(false);
   const loadingMore = ref(false);
   const reloading = ref(false);
-  const initailIncreaseQueryKey = 0;
-  const increaseQueryKey = ref(initailIncreaseQueryKey);
+
+  const dataList = ref([]) as unknown as Ref<LR>;
+
   const {
     data,
     params,
-    queries,
+    runAsync,
+    refreshAsync,
     run,
-    reset,
     cancel: _cancel,
     ...rest
-  } = useAsyncQuery<R, P>(promiseQuery, {
+    // @ts-ignore
+  } = useRequest<R, P>(service, {
     ...restOptions,
     onSuccess: (...p) => {
       loadingMore.value = false;
-      increaseQueryKey.value++;
       restOptions?.onSuccess?.(...p);
     },
     onError: (...p) => {
       loadingMore.value = false;
       restOptions?.onError?.(...p);
     },
-    queryKey: () => String(increaseQueryKey.value),
-  });
-
-  const latestData = ref(data.value) as Ref<R | undefined>;
-  watchEffect(() => {
-    if (data.value !== undefined) {
-      latestData.value = data.value;
-    }
+    onAfter: (...p) => {
+      if (refreshing.value) {
+        dataList.value = [] as any;
+      }
+      restOptions?.onAfter?.(...p);
+    },
   });
 
   const noMore = computed(() => {
-    return isNoMore && isFunction(isNoMore)
-      ? isNoMore(latestData.value)
-      : false;
+    return isNoMore && isFunction(isNoMore) ? isNoMore(data.value) : false;
   });
 
-  const dataList = computed(() => {
-    let list: any[] = [];
-    Object.values(queries).forEach(h => {
-      const dataList = get(h.data!, listKey);
-      if (dataList && Array.isArray(dataList)) {
-        list = list.concat(dataList);
+  watch(data, value => {
+    if (value) {
+      const list = get(value, listKey);
+      if (list && Array.isArray(list)) {
+        dataList.value = [...dataList.value, ...list] as any;
       }
-    });
-    return (list as unknown) as LR;
+    }
   });
 
   const loadMore = () => {
@@ -166,45 +97,27 @@ function useLoadMore<R, P extends unknown[], FR, LR extends unknown[]>(
     loadingMore.value = true;
     const [, ...restParams] = params.value;
     const mergerParams = [
-      { dataList: dataList.value, data: latestData.value },
+      { dataList: dataList.value, data: data.value },
       ...restParams,
     ] as P;
     run(...mergerParams);
   };
 
-  const unmountQueries = () => {
-    Object.keys(queries).forEach(key => {
-      if (key !== initailIncreaseQueryKey.toString()) {
-        queries[key].cancel();
-        queries[key].unmount();
-        delete queries[key];
-      }
-    });
-  };
-
   const refresh = async () => {
     refreshing.value = true;
-    const latestKey = increaseQueryKey.value - 1;
-    const key =
-      latestKey < initailIncreaseQueryKey ? initailIncreaseQueryKey : latestKey;
-
-    latestData.value = queries[key].data;
-    increaseQueryKey.value = initailIncreaseQueryKey;
     const [, ...restParams] = params.value;
     const mergerParams = [undefined, ...restParams] as any;
-    await run(...mergerParams);
-    unmountQueries();
+    await runAsync(...mergerParams);
     refreshing.value = false;
   };
 
   const reload = async () => {
     reloading.value = true;
-    reset();
-    increaseQueryKey.value = initailIncreaseQueryKey;
-    latestData.value = undefined;
+    cancel();
+    dataList.value = [] as any;
     const [, ...restParams] = params.value;
     const mergerParams = [undefined, ...restParams] as any;
-    await run(...mergerParams);
+    await runAsync(...mergerParams);
     reloading.value = false;
   };
 
@@ -215,17 +128,16 @@ function useLoadMore<R, P extends unknown[], FR, LR extends unknown[]>(
   };
 
   return {
-    data: latestData,
-    dataList: dataList,
+    data,
+    dataList,
     params,
     noMore,
     loadingMore,
     refreshing,
     reloading,
-    run,
+    runAsync,
     reload,
     loadMore,
-    reset,
     refresh,
     cancel,
     ...omit(rest, ['refresh', 'mutate']),

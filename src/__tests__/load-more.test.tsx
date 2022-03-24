@@ -1,4 +1,3 @@
-import fetchMock from 'fetch-mock';
 import Mock from 'mockjs';
 import { defineComponent } from 'vue-demi';
 
@@ -18,15 +17,6 @@ type CustomPropertyMockDataType = {
   };
 };
 
-type CustomConfigMockDataType = {
-  list: number[];
-  list1: number[];
-  list2: number[];
-  list3: number[];
-  list4: number[];
-  list5: number[];
-};
-
 type NormalMockDataType = {
   list: string[];
 };
@@ -35,10 +25,6 @@ describe('useLoadMore', () => {
   beforeAll(() => {
     jest.useFakeTimers('modern');
   });
-
-  const normalApi = 'http://example.com/normal';
-  const customPropertyApi = 'http://example.com/custom';
-  const customConfigApi = 'http://example.com/customConfig';
 
   // mock fetch
   const normalMockData: NormalMockDataType = Mock.mock({
@@ -50,19 +36,6 @@ describe('useLoadMore', () => {
       'result|10': ['@name'],
     }),
   };
-
-  const customConfigMockData: CustomConfigMockDataType = {
-    list: [99],
-    list1: [1],
-    list2: [2],
-    list3: [3],
-    list4: [4],
-    list5: [5],
-  };
-
-  fetchMock.get(normalApi, normalMockData, { delay: 1000 });
-  fetchMock.get(customPropertyApi, customPropertyMockData, { delay: 1000 });
-  fetchMock.get(customConfigApi, customConfigMockData, { delay: 1000 });
 
   function generateNormalData(current: number, total = 10) {
     let list: string[] = [];
@@ -144,56 +117,15 @@ describe('useLoadMore', () => {
     expect(useLoadMore).toBeDefined();
   });
 
-  test('useLoadMore only support function service', () => {
-    mount(
-      defineComponent({
-        template: '<div/>',
-        setup() {
-          // @ts-ignore
-          useLoadMore(normalApi);
-          // @ts-ignore
-          useLoadMore({ url: normalApi });
-
-          return {};
-        },
-      }),
-    );
-
-    expect(console.error).toHaveBeenCalledTimes(2);
-  });
-
-  test('useLoadMore not support queryKey', () => {
-    mount(
-      defineComponent({
-        template: '<div/>',
-        setup() {
-          useLoadMore(normalRequest, {
-            // @ts-ignore
-            queryKey: () => 'key',
-          });
-
-          return {};
-        },
-      }),
-    );
-
-    expect(console.error).toHaveBeenCalledTimes(1);
-  });
-
   test('useLoadMore should work', async () => {
     const wrapper = mount(
       defineComponent({
         template: '<div/>',
         setup() {
-          const {
-            dataList,
-            loadingMore,
-            loading,
-            noMore,
-            loadMore,
-          } = useLoadMore(normalRequest, {
-            isNoMore: d => d?.current >= d?.total,
-          });
+          const { dataList, loadingMore, loading, noMore, loadMore } =
+            useLoadMore(normalRequest, {
+              isNoMore: d => (d ? d?.current >= d?.total : false),
+            });
           return {
             dataList,
             loadingMore,
@@ -222,7 +154,7 @@ describe('useLoadMore', () => {
       expect(wrapper.loading).toBe(true);
       await waitForTime(1000);
       expect(wrapper.dataList).toHaveLength(10 + index * 10);
-      expect(wrapper.noMore).toBe(`${index === 9}`);
+      expect(wrapper.noMore).toBe(index === 9);
     }
 
     for (let index = 0; index < 100; index++) {
@@ -242,16 +174,11 @@ describe('useLoadMore', () => {
       defineComponent({
         template: '<div/>',
         setup() {
-          const {
-            dataList,
-            loadingMore,
-            loading,
-            noMore,
-            loadMore,
-          } = useLoadMore(customRequest, {
-            isNoMore: d => d?.current >= d?.total,
-            listKey: 'myData.result',
-          });
+          const { dataList, loadingMore, loading, noMore, loadMore } =
+            useLoadMore(customRequest, {
+              isNoMore: d => (d ? d?.current >= d?.total : false),
+              listKey: 'myData.result',
+            });
           return {
             dataList,
             loadingMore,
@@ -298,7 +225,7 @@ describe('useLoadMore', () => {
             loadMore,
             reload,
           } = useLoadMore(normalRequest, {
-            isNoMore: d => d?.current >= d?.total,
+            isNoMore: d => (d ? d?.current >= d?.total : false),
           });
           return {
             dataList,
@@ -352,7 +279,7 @@ describe('useLoadMore', () => {
     expect(wrapper.loadingMore).toBe(false);
     expect(wrapper.reloading).toBe(true);
     expect(wrapper.dataList).toHaveLength(0);
-    expect(wrapper.noMore).toBe(false);
+    expect(wrapper.noMore).toBe(true);
     await waitForTime(1000);
     expect(wrapper.loading).toBe(false);
     expect(wrapper.reloading).toBe(false);
@@ -440,13 +367,8 @@ describe('useLoadMore', () => {
       defineComponent({
         template: '<div/>',
         setup() {
-          const {
-            dataList,
-            loadingMore,
-            loading,
-            refresh,
-            refreshing,
-          } = useLoadMore(normalRequest);
+          const { dataList, loadingMore, loading, refresh, refreshing } =
+            useLoadMore(normalRequest);
           return {
             dataList,
             loadingMore,
@@ -551,13 +473,8 @@ describe('useLoadMore', () => {
       defineComponent({
         template: '<div/>',
         setup() {
-          const {
-            dataList,
-            loadingMore,
-            loading,
-            refreshing,
-            cancel,
-          } = useLoadMore(normalRequest);
+          const { dataList, loadingMore, loading, refreshing, cancel } =
+            useLoadMore(normalRequest);
           return {
             dataList,
             loadingMore,
@@ -605,79 +522,6 @@ describe('useLoadMore', () => {
     await waitForTime(1000);
     expect(wrapper.loadingMore).toBe(false);
   });
-
-  // test('global config should work', async () => {
-  //   const createComponent = (id: string, requestOptions: GlobalOptions = {}) =>
-  //     defineComponent({
-  //       setup() {
-  //         const { dataList } = useLoadMore(
-  //           () => {
-  //             return new Promise<{ [key: string]: number[] }>(resolve => {
-  //               setTimeout(() => {
-  //                 resolve(customConfigMockData);
-  //               }, 1000);
-  //             });
-  //           },
-  //           { isNoMore: () => false, ...requestOptions },
-  //         );
-
-  //         return () => <div id={id}>{`${dataList.value?.join(',')}`}</div>;
-  //       },
-  //     });
-
-  //   const ComponentA = createComponent('A');
-  //   const ComponentB = createComponent('B');
-  //   const ComponentC = createComponent('C');
-  //   const ComponentD = createComponent('D');
-  //   const ComponentE = createComponent('E', {
-  //     listKey: 'list5',
-  //   });
-
-  //   setGlobalOptions({
-  //     listKey: 'list1',
-  //   });
-
-  //   const Wrapper = defineComponent({
-  //     setup() {
-  //       return () => (
-  //         <div id="root">
-  //           <RequestConfig config={{ listKey: 'list2' }}>
-  //             <ComponentA />
-  //           </RequestConfig>
-
-  //           <RequestConfig config={{ listKey: 'list3' }}>
-  //             <ComponentB />
-
-  //             <ComponentE />
-
-  //             {/* nested */}
-  //             <RequestConfig config={{ listKey: 'list4' }}>
-  //               <ComponentC />
-  //             </RequestConfig>
-  //           </RequestConfig>
-
-  //           <ComponentD />
-  //         </div>
-  //       );
-  //     },
-  //   });
-
-  //   const wrapper = mount(Wrapper);
-
-  //   expect(wrapper.find('#A').text()).toBe('');
-  //   expect(wrapper.find('#B').text()).toBe('');
-  //   expect(wrapper.find('#C').text()).toBe('');
-  //   expect(wrapper.find('#D').text()).toBe('');
-  //   expect(wrapper.find('#E').text()).toBe('');
-
-  //   await waitForTime(1000);
-
-  //   expect(wrapper.find('#A').text()).toBe('2');
-  //   expect(wrapper.find('#B').text()).toBe('3');
-  //   expect(wrapper.find('#C').text()).toBe('4');
-  //   expect(wrapper.find('#D').text()).toBe('1');
-  //   expect(wrapper.find('#E').text()).toBe('5');
-  // });
 
   test('onBefore and onAfter hooks can use in `useLoadMore`', async () => {
     const onBefore = jest.fn();

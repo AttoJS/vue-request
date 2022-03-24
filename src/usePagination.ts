@@ -1,32 +1,10 @@
-import type { Ref } from 'vue';
-import { computed, inject, ref } from 'vue';
+import { computed, inject, ref } from 'vue-demi';
 
 import { getGlobalOptions, GLOBAL_OPTIONS_PROVIDE_KEY } from './core/config';
-import type {
-  BaseOptions,
-  BaseResult,
-  FormatOptions,
-  FRPlaceholderType,
-  GlobalOptions,
-} from './core/types';
-import useAsyncQuery from './core/useAsyncQuery';
-import { get, warning } from './core/utils';
-import generateService from './core/utils/generateService';
+import type { GlobalOptions, Options, Service } from './core/types';
+import { get } from './core/utils';
 import { merge } from './core/utils/lodash';
-import type { IService } from './core/utils/types';
-
-export interface PaginationResult<R, P extends unknown[]>
-  extends Omit<BaseResult<R, P>, 'queries' | 'reset'> {
-  current: Ref<number>;
-  pageSize: Ref<number>;
-  total: Ref<number>;
-  totalPage: Ref<number>;
-  reloading: Ref<boolean>;
-  changeCurrent: (current: number) => void;
-  changePageSize: (pageSize: number) => void;
-  changePagination: (current: number, pageSize: number) => void;
-  reload: () => void;
-}
+import useRequest from './useRequest';
 
 export interface PaginationExtendsOption {
   pagination?: {
@@ -37,35 +15,14 @@ export interface PaginationExtendsOption {
   };
 }
 
-export interface PaginationFormatOptions<R, P extends unknown[], FR>
-  extends Omit<FormatOptions<R, P, FR>, 'queryKey'>,
+export interface PaginationOptions<R, P extends unknown[]>
+  extends Options<R, P>,
     PaginationExtendsOption {}
 
-export interface PaginationBaseOptions<R, P extends unknown[]>
-  extends Omit<BaseOptions<R, P>, 'queryKey'>,
-    PaginationExtendsOption {}
-
-export type PaginationMixinOptions<R, P extends unknown[], FR> =
-  | PaginationBaseOptions<R, P>
-  | PaginationFormatOptions<R, P, FR>;
-
 function usePagination<R, P extends unknown[] = any>(
-  service: IService<R, P>,
-): PaginationResult<R, P>;
-function usePagination<R, P extends unknown[] = any, FR = FRPlaceholderType>(
-  service: IService<R, P>,
-  options: PaginationFormatOptions<R, P, FR>,
-): PaginationResult<FR, P>;
-function usePagination<R, P extends unknown[] = any>(
-  service: IService<R, P>,
-  options: PaginationBaseOptions<R, P>,
-): PaginationResult<R, P>;
-function usePagination<R, P extends unknown[], FR>(
-  service: IService<R, P>,
-  options?: PaginationMixinOptions<R, P, FR>,
+  service: Service<R, P>,
+  options?: PaginationOptions<R, P>,
 ) {
-  const promiseQuery = generateService<R, P>(service);
-
   const defaultOptions = {
     pagination: {
       currentKey: 'current',
@@ -82,7 +39,6 @@ function usePagination<R, P extends unknown[], FR>(
 
   const {
     pagination: { currentKey, pageSizeKey, totalKey, totalPageKey },
-    queryKey,
     ...restOptions
   } = merge(
     defaultOptions,
@@ -90,10 +46,6 @@ function usePagination<R, P extends unknown[], FR>(
     { pagination: injectedGlobalOptions.pagination ?? {} },
     options ?? ({} as any),
   ) as any;
-
-  if (queryKey) {
-    warning('usePagination does not support concurrent request');
-  }
 
   const finallyOptions = merge(
     {
@@ -107,13 +59,13 @@ function usePagination<R, P extends unknown[], FR>(
     restOptions,
   );
 
-  const { data, params, queries, run, reset, ...rest } = useAsyncQuery<R, P>(
-    promiseQuery,
+  const { data, params, run, runAsync, cancel, ...rest } = useRequest<R, P>(
+    service,
     finallyOptions,
   );
 
   const paging = (paginationParams: Record<string, number>) => {
-    const [oldPaginationParams, ...restParams] = params.value as P[];
+    const [oldPaginationParams, ...restParams] = (params.value as P[]) || [];
     const newPaginationParams = {
       ...oldPaginationParams,
       ...paginationParams,
@@ -140,10 +92,10 @@ function usePagination<R, P extends unknown[], FR>(
   const reloading = ref(false);
   const reload = async () => {
     const { defaultParams, manual } = finallyOptions;
-    reset();
+    cancel();
     if (!manual) {
       reloading.value = true;
-      await run(...defaultParams);
+      await runAsync(...defaultParams);
       reloading.value = false;
     }
   };
@@ -151,7 +103,7 @@ function usePagination<R, P extends unknown[], FR>(
   const total = computed<number>(() => get(data.value!, totalKey, 0));
   const current = computed({
     get: () =>
-      (params.value[0] as Record<string, number>)?.[currentKey] ??
+      (params.value?.[0] as Record<string, number>)?.[currentKey] ??
       finallyOptions.defaultParams[0][currentKey],
     set: (val: number) => {
       changeCurrent(val);
@@ -159,7 +111,7 @@ function usePagination<R, P extends unknown[], FR>(
   });
   const pageSize = computed({
     get: () =>
-      (params.value[0] as Record<string, number>)?.[pageSizeKey] ??
+      (params.value?.[0] as Record<string, number>)?.[pageSizeKey] ??
       finallyOptions.defaultParams[0][pageSizeKey],
     set: (val: number) => {
       changePageSize(val);
@@ -178,10 +130,12 @@ function usePagination<R, P extends unknown[], FR>(
     totalPage,
     reloading,
     run,
+    runAsync,
     changeCurrent,
     changePageSize,
     changePagination,
     reload,
+    cancel,
     ...rest,
   };
 }
