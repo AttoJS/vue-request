@@ -1,7 +1,12 @@
 import { ref } from 'vue-demi';
 
-import type { CacheData, CacheResultType } from '../core/utils/cache';
+import type { CacheResultType } from '../core/utils/cache';
 import { clearCache, getCache, setCache } from '../core/utils/cache';
+import {
+  clearCacheQuery,
+  getCacheQuery,
+  setCacheQuery,
+} from '../core/utils/cacheQuery';
 import { waitForTime } from './utils';
 
 describe('utils', () => {
@@ -11,9 +16,24 @@ describe('utils', () => {
     time: new Date().getTime(),
     params: ['1'],
   };
+
+  const cachePromise = () =>
+    new Promise<void>(resolve => {
+      setTimeout(() => {
+        resolve();
+      }, 1000);
+    });
+
+  const cacheRejectPromise = () =>
+    new Promise((_, reject) => {
+      setTimeout(() => {
+        reject();
+      }, 1000);
+    });
   beforeAll(() => {
     jest.useFakeTimers();
     clearCache();
+    clearCacheQuery();
   });
 
   test('setCache and getCache should work', () => {
@@ -50,5 +70,48 @@ describe('utils', () => {
     clearCache(cache1);
     expect(getCache(cache1)).toBeUndefined();
     expect(getCache(cache2)).toMatchObject(cacheData);
+  });
+
+  test('getCacheQuery and setCacheQuery should work', () => {
+    const p = cachePromise();
+    setCacheQuery(cacheKey, p);
+    const pr = getCacheQuery(cacheKey);
+    expect(pr).toBe(p);
+  });
+
+  test('clearCacheQuery should work', async () => {
+    const p = cachePromise();
+    setCacheQuery(cacheKey, p);
+    expect(getCacheQuery(cacheKey)).toBe(p);
+    clearCacheQuery();
+    expect(getCacheQuery(cacheKey)).toBeUndefined();
+  });
+
+  test('clear a single query should work', async () => {
+    const cache1 = '1';
+    const cache2 = '2';
+    const p1 = cachePromise();
+    const p2 = cachePromise();
+    setCacheQuery(cache1, p1);
+    setCacheQuery(cache2, p2);
+    expect(getCacheQuery(cache1)).toBe(p1);
+    expect(getCacheQuery(cache2)).toBe(p2);
+    clearCacheQuery(cache1);
+    expect(getCacheQuery(cache1)).toBeUndefined();
+    expect(getCacheQuery(cache2)).toBe(p2);
+  });
+
+  test('query should delete itself when promise is resolve or reject', async () => {
+    const cache1 = '1';
+    const cache2 = '2';
+    const p1 = cachePromise();
+    const p2 = cacheRejectPromise();
+    setCacheQuery(cache1, p1);
+    setCacheQuery(cache2, p2);
+    expect(getCacheQuery(cache1)).toBe(p1);
+    expect(getCacheQuery(cache2)).toBe(p2);
+    await waitForTime(1000);
+    expect(getCacheQuery(cache1)).toBeUndefined();
+    expect(getCacheQuery(cache2)).toBeUndefined();
   });
 });
