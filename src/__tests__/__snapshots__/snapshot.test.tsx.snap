@@ -1,5 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`RequestConfig RequestConfig default slots should work  1`] = `"this is a text"`;
-
-exports[`RequestConfig RequestConfig default slots should work  2`] = `"this is a text<button>button</button>"`;
