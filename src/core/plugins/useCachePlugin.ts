@@ -112,7 +112,7 @@ export default definePlugin(
 
         _setCache(cacheKey, cacheTime, {
           data,
-          params: queryInstance.params,
+          params: queryInstance.params.value,
           time: new Date().getTime(),
         });
 

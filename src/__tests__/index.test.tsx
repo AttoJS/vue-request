@@ -2129,6 +2129,42 @@ describe('useRequest', () => {
     expect(wrapperB.data).toBe('success');
   });
 
+  test('mutate data, cache should work', async () => {
+    let count = 0;
+    const TestComponent = defineComponent({
+      template: '<div/>',
+      setup() {
+        const { data, run, mutate } = useRequest(request, {
+          cacheKey: 'cacheKey',
+          cacheTime: 10000,
+        });
+        return {
+          run: () => run((count += 1)),
+          mutate: () => mutate('100'),
+          data,
+        };
+      },
+    });
+
+    let wrapper = mount(TestComponent);
+    expect(wrapper.data).toBeUndefined();
+    await waitForTime(1000);
+    expect(wrapper.data).toBe('success');
+    for (let index = 0; index < 5; index++) {
+      wrapper.run();
+      await waitForTime(1000);
+    }
+
+    expect(wrapper.data).toBe('5');
+    wrapper.mutate();
+    expect(wrapper.data).toBe('100');
+    wrapper.unmount();
+
+    // remount component
+    wrapper = mount(TestComponent);
+    expect(wrapper.data).toBe('100');
+  });
+
   test('when the request fails, data will not be cleared', async () => {
     let flag = true;
     const mixinRequest = () => {
