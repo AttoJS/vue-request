@@ -7,10 +7,9 @@
     "moduleResolution": "node",
     "noErrorTruncation": true,
     "esModuleInterop": true,
+    "useUnknownInCatchVariables": false,
     "suppressImplicitAnyIndexErrors": true,
     "sourceMap": true,
-    "declaration": true,
-    "declarationDir": "dist/types",
     "baseUrl": "./",
     "types": ["jest", "node"],
     "paths": {
@@ -18,5 +17,5 @@
     }
   },
   "include": ["src", "examples", "**/__tests__/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist", "patches"]
 }
