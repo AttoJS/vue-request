@@ -34,7 +34,7 @@
     "build:types": "rollup --config ./build/rollup.config.types.js",
     "dev": "yarn switch:3 && vite --config ./build/vite.config.ts ./examples/vue3",
     "dev:2": "yarn switch:2 && vite --config ./build/vite-vue2.config.ts ./examples/vue2",
-    "test": "yarn test:3 && yarn",
+    "test": "yarn test:3 && yarn test:2",
     "test:3": "yarn switch:3 && jest --coverage",
     "test:2": "yarn switch:2 && jest --coverage",
     "switch:3": "vue-demi-switch 3 vue3",
