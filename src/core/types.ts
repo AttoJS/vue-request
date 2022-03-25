@@ -34,6 +34,10 @@ export interface FunctionContext<R, P extends unknown[]> {
   mutate: Mutate<R>;
 }
 
+export interface QueryResult<R, P extends unknown[]>
+  extends State<R, P>,
+    FunctionContext<R, P> {}
+
 interface DebounceOptions {
   leading?: boolean;
   trailing?: boolean;

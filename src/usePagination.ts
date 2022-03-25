@@ -1,7 +1,13 @@
+import type { ComputedRef, Ref, WritableComputedRef } from 'vue-demi';
 import { computed, inject, ref } from 'vue-demi';
 
 import { getGlobalOptions, GLOBAL_OPTIONS_PROVIDE_KEY } from './core/config';
-import type { GlobalOptions, Options, Service } from './core/types';
+import type {
+  GlobalOptions,
+  Options,
+  QueryResult,
+  Service,
+} from './core/types';
 import { get } from './core/utils';
 import { merge } from './core/utils/lodash';
 import useRequest from './useRequest';
@@ -19,10 +25,23 @@ export interface PaginationOptions<R, P extends unknown[]>
   extends Options<R, P>,
     PaginationExtendsOption {}
 
+interface PaginationQueryResult<R, P extends unknown[]>
+  extends QueryResult<R, P> {
+  current: WritableComputedRef<number>;
+  pageSize: WritableComputedRef<number>;
+  total: ComputedRef<number>;
+  totalPage: ComputedRef<number>;
+  reloading: Ref<boolean>;
+  reload: () => void;
+  changeCurrent: (current: number) => void;
+  changePageSize: (pageSize: number) => void;
+  changePagination: (current: number, pageSize: number) => void;
+}
+
 function usePagination<R, P extends unknown[] = any>(
   service: Service<R, P>,
   options?: PaginationOptions<R, P>,
-) {
+): PaginationQueryResult<R, P> {
   const defaultOptions = {
     pagination: {
       currentKey: 'current',
