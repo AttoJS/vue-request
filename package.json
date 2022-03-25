@@ -34,7 +34,8 @@
     "build:types": "rollup --config ./build/rollup.config.types.js",
     "dev": "yarn switch:3 && vite --config ./build/vite.config.ts ./examples/vue3",
     "dev:2": "yarn switch:2 && vite --config ./build/vite-vue2.config.ts ./examples/vue2",
-    "test": "yarn switch:3 && jest --coverage",
+    "test": "yarn test:3 && yarn",
+    "test:3": "yarn switch:3 && jest --coverage",
     "test:2": "yarn switch:2 && jest --coverage",
     "switch:3": "vue-demi-switch 3 vue3",
     "switch:2": "vue-demi-switch 2 vue2",
@@ -46,12 +47,6 @@
     "format": "prettier -w '**/*.ts?(x)'",
     "postinstall": "patch-package"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "node ./scripts/preCommit.js && lint-staged",
-      "commit-msg": "commitlint -x @commitlint/config-conventional -e $HUSKY_GIT_PARAMS"
-    }
-  },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "eslint --fix"
@@ -60,11 +55,6 @@
   },
   "dependencies": {
     "vue-demi": "latest"
-  },
-  "peerDependenciesMeta": {
-    "@vue/composition-api": {
-      "optional": true
-    }
   },
   "devDependencies": {
     "@babel/core": "^7.12.3",
@@ -95,7 +85,7 @@
     "eslint-plugin-simple-import-sort": "^7.0.0",
     "eslint-plugin-vue": "^7.0.0-0",
     "fetch-mock": "^9.10.7",
-    "husky": "^4.3.0",
+    "husky": "^7.0.4",
     "jest": "^27.5.0",
     "jest-environment-jsdom-global": "^2.0.4",
     "lint-staged": "^10.5.2",
@@ -123,5 +113,10 @@
   "peerDependencies": {
     "@vue/composition-api": "^1.0.0-rc.1",
     "vue": "^2.0.0 || >=3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@vue/composition-api": {
+      "optional": true
+    }
   }
 }
