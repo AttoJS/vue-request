@@ -1,6 +1,6 @@
 {
   "name": "vue-request",
-  "version": "1.2.4",
+  "version": "2.0.0-alpha.1",
   "description": "Vue composition API for data fetching, supports SWR, polling, error retry, cache request, pagination and other cool features.",
   "keywords": [
     "vue",
