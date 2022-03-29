@@ -47,7 +47,7 @@
     "release": "yarn build && yarn publishing",
     "lint": "eslint -c ./.eslintrc.js './{src,scripts,build}/**/*.{js,ts,tsx}'",
     "format": "prettier -w '**/*.ts?(x)'",
-    "postinstall": "patch-package"
+    "patch-package": "patch-package"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
