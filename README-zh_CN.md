@@ -11,7 +11,7 @@
 </p>
 <h1 align="center">VueRequest</h1>
 <div align="center">
-  <p align="center">⚡️ 一个能轻松帮你管理请求状态（支持SWR，轮询，错误重试，缓存，分页等）的 Vue 3 composition API 请求库</p>
+  <p align="center">⚡️ 一个能轻松帮你管理请求状态（支持SWR，轮询，错误重试，缓存，分页等）的 Vue composition API 请求库</p>
   <a href="https://codecov.io/github/attojs/vue-request?branch=master">
     <img
       src="https://img.shields.io/codecov/c/github/attojs/vue-request?token=NW2XVQWGPP"
@@ -37,6 +37,10 @@
     <img src="https://img.shields.io/npm/dm/vue-request" alt="Download" />
   </a>
 </div>
+
+## 状态
+
+<span style="font-size: 40px">Alpha</span>
 
 ## 为什么选择 VueRequest
 
@@ -70,9 +74,9 @@ VueRequest 旨在为开发者提供便捷、快速的方式来管理接口的状
 ### NPM
 
 ```sh
-npm install vue-request
+npm install vue-request@next
 # or
-yarn add vue-request
+yarn add vue-request@next
 ```
 
 ### CDN
@@ -149,7 +153,7 @@ const { data, error, run } = useRequest(getUserInfo, {
 
 如果你有很酷的想法，欢迎提交 issue 以便我们讨论
 
-- [ ] 支持 Vue 2
+- [x] 支持 Vue 2
 - [x] 文档
 - [x] 分页
 - [x] 加载更多

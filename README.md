@@ -11,7 +11,7 @@ English | [简体中文](README-zh_CN.md)
 </p>
 <h1 align="center">VueRequest</h1>
 <div align="center">
-  <p align="center">⚡️ Vue 3 composition API for data fetching, supports SWR, polling, error retry, cache request, pagination, etc.</p>
+  <p align="center">⚡️ Vue composition API for data fetching, supports SWR, polling, error retry, cache request, pagination, etc.</p>
   <a href="https://codecov.io/github/attojs/vue-request?branch=master">
     <img
       src="https://img.shields.io/codecov/c/github/attojs/vue-request?token=NW2XVQWGPP"
@@ -37,6 +37,10 @@ English | [简体中文](README-zh_CN.md)
     <img src="https://img.shields.io/npm/dm/vue-request" alt="Download" />
   </a>
 </div>
+
+## Status
+
+<span style="font-size: 40px">Alpha</span>
 
 ## Why VueRequest
 
@@ -69,9 +73,9 @@ You can install VueRequest with [NPM](https://www.npmjs.com/), [YARN](https://ya
 ### NPM
 
 ```sh
-npm install vue-request
+npm install vue-request@next
 # or
-yarn add vue-request
+yarn add vue-request@next
 ```
 
 ### CDN
@@ -148,7 +152,7 @@ const { data, error, run } = useRequest(getUserInfo, {
 
 If you have any cool features, please submit an issue for discussion
 
-- [ ] Support Vue 2
+- [x] Support Vue 2
 - [x] Documentation
 - [x] Pagination
 - [x] Load More
