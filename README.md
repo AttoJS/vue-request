@@ -12,28 +12,28 @@ English | [简体中文](README-zh_CN.md)
 <h1 align="center">VueRequest</h1>
 <div align="center">
   <p align="center">⚡️ Vue composition API for data fetching, supports SWR, polling, error retry, cache request, pagination, etc.</p>
-  <a href="https://codecov.io/github/attojs/vue-request?branch=master">
+   <a href="https://codecov.io/github/attojs/vue-request?branch=master">
     <img
       src="https://img.shields.io/codecov/c/github/attojs/vue-request?token=NW2XVQWGPP"
       alt="Coverage Status"
     />
   </a>
-  <a href="https://www.npmjs.com/package/vue-request">
-    <img src="https://img.shields.io/bundlephobia/minzip/vue-request/latest" alt="Size" />
+  <a href="https://www.npmjs.com/package/vue-request/v/next">
+    <img src="https://img.shields.io/bundlephobia/minzip/vue-request/next" alt="Size" />
   </a>
-  <a href="https://www.npmjs.com/package/vue-request">
-    <img src="https://img.shields.io/npm/v/vue-request" alt="Version" />
+  <a href="https://www.npmjs.com/package/vue-request/v/next">
+    <img src="https://img.shields.io/npm/v/vue-request/next" alt="Version" />
   </a>
-  <a href="https://www.npmjs.com/package/vue-request">
+  <a href="https://www.npmjs.com/package/vue-request/v/next">
     <img src="https://img.shields.io/github/languages/top/attojs/vue-request" alt="Languages" />
   </a>
-  <a href="https://www.npmjs.com/package/vue-request">
+  <a href="https://www.npmjs.com/package/vue-request/v/next">
     <img src="https://img.shields.io/npm/l/vue-request" alt="License" />
   </a>
   <a href="https://github.com/AttoJS/vue-request/stargazers">
     <img src="https://img.shields.io/github/stars/attojs/vue-request" alt="Star" />
   </a>
-  <a href="https://www.npmjs.com/package/vue-request">
+  <a href="https://www.npmjs.com/package/vue-request/v/next">
     <img src="https://img.shields.io/npm/dm/vue-request" alt="Download" />
   </a>
 </div>
