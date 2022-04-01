@@ -38,6 +38,10 @@
   </a>
 </div>
 
+## 项目状态
+
+v2 版本正在测试阶段，详情可以查看 [next](https://github.com/AttoJS/vue-request/tree/next) 分支。
+
 ## 为什么选择 VueRequest
 
 在以往的业务项目中，常常被 loading 状态的管理、请求的节流防抖、接口数据的缓存、分页等这些重复的实现所困惑。每当开启一个新项目时，我们都得手动去处理以上这些问题，这将是一个重复性的工作，而且还得确保团队的一致。
@@ -149,7 +153,7 @@ const { data, error, run } = useRequest(getUserInfo, {
 
 如果你有很酷的想法，欢迎提交 issue 以便我们讨论
 
-- [ ] 支持 Vue 2
+- [x] 支持 Vue 2。详情请参阅 [next](https://github.com/AttoJS/vue-request/tree/next) 分支
 - [x] 文档
 - [x] 分页
 - [x] 加载更多

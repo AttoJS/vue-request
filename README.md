@@ -38,6 +38,10 @@ English | [简体中文](README-zh_CN.md)
   </a>
 </div>
 
+## Status
+
+v2 version is in the Alpha version, please check the [next](https://github.com/AttoJS/vue-request/tree/next) branch for details.
+
 ## Why VueRequest
 
 In the past projects, they were often confused by repeated implementations such as the management of the loading state, the requested throttling and debounce, the caching of request data, and pagination. Whenever we start a new project, we have to manually deal with the above problems, which will be a repetitive work, but also to ensure that the team is consistent.
@@ -148,7 +152,7 @@ const { data, error, run } = useRequest(getUserInfo, {
 
 If you have any cool features, please submit an issue for discussion
 
-- [ ] Support Vue 2
+- [x] Support Vue 2. see [next](https://github.com/AttoJS/vue-request/tree/next) branch
 - [x] Documentation
 - [x] Pagination
 - [x] Load More
