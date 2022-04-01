@@ -40,7 +40,7 @@ English | [简体中文](README-zh_CN.md)
 
 ## Status
 
-<span style="font-size: 40px">Alpha</span>
+Currently in Alpha version. For details, please see the [changelog](https://github.com/AttoJS/vue-request/issues/121).
 
 ## Why VueRequest
 
@@ -50,6 +50,7 @@ VueRequest aims to provide developers with a convenient and fast way to manage t
 
 ## Features
 
+- 🌈 &nbsp;Support Vue 2 & 3
 - 🚀 &nbsp;All data is reactive
 - 🔄 &nbsp;Interval polling
 - 🤖 &nbsp;Automatic error retry
@@ -147,15 +148,6 @@ const { data, error, run } = useRequest(getUserInfo, {
 ```
 
 ![vue-request](https://z3.ax1x.com/2021/09/10/hXAy2n.gif)
-
-## TODO List
-
-If you have any cool features, please submit an issue for discussion
-
-- [x] Support Vue 2
-- [x] Documentation
-- [x] Pagination
-- [x] Load More
 
 ## Thanks
 

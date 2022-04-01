@@ -18,29 +18,29 @@
       alt="Coverage Status"
     />
   </a>
-  <a href="https://www.npmjs.com/package/vue-request">
-    <img src="https://img.shields.io/bundlephobia/minzip/vue-request/latest" alt="Size" />
+  <a href="https://www.npmjs.com/package/vue-request/v/next">
+    <img src="https://img.shields.io/bundlephobia/minzip/vue-request/next" alt="Size" />
   </a>
-  <a href="https://www.npmjs.com/package/vue-request">
-    <img src="https://img.shields.io/npm/v/vue-request" alt="Version" />
+  <a href="https://www.npmjs.com/package/vue-request/v/next">
+    <img src="https://img.shields.io/npm/v/vue-request/next" alt="Version" />
   </a>
-  <a href="https://www.npmjs.com/package/vue-request">
+  <a href="https://www.npmjs.com/package/vue-request/v/next">
     <img src="https://img.shields.io/github/languages/top/attojs/vue-request" alt="Languages" />
   </a>
-  <a href="https://www.npmjs.com/package/vue-request">
+  <a href="https://www.npmjs.com/package/vue-request/v/next">
     <img src="https://img.shields.io/npm/l/vue-request" alt="License" />
   </a>
   <a href="https://github.com/AttoJS/vue-request/stargazers">
     <img src="https://img.shields.io/github/stars/attojs/vue-request" alt="Star" />
   </a>
-  <a href="https://www.npmjs.com/package/vue-request">
+  <a href="https://www.npmjs.com/package/vue-request/v/next">
     <img src="https://img.shields.io/npm/dm/vue-request" alt="Download" />
   </a>
 </div>
 
 ## 状态
 
-<span style="font-size: 40px">Alpha</span>
+目前处于 Alpha 版本，详情请查看[更新日志](https://github.com/AttoJS/vue-request/issues/121)。
 
 ## 为什么选择 VueRequest
 
@@ -50,6 +50,7 @@ VueRequest 旨在为开发者提供便捷、快速的方式来管理接口的状
 
 ## 特性
 
+- 🌈 &nbsp;兼容 Vue 2 & 3
 - 🚀 &nbsp;所有数据都具有响应式
 - 🔄 &nbsp;轮询请求
 - 🤖 &nbsp;自动处理错误重试
@@ -148,15 +149,6 @@ const { data, error, run } = useRequest(getUserInfo, {
 ```
 
 ![vue-request](https://z3.ax1x.com/2021/09/10/hXAy2n.gif)
-
-## TODO 列表
-
-如果你有很酷的想法，欢迎提交 issue 以便我们讨论
-
-- [x] 支持 Vue 2
-- [x] 文档
-- [x] 分页
-- [x] 加载更多
 
 ## 致谢
 
