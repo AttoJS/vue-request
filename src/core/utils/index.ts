@@ -1,3 +1,6 @@
+import type { Ref } from 'vue-demi';
+import { isRef } from 'vue-demi';
+
 export const objectToString = Object.prototype.toString;
 export const toTypeString = (val: unknown): string => objectToString.call(val);
 
@@ -62,4 +65,8 @@ export const warning = (message: string, throwError = false) => {
   } else {
     console.error(msg);
   }
+};
+
+export const refToRaw = <T>(value: Ref<T> | T) => {
+  return isRef(value) ? value.value : value;
 };

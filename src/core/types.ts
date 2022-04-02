@@ -58,8 +58,8 @@ export type BaseOptions = {
   debounceOptions?: DebounceOptions;
   throttleOptions?: ThrottleOptions;
   throttleInterval?: number;
-  refreshOnWindowFocus?: boolean;
-  refocusTimespan?: number;
+  refreshOnWindowFocus?: boolean | Ref<boolean>;
+  refocusTimespan?: number | Ref<number>;
   cacheTime?: number;
   // -1 means the cache is always valid
   staleTime?: number;
@@ -91,7 +91,9 @@ export type PluginImplementType<R, P extends any[]> = {
 };
 
 export type PluginType<R, P extends unknown[]> = {
-  onBefore: (params: P) => {
+  onBefore: (
+    params: P,
+  ) => {
     isBreak?: Boolean;
     breakResult?: any;
   } | void;

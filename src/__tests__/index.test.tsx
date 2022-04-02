@@ -975,80 +975,194 @@ describe('useRequest', () => {
   });
 
   test('refreshOnWindowFocus should work', async () => {
-    let count = 0;
     const wrapper = mount(
       defineComponent({
         template: '<div/>',
         setup() {
-          const { data, run } = useRequest(() => request((count += 1)), {
+          const { loading, run } = useRequest(request, {
             refreshOnWindowFocus: true,
           });
 
           return {
             run,
-            data,
+            loading,
           };
         },
       }),
     );
 
-    expect(wrapper.data).toBeUndefined();
+    expect(wrapper.loading).toBe(true);
     await waitForTime(1000);
-    expect(wrapper.data).toBe('1');
+    expect(wrapper.loading).toBe(false);
     wrapper.run();
+    expect(wrapper.loading).toBe(true);
     await waitForTime(1000);
-    expect(wrapper.data).toBe('2');
+    expect(wrapper.loading).toBe(false);
     // mock tab visible
     jsdom.window.dispatchEvent(new Event('visibilitychange'));
+    expect(wrapper.loading).toBe(true);
     await waitForTime(1000);
-    expect(wrapper.data).toBe('3');
+    expect(wrapper.loading).toBe(false);
     jsdom.window.dispatchEvent(new Event('visibilitychange'));
-    await waitForTime(1000);
-    expect(wrapper.data).toBe('3');
+    expect(wrapper.loading).toBe(false);
+
     // wait for 5s
     await waitForTime(4000);
     jsdom.window.dispatchEvent(new Event('visibilitychange'));
+    expect(wrapper.loading).toBe(true);
     await waitForTime(1000);
-    expect(wrapper.data).toBe('4');
+    expect(wrapper.loading).toBe(false);
   });
 
   test('refocusTimespan should work', async () => {
-    let count = 0;
     const wrapper = mount(
       defineComponent({
         template: '<div/>',
         setup() {
-          const { data, run } = useRequest(() => request((count += 1)), {
+          const { loading, run } = useRequest(request, {
             refreshOnWindowFocus: true,
             refocusTimespan: 3000,
           });
 
           return {
             run,
-            data,
+            loading,
           };
         },
       }),
     );
 
-    expect(wrapper.data).toBeUndefined();
+    expect(wrapper.loading).toBe(true);
     await waitForTime(1000);
-    expect(wrapper.data).toBe('1');
+    expect(wrapper.loading).toBe(false);
     wrapper.run();
+    expect(wrapper.loading).toBe(true);
     await waitForTime(1000);
-    expect(wrapper.data).toBe('2');
+    expect(wrapper.loading).toBe(false);
+
     // mock tab visible
     jsdom.window.dispatchEvent(new Event('visibilitychange'));
+    expect(wrapper.loading).toBe(true);
     await waitForTime(1000);
-    expect(wrapper.data).toBe('3');
+    expect(wrapper.loading).toBe(false);
     jsdom.window.dispatchEvent(new Event('visibilitychange'));
-    await waitForTime(1000);
-    expect(wrapper.data).toBe('3');
+    expect(wrapper.loading).toBe(false);
+
     // wait for 3s
+    await waitForTime(3000);
+    jsdom.window.dispatchEvent(new Event('visibilitychange'));
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+  });
+
+  test('refocusTimespan should be reactive', async () => {
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const refocusTimespan = ref(3000);
+          const { loading } = useRequest(request, {
+            refreshOnWindowFocus: true,
+            refocusTimespan,
+          });
+
+          const changeRefocusTimespan = () => {
+            refocusTimespan.value = 5000;
+          };
+
+          return {
+            changeRefocusTimespan,
+            loading,
+          };
+        },
+      }),
+    );
+
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+
+    // mock tab visible
+    jsdom.window.dispatchEvent(new Event('visibilitychange'));
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+
+    // wait for 3s
+    await waitForTime(3000);
+    jsdom.window.dispatchEvent(new Event('visibilitychange'));
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+
+    // set refocusTimespan = 5000
+    wrapper.changeRefocusTimespan();
+    // mock nexttick
+    await waitForTime(1);
+    jsdom.window.dispatchEvent(new Event('visibilitychange'));
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+
+    await waitForTime(3000);
+    jsdom.window.dispatchEvent(new Event('visibilitychange'));
+    expect(wrapper.loading).toBe(false);
+
     await waitForTime(2000);
     jsdom.window.dispatchEvent(new Event('visibilitychange'));
+    expect(wrapper.loading).toBe(true);
+  });
+
+  test('refreshOnWindowFocus should be reactive', async () => {
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const refreshOnWindowFocus = ref(true);
+          const { loading } = useRequest(request, {
+            refreshOnWindowFocus,
+          });
+
+          const changeRefreshOnWindowFocus = () => {
+            refreshOnWindowFocus.value = !refreshOnWindowFocus.value;
+          };
+
+          return {
+            changeRefreshOnWindowFocus,
+            loading,
+          };
+        },
+      }),
+    );
+
+    expect(wrapper.loading).toBe(true);
     await waitForTime(1000);
-    expect(wrapper.data).toBe('4');
+    expect(wrapper.loading).toBe(false);
+
+    // mock tab visible
+    jsdom.window.dispatchEvent(new Event('visibilitychange'));
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+    // wait for 5s
+    await waitForTime(5000);
+    jsdom.window.dispatchEvent(new Event('visibilitychange'));
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+
+    // set refreshOnWindowFocus false
+    wrapper.changeRefreshOnWindowFocus();
+    await waitForTime(5000);
+    jsdom.window.dispatchEvent(new Event('visibilitychange'));
+    expect(wrapper.loading).toBe(false);
+
+    // set refreshOnWindowFocus true
+    wrapper.changeRefreshOnWindowFocus();
+    await waitForTime(5000);
+    jsdom.window.dispatchEvent(new Event('visibilitychange'));
+    expect(wrapper.loading).toBe(true);
   });
 
   test('debounceInterval should work', async () => {
