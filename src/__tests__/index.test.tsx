@@ -1245,6 +1245,99 @@ describe('useRequest', () => {
     expect(mockFn).toHaveBeenCalledTimes(2);
   });
 
+  test('debounceInterval should be reactive', async () => {
+    const mockFn = jest.fn();
+
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const debounceInterval = ref(100);
+          const { run } = useRequest(
+            () => {
+              mockFn();
+              return request();
+            },
+            {
+              debounceInterval,
+              manual: true,
+            },
+          );
+
+          const changeDebounceInterval = () => {
+            debounceInterval.value = 50;
+          };
+          return {
+            run,
+            changeDebounceInterval,
+          };
+        },
+      }),
+    );
+    for (let index = 0; index <= 10; index++) {
+      wrapper.run();
+      await waitForTime(50);
+    }
+
+    await waitForTime(100);
+    expect(mockFn).toHaveBeenCalledTimes(1);
+
+    wrapper.changeDebounceInterval();
+
+    for (let index = 0; index <= 10; index++) {
+      wrapper.run();
+      await waitForTime(50);
+    }
+
+    await waitForTime(100);
+    expect(mockFn).toHaveBeenCalledTimes(11);
+  });
+
+  test('debounce will be cancelled when debounceInterval  changes', async () => {
+    const mockFn = jest.fn();
+
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const debounceInterval = ref(100);
+          const { run } = useRequest(
+            () => {
+              mockFn();
+              return request();
+            },
+            {
+              debounceInterval,
+              manual: true,
+            },
+          );
+
+          const changeDebounceInterval = () => {
+            debounceInterval.value = 150;
+          };
+          return {
+            run,
+            changeDebounceInterval,
+          };
+        },
+      }),
+    );
+    wrapper.run();
+    expect(mockFn).toHaveBeenCalledTimes(0);
+    await waitForTime(50);
+    expect(mockFn).toHaveBeenCalledTimes(0);
+
+    wrapper.changeDebounceInterval();
+    await waitForTime(1);
+
+    await waitForTime(50);
+    expect(mockFn).toHaveBeenCalledTimes(0);
+
+    wrapper.run();
+    await waitForTime(150);
+    expect(mockFn).toHaveBeenCalledTimes(1);
+  });
+
   test('debounceOptions should work: case 1', async () => {
     const mockFn = jest.fn();
 
@@ -1382,6 +1475,90 @@ describe('useRequest', () => {
     expect(mockFn).toHaveBeenCalledTimes(10);
   });
 
+  test('debounceOptions should be reactive', async () => {
+    const mockFn = jest.fn();
+
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const debounceOptions = reactive<any>({
+            leading: false,
+            trailing: true,
+          });
+          const { run } = useRequest(
+            () => {
+              mockFn();
+              return request();
+            },
+            {
+              debounceInterval: 100,
+              debounceOptions,
+              manual: true,
+            },
+          );
+          const changeOptions = (type: 1 | 2) => {
+            switch (type) {
+              case 1:
+                debounceOptions.leading = true;
+                debounceOptions.trailing = false;
+                break;
+
+              case 2:
+                debounceOptions.leading = false;
+                debounceOptions.trailing = true;
+                debounceOptions.maxWait = 1000;
+                break;
+            }
+          };
+          return {
+            run,
+            changeOptions,
+          };
+        },
+      }),
+    );
+    wrapper.changeOptions(1);
+    await waitForTime(1);
+    for (let index = 0; index < 100; index++) {
+      wrapper.run();
+      await waitForTime(50);
+    }
+
+    expect(mockFn).toHaveBeenCalledTimes(1);
+    await waitForTime(100);
+    expect(mockFn).toHaveBeenCalledTimes(1);
+
+    for (let index = 0; index < 100; index++) {
+      wrapper.run();
+      await waitForTime(50);
+    }
+
+    expect(mockFn).toHaveBeenCalledTimes(2);
+    await waitForTime(100);
+    expect(mockFn).toHaveBeenCalledTimes(2);
+
+    wrapper.changeOptions(2);
+    await waitForTime(1);
+    for (let index = 0; index < 100; index++) {
+      wrapper.run();
+      await waitForTime(50);
+    }
+
+    expect(mockFn).toHaveBeenCalledTimes(7);
+    await waitForTime(1000);
+    expect(mockFn).toHaveBeenCalledTimes(7);
+
+    for (let index = 0; index < 100; index++) {
+      wrapper.run();
+      await waitForTime(50);
+    }
+
+    expect(mockFn).toHaveBeenCalledTimes(12);
+    await waitForTime(1000);
+    expect(mockFn).toHaveBeenCalledTimes(12);
+  });
+
   test('debounceInterval should work with cancel', async () => {
     const mockFn = jest.fn();
 
@@ -1424,7 +1601,7 @@ describe('useRequest', () => {
     expect(mockFn).toHaveBeenCalledTimes(0);
   });
 
-  test('initial auto run should skip debounce', async () => {
+  test('initial auto run should debounce', async () => {
     const mockFn = jest.fn();
 
     const wrapper = mount(
@@ -2856,7 +3033,7 @@ describe('useRequest', () => {
       }),
     );
 
-    for (let index = 0; index < 500; index++) {
+    for (let index = 0; index < 50; index++) {
       expect(wrapper.loading).toBe(true);
       await waitForTime(1000);
       expect(wrapper.data).toBe(`${index + 1}`);
@@ -2872,9 +3049,9 @@ describe('useRequest', () => {
     // last request
     expect(wrapper.loading).toBe(true);
     await waitForTime(1000);
-    expect(wrapper.data).toBe(`501`);
+    expect(wrapper.data).toBe(`51`);
     await waitForTime(500);
-    expect(wrapper.data).toBe(`501`);
+    expect(wrapper.data).toBe(`51`);
 
     // mock online
     Object.defineProperty(window.navigator, 'onLine', {
@@ -2887,7 +3064,7 @@ describe('useRequest', () => {
     for (let index = 0; index < 1000; index++) {
       expect(wrapper.loading).toBe(true);
       await waitForTime(1000);
-      expect(wrapper.data).toBe(`${501 + index + 1}`);
+      expect(wrapper.data).toBe(`${51 + index + 1}`);
       await waitForTime(500);
     }
   });
@@ -2910,7 +3087,7 @@ describe('useRequest', () => {
       }),
     );
 
-    for (let index = 0; index < 500; index++) {
+    for (let index = 0; index < 50; index++) {
       expect(wrapper.loading).toBe(true);
       await waitForTime(1000);
       expect(wrapper.data).toBe(`${index + 1}`);
@@ -2926,7 +3103,7 @@ describe('useRequest', () => {
     // last request
     expect(wrapper.loading).toBe(true);
     await waitForTime(1000);
-    expect(wrapper.data).toBe(`501`);
+    expect(wrapper.data).toBe(`51`);
     await waitForTime(500);
     expect(wrapper.loading).toBe(true);
 
@@ -2938,10 +3115,10 @@ describe('useRequest', () => {
     jsdom.window.dispatchEvent(new Event('online'));
     await waitForTime(1);
 
-    for (let index = 0; index < 1000; index++) {
+    for (let index = 0; index < 100; index++) {
       expect(wrapper.loading).toBe(true);
       await waitForTime(1000);
-      expect(wrapper.data).toBe(`${501 + index + 1}`);
+      expect(wrapper.data).toBe(`${51 + index + 1}`);
       await waitForTime(500);
     }
   });
@@ -2963,7 +3140,7 @@ describe('useRequest', () => {
       }),
     );
 
-    for (let index = 0; index < 1000; index++) {
+    for (let index = 0; index < 100; index++) {
       expect(wrapper.loading).toBe(true);
       await waitForTime(1000);
       expect(wrapper.data).toBe(`${index + 1}`);
@@ -2979,9 +3156,9 @@ describe('useRequest', () => {
     // last request
     expect(wrapper.loading).toBe(true);
     await waitForTime(1000);
-    expect(wrapper.data).toBe(`1001`);
+    expect(wrapper.data).toBe(`101`);
     await waitForTime(500);
-    expect(wrapper.data).toBe(`1001`);
+    expect(wrapper.data).toBe(`101`);
 
     // mock tab show
     Object.defineProperty(document, 'visibilityState', {
@@ -2991,7 +3168,7 @@ describe('useRequest', () => {
     jsdom.window.dispatchEvent(new Event('visibilitychange'));
     // wait 1ms make to sure event has trigger
     await waitForTime(1);
-    expect(wrapper.data).toBe(`1001`);
+    expect(wrapper.data).toBe(`101`);
 
     // mock online
     Object.defineProperty(window.navigator, 'onLine', {
@@ -3002,10 +3179,10 @@ describe('useRequest', () => {
     // wait 1ms to make sure event has trigger
     await waitForTime(1);
 
-    for (let index = 0; index < 500; index++) {
+    for (let index = 0; index < 50; index++) {
       expect(wrapper.loading).toBe(true);
       await waitForTime(1000);
-      expect(wrapper.data).toBe(`${1001 + index + 1}`);
+      expect(wrapper.data).toBe(`${101 + index + 1}`);
       await waitForTime(500);
     }
   });
@@ -3027,7 +3204,7 @@ describe('useRequest', () => {
       }),
     );
 
-    for (let index = 0; index < 1000; index++) {
+    for (let index = 0; index < 100; index++) {
       expect(wrapper.loading).toBe(true);
       await waitForTime(1000);
       expect(wrapper.data).toBe(`${index + 1}`);

@@ -54,7 +54,7 @@ export type BaseOptions = {
   pollingInterval?: number;
   pollingWhenHidden?: boolean;
   pollingWhenOffline?: boolean;
-  debounceInterval?: number;
+  debounceInterval?: number | Ref<number>;
   debounceOptions?: DebounceOptions;
   throttleOptions?: ThrottleOptions;
   throttleInterval?: number;
