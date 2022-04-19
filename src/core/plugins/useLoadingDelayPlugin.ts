@@ -1,25 +1,27 @@
-import { ref } from 'vue-demi';
+import { computed, ref } from 'vue-demi';
 
 import { definePlugin } from '../definePlugin';
+import { refToRaw } from '../utils';
 import type { Timeout } from '../utils/types';
 
 export default definePlugin((queryInstance, { loadingDelay = 0 }) => {
   const delayLoadingTimer = ref();
+  const loadingDelayRef = computed(() => refToRaw(loadingDelay));
 
   const delayLoading = () => {
     let timerId: Timeout | undefined;
 
-    if (loadingDelay) {
+    if (loadingDelayRef.value) {
       timerId = setTimeout(() => {
         queryInstance.loading.value = true;
-      }, loadingDelay);
+      }, loadingDelayRef.value);
     }
 
     return () => timerId && clearTimeout(timerId);
   };
   return {
     onBefore() {
-      queryInstance.loading.value = !loadingDelay;
+      queryInstance.loading.value = !loadingDelayRef.value;
       delayLoadingTimer.value?.();
       delayLoadingTimer.value = delayLoading();
     },

@@ -754,6 +754,42 @@ describe('useRequest', () => {
     expect(wrapper.loading).toBe(false);
   });
 
+  test('loadingDelay should be reactive', async () => {
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const loadingDelay = ref(800);
+          const { loading, run } = useRequest(request, {
+            loadingDelay,
+            manual: true,
+          });
+
+          const changeLoadingDelay = () => {
+            loadingDelay.value = 0;
+          };
+          return {
+            run,
+            loading,
+            changeLoadingDelay,
+          };
+        },
+      }),
+    );
+    wrapper.run();
+    expect(wrapper.loading).toBe(false);
+    await waitForTime(800);
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(200);
+    expect(wrapper.loading).toBe(false);
+
+    wrapper.changeLoadingDelay();
+    wrapper.run();
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+  });
+
   test('cancel loadingDelay should work', async () => {
     const wrapper = mount(
       defineComponent({

@@ -50,7 +50,7 @@ export type GlobalOptions = BaseOptions &
   LoadMoreExtendsOption;
 
 export type BaseOptions = {
-  loadingDelay?: number;
+  loadingDelay?: number | Ref<number>;
   pollingInterval?: number;
   pollingWhenHidden?: boolean;
   pollingWhenOffline?: boolean;
