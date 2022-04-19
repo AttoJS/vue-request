@@ -57,7 +57,7 @@ export type BaseOptions = {
   debounceInterval?: number | Ref<number>;
   debounceOptions?: DebounceOptions;
   throttleOptions?: ThrottleOptions;
-  throttleInterval?: number;
+  throttleInterval?: number | Ref<number>;
   refreshOnWindowFocus?: boolean | Ref<boolean>;
   refocusTimespan?: number | Ref<number>;
   cacheTime?: number;

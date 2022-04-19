@@ -1293,7 +1293,7 @@ describe('useRequest', () => {
     expect(mockFn).toHaveBeenCalledTimes(11);
   });
 
-  test('debounce will be cancelled when debounceInterval  changes', async () => {
+  test('debounce will be cancelled when debounceInterval changes', async () => {
     const mockFn = jest.fn();
 
     const wrapper = mount(
@@ -1713,6 +1713,118 @@ describe('useRequest', () => {
     expect(mockFn).toHaveBeenCalledTimes(3);
   });
 
+  test('throttleInterval should be reactive', async () => {
+    const mockFn = jest.fn();
+
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const throttleInterval = ref(100);
+          const { run } = useRequest(
+            () => {
+              mockFn();
+              return request();
+            },
+            {
+              throttleInterval,
+              manual: true,
+            },
+          );
+
+          const changeThrottleInterval = () => {
+            throttleInterval.value = 1000;
+          };
+          return {
+            run,
+            changeThrottleInterval,
+          };
+        },
+      }),
+    );
+
+    wrapper.run();
+
+    await waitForTime(50);
+    wrapper.run();
+    wrapper.run();
+    wrapper.run();
+
+    await waitForTime(50);
+    wrapper.run();
+
+    await waitForAll();
+    expect(mockFn).toHaveBeenCalledTimes(3);
+
+    wrapper.changeThrottleInterval();
+    await waitForTime(1);
+
+    wrapper.run();
+    await waitForTime(400);
+    wrapper.run();
+    wrapper.run();
+    wrapper.run();
+
+    await waitForTime(400);
+    wrapper.run();
+    await waitForAll();
+    expect(mockFn).toHaveBeenCalledTimes(5);
+  });
+
+  test('throttle will be cancelled when throttleInterval changes', async () => {
+    const mockFn = jest.fn();
+
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const throttleInterval = ref(100);
+          const { run } = useRequest(
+            () => {
+              mockFn();
+              return request();
+            },
+            {
+              throttleInterval,
+              manual: true,
+            },
+          );
+
+          const changeThrottleInterval = () => {
+            throttleInterval.value = 1000;
+          };
+          return {
+            run,
+            changeThrottleInterval,
+          };
+        },
+      }),
+    );
+    wrapper.run();
+    expect(mockFn).toHaveBeenCalledTimes(1);
+    await waitForTime(50);
+    wrapper.run();
+    expect(mockFn).toHaveBeenCalledTimes(1);
+
+    wrapper.changeThrottleInterval();
+    await waitForTime(1);
+
+    await waitForTime(50);
+    expect(mockFn).toHaveBeenCalledTimes(1);
+
+    wrapper.run();
+    expect(mockFn).toHaveBeenCalledTimes(2);
+    await waitForTime(100);
+    wrapper.run();
+    await waitForTime(100);
+    wrapper.run();
+    await waitForTime(100);
+    wrapper.run();
+
+    await waitForTime(700);
+    expect(mockFn).toHaveBeenCalledTimes(3);
+  });
+
   test('throttleOptions should work, case: 1', async () => {
     const mockFn = jest.fn();
 
@@ -1833,6 +1945,65 @@ describe('useRequest', () => {
 
     await waitForAll();
     expect(mockFn).toHaveBeenCalledTimes(0);
+  });
+
+  test('throttleOptions should be reactive', async () => {
+    const mockFn = jest.fn();
+
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const throttleOptions = reactive<any>({
+            leading: true,
+          });
+          const { run } = useRequest(
+            () => {
+              mockFn();
+              return request();
+            },
+            {
+              throttleInterval: 100,
+              throttleOptions,
+              manual: true,
+            },
+          );
+
+          const changeThrottleOptions = () => {
+            throttleOptions.leading = false;
+          };
+          return {
+            run,
+            changeThrottleOptions,
+          };
+        },
+      }),
+    );
+
+    wrapper.run();
+
+    await waitForTime(50);
+    wrapper.run();
+
+    await waitForTime(50);
+    wrapper.run();
+
+    await waitForAll();
+    expect(mockFn).toHaveBeenCalledTimes(3);
+
+    wrapper.changeThrottleOptions();
+    await waitForTime(1);
+
+    wrapper.run();
+
+    await waitForTime(50);
+    wrapper.run();
+
+    await waitForTime(50);
+    wrapper.run();
+
+    await waitForAll();
+    expect(mockFn).toHaveBeenCalledTimes(5);
   });
 
   test('throttleInterval should work with cancel', async () => {
