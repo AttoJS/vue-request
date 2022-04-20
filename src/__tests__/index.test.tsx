@@ -2815,6 +2815,120 @@ describe('useRequest', () => {
     expect(mockFn).toHaveBeenCalledTimes(11);
   });
 
+  test('errorRetryCount should be reactive', async () => {
+    const mockFn = jest.fn();
+
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const errorRetryCount = ref(3);
+          const { run, loading } = useRequest(failedRequest, {
+            manual: true,
+            errorRetryCount: errorRetryCount,
+            errorRetryInterval: 1000,
+            onError: () => mockFn(),
+          });
+
+          const changeCount = (number: number) => {
+            errorRetryCount.value = number;
+          };
+
+          return {
+            run,
+            loading,
+            changeCount,
+          };
+        },
+      }),
+    );
+
+    wrapper.run();
+    expect(wrapper.loading).toBe(true);
+
+    await waitForAll();
+
+    wrapper.changeCount(5); // change count
+    await waitForTime(1);
+
+    for (let index = 0; index < 10; index++) {
+      await waitForAll();
+    }
+    expect(mockFn).toHaveBeenCalledTimes(6);
+
+    // =========
+    wrapper.run();
+    expect(wrapper.loading).toBe(true);
+
+    await waitForAll();
+
+    wrapper.changeCount(2); // change count
+    await waitForTime(1);
+
+    for (let index = 0; index < 10; index++) {
+      await waitForAll();
+    }
+
+    expect(mockFn).toHaveBeenCalledTimes(9);
+  });
+
+  test('errorRetryInterval should be reactive', async () => {
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const errorRetryInterval = ref(1000);
+          const { run, loading } = useRequest(failedRequest, {
+            manual: true,
+            errorRetryCount: 3,
+            errorRetryInterval: errorRetryInterval,
+          });
+
+          const changeInterval = () => {
+            errorRetryInterval.value = 500;
+          };
+
+          return {
+            run,
+            loading,
+            changeInterval,
+          };
+        },
+      }),
+    );
+
+    wrapper.run();
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+
+    // retrying 1
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(true);
+
+    wrapper.changeInterval();
+    await waitForTime(1);
+
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+
+    // retrying 2
+    await waitForTime(500);
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+
+    // retrying 3
+    await waitForTime(500);
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+
+    // stop retry
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+  });
+
   test('errorRetry should work with pollingInterval', async () => {
     let flag = true;
     const mixinRequest = () => {

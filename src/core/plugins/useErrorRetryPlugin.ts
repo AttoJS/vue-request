@@ -1,12 +1,16 @@
 import { computed, ref } from 'vue-demi';
 
 import { definePlugin } from '../definePlugin';
+import { refToRaw } from '../utils';
 import type { Timeout } from '../utils/types';
 
 export default definePlugin(
   (queryInstance, { errorRetryCount = 0, errorRetryInterval = 0 }) => {
     const retryTimer = ref();
     const retriedCount = ref(0);
+    const errorRetryCountRef = computed(() => refToRaw(errorRetryCount));
+    const errorRetryIntervalRef = computed(() => refToRaw(errorRetryInterval));
+
     let isRetrying = false;
 
     // reset retried count
@@ -15,7 +19,7 @@ export default definePlugin(
     };
 
     const actualErrorRetryInterval = computed(() => {
-      if (errorRetryInterval) return errorRetryInterval;
+      if (errorRetryIntervalRef.value) return errorRetryIntervalRef.value;
       const baseTime = 1000;
       const minCoefficient = 1;
       const maxCoefficient = 9;
@@ -30,8 +34,8 @@ export default definePlugin(
 
     const errorRetryHooks = () => {
       let timerId: Timeout | undefined;
-      const isInfiniteRetry = errorRetryCount === -1;
-      const hasRetryCount = retriedCount.value < errorRetryCount;
+      const isInfiniteRetry = errorRetryCountRef.value === -1;
+      const hasRetryCount = retriedCount.value < errorRetryCountRef.value;
 
       // if errorRetryCount is -1, it will retry the request until it success
       if (isInfiniteRetry || hasRetryCount) {

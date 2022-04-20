@@ -65,8 +65,8 @@ export type BaseOptions = {
   staleTime?: number;
   manual?: boolean;
   // error retry
-  errorRetryCount?: number;
-  errorRetryInterval?: number;
+  errorRetryCount?: number | Ref<number>;
+  errorRetryInterval?: number | Ref<number>;
   // custom cache
   getCache?: (cacheKey: string) => CacheData;
   setCache?: (cacheKey: string, cacheData: CacheData) => void;
