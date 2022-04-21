@@ -1,13 +1,21 @@
-import { ref, watch } from 'vue-demi';
+import { watch } from 'vue-demi';
 
 import { definePlugin } from '../definePlugin';
 
-export default definePlugin((queryInstance, { refreshDeps = [], manual }) => {
-  // watch refreshDeps
-  if (refreshDeps?.length) {
-    watch(refreshDeps, () => {
-      !manual && queryInstance.context.refresh();
-    });
-  }
-  return {};
-});
+export default definePlugin(
+  (queryInstance, { refreshDeps = [], refreshDepsAction, manual }) => {
+    // watch refreshDeps
+    if (refreshDeps?.length) {
+      watch(refreshDeps, () => {
+        if (manual) return;
+
+        if (refreshDepsAction) {
+          refreshDepsAction();
+        } else {
+          queryInstance.context.refresh();
+        }
+      });
+    }
+    return {};
+  },
+);

@@ -731,6 +731,79 @@ describe('useRequest', () => {
     }
   });
 
+  test('manual = true, refreshDeps should work', async () => {
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const refreshRef = ref(0);
+          const { loading, run } = useRequest(request, {
+            refreshDeps: [refreshRef],
+            manual: true,
+          });
+
+          const handleUpdateRef = () => {
+            refreshRef.value++;
+          };
+
+          return {
+            run,
+            loading,
+            handleUpdateRef,
+          };
+        },
+      }),
+    );
+
+    wrapper.run();
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+
+    wrapper.handleUpdateRef();
+    await waitForTime(1);
+    expect(wrapper.loading).toBe(false);
+  });
+
+  test('refreshDepsAction should work', async () => {
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const refreshRef = ref(0);
+          const { loading, data, run } = useRequest(request, {
+            refreshDeps: [refreshRef],
+            refreshDepsAction: () => {
+              run('action');
+            },
+          });
+
+          const handleUpdateRef = () => {
+            refreshRef.value++;
+          };
+
+          return {
+            data,
+            loading,
+            handleUpdateRef,
+          };
+        },
+      }),
+    );
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+    expect(wrapper.data).toBe('success');
+
+    wrapper.handleUpdateRef();
+    await waitForTime(1);
+
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+    expect(wrapper.data).toBe('action');
+  });
+
   test('loadingDelay should work', async () => {
     const wrapper = mount(
       defineComponent({
