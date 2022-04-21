@@ -34,7 +34,7 @@ export default definePlugin(
               .then(resolve)
               .catch(reject);
           } else {
-            debouncedRun.value?.(() => {
+            debouncedRun.value!(() => {
               originRunRef
                 .value(...args)
                 .then(resolve)

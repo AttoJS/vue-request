@@ -5,7 +5,7 @@ import { refToRaw } from '../utils';
 import type { Timeout } from '../utils/types';
 
 export default definePlugin((queryInstance, { loadingDelay = 0 }) => {
-  const delayLoadingTimer = ref();
+  const delayLoadingTimer = ref(() => {});
   const loadingDelayRef = computed(() => refToRaw(loadingDelay));
 
   const delayLoading = () => {
@@ -22,14 +22,14 @@ export default definePlugin((queryInstance, { loadingDelay = 0 }) => {
   return {
     onBefore() {
       queryInstance.loading.value = !loadingDelayRef.value;
-      delayLoadingTimer.value?.();
+      delayLoadingTimer.value();
       delayLoadingTimer.value = delayLoading();
     },
     onCancel() {
-      delayLoadingTimer.value?.();
+      delayLoadingTimer.value();
     },
     onAfter() {
-      delayLoadingTimer.value?.();
+      delayLoadingTimer.value();
     },
   };
 });

@@ -23,7 +23,7 @@ export default definePlugin(
 
       queryInstance.context.runAsync = (...args) =>
         new Promise((resolve, reject) => {
-          throttledRun.value?.(() => {
+          throttledRun.value!(() => {
             originRunRef
               .value(...args)
               .then(resolve)

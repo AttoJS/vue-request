@@ -56,13 +56,13 @@ export default definePlugin(
     const cache = _getCache(cacheKey);
     if (cache && hasProp(cache, 'data')) {
       queryInstance.data.value = cache.data;
-      queryInstance.params.value = cache.params || [];
+      queryInstance.params.value = cache.params;
     }
 
     unSubscribe.value = subscribeCache();
 
     onUnmounted(() => {
-      unSubscribe.value?.();
+      unSubscribe.value();
     });
 
     return {
@@ -97,7 +97,7 @@ export default definePlugin(
         return { servicePromise };
       },
       onSuccess(data, params) {
-        unSubscribe.value?.();
+        unSubscribe.value();
 
         _setCache(cacheKey, cacheTime, {
           data,
@@ -108,7 +108,7 @@ export default definePlugin(
         unSubscribe.value = subscribeCache();
       },
       onMutate(data) {
-        unSubscribe.value?.();
+        unSubscribe.value();
 
         _setCache(cacheKey, cacheTime, {
           data,

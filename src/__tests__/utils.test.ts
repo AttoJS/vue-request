@@ -1,3 +1,5 @@
+import { ref } from 'vue-demi';
+
 import {
   get,
   isDocumentVisibility,
@@ -9,6 +11,7 @@ import {
   isPromise,
   isString,
   omit,
+  refToRaw,
   warning,
 } from '../core/utils';
 import limitTrigger from '../core/utils/limitTrigger';
@@ -116,6 +119,18 @@ describe('utils', () => {
     expect(isDocumentVisibility()).toBeFalsy();
   });
 
+  test('isDocumentVisibility should work when window.document is undefined', () => {
+    const tempDocument = window.document;
+
+    // @ts-ignore
+    delete window.document;
+    // @ts-ignore
+    window.document = undefined;
+    expect(isDocumentVisibility()).toBeFalsy();
+
+    window.document = tempDocument;
+  });
+
   test('isOnline should work', () => {
     expect(isOnline()).toBeTruthy();
     Object.defineProperty(window.navigator, 'onLine', {
@@ -123,6 +138,18 @@ describe('utils', () => {
       writable: true,
     });
     expect(isOnline()).toBeFalsy();
+  });
+
+  test('isOnline should work when window.navigator is undefined', () => {
+    const tempNavigator = window.navigator;
+
+    // @ts-ignore
+    delete window.navigator;
+    // @ts-ignore
+    window.navigator = undefined;
+    expect(isOnline()).toBeTruthy();
+
+    window.navigator = tempNavigator;
   });
 
   test('unsubscribe listener should work', () => {
@@ -174,5 +201,12 @@ describe('utils', () => {
     } catch (error) {
       expect(error.message).toBe('Warning: [vue-request] test');
     }
+  });
+
+  test('refToRaw should work', () => {
+    const refData = ref('data');
+    const data = 'data';
+    expect(refToRaw(refData)).toBe('data');
+    expect(refToRaw(data)).toBe('data');
   });
 });

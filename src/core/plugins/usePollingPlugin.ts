@@ -61,7 +61,7 @@ export default definePlugin(
 
     watch(pollingIntervalRef, () => {
       if (pollingTimer.value) {
-        pollingTimer.value?.();
+        pollingTimer.value();
         pollingTimer.value = polling(() => queryInstance.context.refresh());
       }
     });

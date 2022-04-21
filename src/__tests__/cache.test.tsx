@@ -40,6 +40,10 @@ describe('utils', () => {
     setCache(cacheKey, 10000, cacheData);
     const data = getCache(cacheKey);
     expect(data).toMatchObject(cacheData);
+
+    // @ts-ignore
+    const emptyData = getCache();
+    expect(emptyData).toBeUndefined();
   });
 
   test('cacheTime should work', async () => {
@@ -58,6 +62,10 @@ describe('utils', () => {
     expect(getCache(cacheKey)).toMatchObject(cacheData);
     clearCache();
     expect(getCache(cacheKey)).toBeUndefined();
+  });
+
+  test("clearCache should work when cacheKey doesn't not exist", async () => {
+    expect(clearCache('not exist')).toBeUndefined();
   });
 
   test('clear a single cache should work', async () => {
