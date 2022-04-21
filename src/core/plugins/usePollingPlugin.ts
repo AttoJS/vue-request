@@ -1,7 +1,7 @@
-import { onUnmounted, ref } from 'vue-demi';
+import { computed, onUnmounted, ref, watch } from 'vue-demi';
 
 import { definePlugin } from '../definePlugin';
-import { isDocumentVisibility, isNil, isOnline } from '../utils';
+import { isDocumentVisibility, isNil, isOnline, refToRaw } from '../utils';
 import subscriber from '../utils/listener';
 import type { Timeout } from '../utils/types';
 
@@ -17,22 +17,31 @@ export default definePlugin(
   ) => {
     const pollingTimer = ref();
     const stopPollingWhenHiddenOrOffline = ref(false);
+    const pollingIntervalRef = computed(() => refToRaw(pollingInterval));
+    const errorRetryCountRef = computed(() => refToRaw(errorRetryCount));
+
     const unsubscribeList: (() => void)[] = [];
     const addUnsubscribeList = (event?: () => void) => {
       event && unsubscribeList.push(event);
     };
 
+    const isKeepPolling = () => {
+      return (
+        // pollingWhenHidden = true or pollingWhenHidden = false and document is visibility
+        (pollingWhenHidden || isDocumentVisibility()) &&
+        // pollingWhenOffline = true or pollingWhenOffline = false and is online
+        (pollingWhenOffline || isOnline())
+      );
+    };
+
     const polling = (pollingFunc: () => void) => {
       // if errorRetry is enabled, then skip this method
-      if (queryInstance.error.value && errorRetryCount !== 0) return;
+      if (queryInstance.error.value && errorRetryCountRef.value !== 0) return;
 
       let timerId: Timeout | undefined;
-      if (!isNil(pollingInterval) && pollingInterval! >= 0) {
-        if (
-          (pollingWhenHidden || isDocumentVisibility()) &&
-          (pollingWhenOffline || isOnline())
-        ) {
-          timerId = setTimeout(pollingFunc, pollingInterval);
+      if (!isNil(pollingIntervalRef.value) && pollingIntervalRef.value! >= 0) {
+        if (isKeepPolling()) {
+          timerId = setTimeout(pollingFunc, pollingIntervalRef.value);
         } else {
           // stop polling
           stopPollingWhenHiddenOrOffline.value = true;
@@ -42,16 +51,20 @@ export default definePlugin(
 
       return () => timerId && clearTimeout(timerId);
     };
+
     const rePolling = () => {
-      if (
-        stopPollingWhenHiddenOrOffline.value &&
-        (pollingWhenHidden || isDocumentVisibility()) &&
-        (pollingWhenOffline || isOnline())
-      ) {
+      if (stopPollingWhenHiddenOrOffline.value && isKeepPolling()) {
         queryInstance.context.refresh();
         stopPollingWhenHiddenOrOffline.value = false;
       }
     };
+
+    watch(pollingIntervalRef, () => {
+      if (pollingTimer.value) {
+        pollingTimer.value?.();
+        pollingTimer.value = polling(() => queryInstance.context.refresh());
+      }
+    });
 
     // subscribe polling
     if (!pollingWhenHidden) {
@@ -62,9 +75,11 @@ export default definePlugin(
     if (!pollingWhenOffline) {
       addUnsubscribeList(subscriber('RECONNECT_LISTENER', rePolling));
     }
+
     onUnmounted(() => {
       unsubscribeList.forEach(unsubscribe => unsubscribe());
     });
+
     return {
       onBefore() {
         pollingTimer.value?.();

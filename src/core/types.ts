@@ -51,7 +51,7 @@ export type GlobalOptions = BaseOptions &
 
 export type BaseOptions = {
   loadingDelay?: number | Ref<number>;
-  pollingInterval?: number;
+  pollingInterval?: number | Ref<number>;
   pollingWhenHidden?: boolean;
   pollingWhenOffline?: boolean;
   debounceInterval?: number | Ref<number>;

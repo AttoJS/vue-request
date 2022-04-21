@@ -3048,6 +3048,55 @@ describe('useRequest', () => {
     }
   });
 
+  test('pollingInterval should be reactive', async () => {
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const pollingInterval = ref(1000);
+          const { loading } = useRequest(request, {
+            pollingInterval: pollingInterval,
+          });
+
+          const changeInterval = (value: number) => {
+            pollingInterval.value = value;
+          };
+          return {
+            changeInterval,
+            loading,
+          };
+        },
+      }),
+    );
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+    // wait polling
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(true);
+
+    wrapper.changeInterval(5000);
+    await waitForTime(1);
+
+    for (let index = 0; index < 10; index++) {
+      await waitForTime(5000);
+      expect(wrapper.loading).toBe(true);
+      await waitForTime(1000);
+      expect(wrapper.loading).toBe(false);
+    }
+
+    await waitForTime(1000);
+    wrapper.changeInterval(1000);
+    await waitForTime(1);
+
+    for (let index = 0; index < 10; index++) {
+      await waitForTime(1000);
+      expect(wrapper.loading).toBe(true);
+      await waitForTime(1000);
+      expect(wrapper.loading).toBe(false);
+    }
+  });
+
   test('reset loadingDelay correctly when rerun or refresh', async () => {
     const wrapper = mount(
       defineComponent({
