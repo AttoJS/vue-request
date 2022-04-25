@@ -105,8 +105,14 @@ describe('usePagination', () => {
       defineComponent({
         template: '<div/>',
         setup() {
-          const { data, total, params, current, pageSize, totalPage } =
-            usePagination<NormalMockDataType>(normalApi);
+          const {
+            data,
+            total,
+            params,
+            current,
+            pageSize,
+            totalPage,
+          } = usePagination<NormalMockDataType>(normalApi);
           return {
             data,
             total,
@@ -141,14 +147,61 @@ describe('usePagination', () => {
     expect(wrapper.totalPage).toBe(10);
   });
 
+  test('usePagination should work when manual=true', async () => {
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const {
+            total,
+            params,
+            current,
+            pageSize,
+            run,
+          } = usePagination<NormalMockDataType>(normalApi, {
+            manual: true,
+          });
+          return {
+            run,
+            total,
+            params,
+            current,
+            pageSize,
+          };
+        },
+      }),
+    );
+
+    expect(wrapper.current).toBe(1);
+    expect(wrapper.pageSize).toBe(10);
+    expect(wrapper.params).toBeUndefined();
+    expect(wrapper.total).toBe(0);
+    wrapper.run({ current: 1, pageSize: 10 });
+    await waitForTime(1);
+
+    await waitForTime(1000);
+
+    expect(wrapper.current).toBe(1);
+    expect(wrapper.pageSize).toBe(10);
+    expect(JSON.stringify(wrapper.params)).toBe(
+      '[{"current":1,"pageSize":10}]',
+    );
+  });
+
   test('changeCurrent should work', async () => {
     let _current = 1;
     const wrapper = mount(
       defineComponent({
         template: '<div/>',
         setup() {
-          const { total, params, current, pageSize, totalPage, changeCurrent } =
-            usePagination(normalApi);
+          const {
+            total,
+            params,
+            current,
+            pageSize,
+            totalPage,
+            changeCurrent,
+          } = usePagination(normalApi);
           return {
             total,
             params,
@@ -257,8 +310,9 @@ describe('usePagination', () => {
       defineComponent({
         template: '<div/>',
         setup() {
-          const { loading, current, pageSize, params } =
-            usePagination(normalApi);
+          const { loading, current, pageSize, params } = usePagination(
+            normalApi,
+          );
           return {
             loading,
             current,
@@ -296,7 +350,7 @@ describe('usePagination', () => {
     }
   });
 
-  test('`reload` should work', async () => {
+  test('changeCurrent should work', async () => {
     let _current = 1;
     const wrapper = mount(
       defineComponent({
@@ -308,76 +362,10 @@ describe('usePagination', () => {
             current,
             pageSize,
             totalPage,
-            reloading,
-            reload,
-          } = usePagination<NormalMockDataType>(normalApi);
-          return {
-            total,
-            params,
-            current,
-            pageSize,
-            totalPage,
-            reloading,
-            reload,
-            changeCurrent: () => (current.value = ++_current),
-          };
-        },
-      }),
-    );
-
-    await waitForTime(1000);
-    for (let index = 0; index < 100; index++) {
-      wrapper.changeCurrent();
-      expect(wrapper.reloading).toBe(false);
-      await waitForTime(1000);
-      expect(wrapper.reloading).toBe(false);
-      expect(JSON.stringify(wrapper.params)).toBe(
-        `[{"current":${_current},"pageSize":10}]`,
-      );
-      expect(wrapper.total).toBe(100);
-      expect(wrapper.current).toBe(_current);
-      expect(wrapper.pageSize).toBe(10);
-      expect(wrapper.totalPage).toBe(10);
-    }
-
-    wrapper.reload();
-    expect(wrapper.reloading).toBe(true);
-    _current = 1;
-    await waitForTime(1000);
-    expect(wrapper.reloading).toBe(false);
-    expect(JSON.stringify(wrapper.params)).toBe(
-      `[{"current":${_current},"pageSize":10}]`,
-    );
-    expect(wrapper.total).toBe(100);
-    expect(wrapper.current).toBe(_current);
-    expect(wrapper.pageSize).toBe(10);
-    expect(wrapper.totalPage).toBe(10);
-
-    for (let index = 0; index < 100; index++) {
-      wrapper.changeCurrent();
-      expect(wrapper.reloading).toBe(false);
-      await waitForTime(1000);
-      expect(wrapper.reloading).toBe(false);
-      expect(JSON.stringify(wrapper.params)).toBe(
-        `[{"current":${_current},"pageSize":10}]`,
-      );
-      expect(wrapper.total).toBe(100);
-      expect(wrapper.current).toBe(_current);
-      expect(wrapper.pageSize).toBe(10);
-      expect(wrapper.totalPage).toBe(10);
-    }
-  });
-
-  test('changeCurrent should work', async () => {
-    let _current = 1;
-    const wrapper = mount(
-      defineComponent({
-        template: '<div/>',
-        setup() {
-          const { total, params, current, pageSize, totalPage, changeCurrent } =
-            usePagination(normalApi, {
-              manual: true,
-            });
+            changeCurrent,
+          } = usePagination(normalApi, {
+            manual: true,
+          });
           return {
             total,
             params,
@@ -467,16 +455,22 @@ describe('usePagination', () => {
       defineComponent({
         template: '<div/>',
         setup() {
-          const { total, params, current, pageSize, totalPage, changeCurrent } =
-            usePagination(normalApi, {
-              manual: true,
-              defaultParams: [
-                {
-                  pageSize: 20,
-                  current: 2,
-                },
-              ],
-            });
+          const {
+            total,
+            params,
+            current,
+            pageSize,
+            totalPage,
+            changeCurrent,
+          } = usePagination(normalApi, {
+            manual: true,
+            defaultParams: [
+              {
+                pageSize: 20,
+                current: 2,
+              },
+            ],
+          });
           return {
             total,
             params,
