@@ -61,7 +61,7 @@ const createQuery = <R, P extends unknown[]>(
 
   const count = ref(0);
 
-  context.runAsync = async (...args: P) => {
+  context.runAsync = async (...args: P): Promise<R> => {
     setState({
       loading: true,
       params: args,
@@ -70,7 +70,7 @@ const createQuery = <R, P extends unknown[]>(
     count.value += 1;
     const currentCount = count.value;
 
-    const { isBreak, breakResult = resolvedPromise } = emit('onBefore', args);
+    const { isBreak, breakResult = resolvedPromise() } = emit('onBefore', args);
     if (isBreak) return breakResult;
 
     onBefore?.(args);
@@ -83,7 +83,7 @@ const createQuery = <R, P extends unknown[]>(
 
       const res = await servicePromise;
 
-      if (currentCount !== count.value) return resolvedPromise;
+      if (currentCount !== count.value) return resolvedPromise();
 
       setState({
         data: res,
@@ -99,7 +99,7 @@ const createQuery = <R, P extends unknown[]>(
 
       return res;
     } catch (error) {
-      if (currentCount !== count.value) return resolvedPromise;
+      if (currentCount !== count.value) return resolvedPromise();
 
       setState({
         loading: false,

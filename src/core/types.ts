@@ -2,7 +2,6 @@
 
 import type { Ref, WatchSource } from 'vue-demi';
 
-import type { LoadMoreExtendsOption } from '../useLoadMore';
 import type { PaginationExtendsOption } from '../usePagination';
 import type { CacheData } from './utils/cache';
 import type { EmitVoid } from './utils/types';
@@ -26,11 +25,11 @@ export interface Query<R, P extends unknown[]> extends State<R, P> {
 }
 
 export interface FunctionContext<R, P extends unknown[]> {
-  runAsync: (...arg: P) => Promise<R | null | void>;
+  runAsync: (...arg: P) => Promise<R>;
   run: (...arg: P) => void;
   cancel: () => void;
   refresh: () => void;
-  refreshAsync: () => Promise<R | null | void>;
+  refreshAsync: () => Promise<R>;
   mutate: Mutate<R>;
 }
 
@@ -45,9 +44,7 @@ interface DebounceOptions {
 }
 type ThrottleOptions = Omit<DebounceOptions, 'maxWait'>;
 
-export type GlobalOptions = BaseOptions &
-  PaginationExtendsOption &
-  LoadMoreExtendsOption;
+export type GlobalOptions = BaseOptions & PaginationExtendsOption;
 
 export type BaseOptions = {
   loadingDelay?: number | Ref<number>;

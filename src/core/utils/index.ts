@@ -28,7 +28,7 @@ export const isDocumentVisibility = () =>
 
 export const isOnline = () => (!isServer && window.navigator?.onLine) ?? true;
 
-export const resolvedPromise = Promise.resolve(null);
+export const resolvedPromise = () => new Promise<any>(() => {});
 
 export const get = (
   source: Record<string, any>,

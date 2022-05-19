@@ -941,6 +941,38 @@ describe('useRequest', () => {
     expect(console.error).toHaveBeenCalledWith(new Error('fail'));
   });
 
+  test('cancel should work with runAsync', async () => {
+    const mockFn = jest.fn();
+
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const { cancel, loading, runAsync } = useRequest(request, {
+            manual: true,
+          });
+
+          return {
+            cancel,
+            runAsync,
+            loading,
+          };
+        },
+      }),
+    );
+
+    expect(wrapper.loading).toBe(false);
+    wrapper.runAsync().then(() => {
+      mockFn();
+    });
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(500);
+    wrapper.cancel();
+    await waitForAll();
+    expect(wrapper.data).toBeUndefined();
+    expect(mockFn).toHaveBeenCalledTimes(0);
+  });
+
   test('pollingInterval should work', async () => {
     const wrapper = mount(
       defineComponent({
