@@ -1,173 +1,166 @@
 import type { ComputedRef, Ref } from 'vue-demi';
-import { computed, inject, ref, watch } from 'vue-demi';
+import { computed, ref, shallowRef } from 'vue-demi';
 
-import { getGlobalOptions, GLOBAL_OPTIONS_PROVIDE_KEY } from './core/config';
-import type { GlobalOptions, Options, QueryResult } from './core/types';
-import { get, isFunction, omit } from './core/utils';
-import useRequest from './useRequest';
+import useDebouncePlugin from './core/plugins/useDebouncePlugin';
+import useErrorRetryPlugin from './core/plugins/useErrorRetryPlugin';
+import useReadyPlugin from './core/plugins/useReadyPlugin';
+import useRefreshDepsPlugin from './core/plugins/useRefreshDepsPlugin';
+import useThrottlePlugin from './core/plugins/useThrottlePlugin';
+import type { Mutate, Options, QueryResult } from './core/types';
+import useQuery from './core/useQuery';
+import { isFunction, isObject, omit, warning } from './core/utils';
 
-export type LoadMoreExtendsOption = {
-  listKey?: string;
+export type DataType = { list: any[]; [key: string]: any };
+
+export type LoadMoreService<R extends DataType> = (data?: R) => Promise<R>;
+
+export type LoadMoreBaseOptions<R> = Pick<
+  Options<R, any>,
+  | 'ready'
+  | 'manual'
+  | 'refreshDeps'
+  | 'refreshDepsAction'
+  | 'onBefore'
+  | 'onAfter'
+  | 'onSuccess'
+  | 'onError'
+  | 'debounceInterval'
+  | 'debounceOptions'
+  | 'throttleInterval'
+  | 'throttleOptions'
+  | 'errorRetryCount'
+  | 'errorRetryInterval'
+> & {
+  isNoMore?: (data?: R) => boolean;
 };
 
-export type LoadMoreGenericExtendsOption<R> = {
-  isNoMore?: (data: R | undefined) => boolean;
-};
-
-export type LoadMoreService<R, P extends unknown[], LR> = (
-  r: { data: R; dataList: LR },
-  ...args: P
-) => Promise<R>;
-
-export type LoadMoreBaseOptions<R, P extends unknown[]> = Options<R, P> &
-  LoadMoreGenericExtendsOption<R> &
-  LoadMoreExtendsOption;
-
-interface LoadMoreQueryResult<
-  R,
-  P extends unknown[],
-  LR extends unknown[] = any[],
-> extends QueryResult<R, P> {
-  dataList: Ref<LR>;
-  noMore: ComputedRef<number>;
+type LoadMoreQueryResult<R extends DataType> = Pick<
+  QueryResult<R, any>,
+  | 'data'
+  | 'loading'
+  | 'error'
+  | 'refresh'
+  | 'refreshAsync'
+  | 'cancel'
+  | 'mutate'
+> & {
+  dataList: ComputedRef<R['list']>;
+  noMore: ComputedRef<boolean>;
   loadingMore: Ref<boolean>;
-  refreshing: Ref<boolean>;
-  reloading: Ref<boolean>;
-  reload: () => void;
   loadMore: () => void;
-}
+  loadMoreAsync: () => Promise<R>;
+};
 
-function useLoadMore<
-  R,
-  P extends unknown[] = any,
-  LR extends unknown[] = any[],
->(
-  service: LoadMoreService<R, P, LR>,
-  options?: LoadMoreBaseOptions<R, P>,
-): LoadMoreQueryResult<R, P> {
-  const injectedGlobalOptions = inject<GlobalOptions>(
-    GLOBAL_OPTIONS_PROVIDE_KEY,
-    {},
-  );
+function useLoadMore<R extends DataType>(
+  service: LoadMoreService<R>,
+  options?: LoadMoreBaseOptions<R>,
+): LoadMoreQueryResult<R> {
+  const { isNoMore, ...restOptions } = options ?? {};
 
-  const {
-    isNoMore,
-    listKey = 'list',
-    ...restOptions
-  } = Object.assign(
-    {
-      listKey: injectedGlobalOptions.listKey ?? getGlobalOptions().listKey,
-    },
-    options ?? ({} as any),
-  );
-
-  const refreshing = ref(false);
+  const data = <Ref<R>>shallowRef();
+  const dataList = computed(() => data.value?.list || []);
   const loadingMore = ref(false);
-  const reloading = ref(false);
+  const isTriggerByLoadMore = ref(false);
+  const count = ref(0);
 
-  const dataList = ref([]) as unknown as Ref<LR>;
-
-  const {
-    data,
-    params,
-    runAsync,
-    run,
-    cancel: _cancel,
-    ...rest
-    // @ts-ignore
-  } = useRequest<R, P>(service, {
-    ...restOptions,
-    onSuccess: (...p) => {
-      if (refreshing.value) {
-        dataList.value = [] as any;
+  const { runAsync, run, cancel: _cancel, ...rest } = useQuery(
+    async (lastData?: R) => {
+      const currentCount = count.value;
+      const currentData = await service(lastData);
+      if (currentCount === count.value) {
+        if (lastData) {
+          data.value = {
+            ...currentData,
+            list: [...lastData.list, ...currentData.list],
+          };
+        } else {
+          data.value = currentData;
+        }
       }
-      loadingMore.value = false;
-      refreshing.value = false;
-      reloading.value = false;
-      restOptions?.onSuccess?.(...p);
+      return currentData;
     },
-    onError: (...p) => {
-      loadingMore.value = false;
-      refreshing.value = false;
-      reloading.value = false;
-      restOptions?.onError?.(...p);
+    {
+      ...restOptions,
+      defaultParams: [],
+      refreshDepsAction: () => {
+        if (restOptions?.refreshDepsAction) {
+          restOptions.refreshDepsAction();
+        } else {
+          refresh();
+        }
+      },
+      onBefore: (...p) => {
+        count.value += 1;
+        if (isTriggerByLoadMore.value) {
+          isTriggerByLoadMore.value = false;
+          loadingMore.value = true;
+        }
+        restOptions?.onBefore?.(...p);
+      },
+      onAfter: (...p) => {
+        loadingMore.value = false;
+        isTriggerByLoadMore.value = false;
+        restOptions?.onAfter?.(...p);
+      },
     },
-    onAfter: (...p) => {
-      restOptions?.onAfter?.(...p);
-    },
-  });
-
+    [
+      useErrorRetryPlugin,
+      useDebouncePlugin,
+      useThrottlePlugin,
+      useRefreshDepsPlugin,
+      useReadyPlugin,
+    ],
+  );
   const noMore = computed(() => {
     return isNoMore && isFunction(isNoMore) ? isNoMore(data.value) : false;
   });
 
-  watch(data, value => {
-    if (value) {
-      const list = get(value, listKey);
-      if (list && Array.isArray(list)) {
-        dataList.value = [...dataList.value, ...list] as any;
-      }
-    }
-  });
-
   const loadMore = () => {
+    loadMoreAsync().catch(() => {});
+  };
+  const loadMoreAsync = () => {
     if (noMore.value) {
-      return;
+      return Promise.reject(
+        warning(
+          'No more data. You need to ignore this error by checking if `noMore` is false before calling `loadMoreAsync`',
+          true,
+        ),
+      );
     }
-    loadingMore.value = true;
-    const [, ...restParams] = params.value;
-    const mergerParams = [
-      { dataList: dataList.value, data: data.value },
-      ...restParams,
-    ] as P;
-    run(...mergerParams);
+    isTriggerByLoadMore.value = true;
+    return runAsync(data.value);
   };
 
-  const refreshAsync = async () => {
-    refreshing.value = true;
-    const [, ...restParams] = params.value;
-    const mergerParams = [undefined, ...restParams] as any;
-    await runAsync(...mergerParams);
-  };
-
-  const refresh = () => {
-    refreshing.value = true;
-    const [, ...restParams] = params.value;
-    const mergerParams = [undefined, ...restParams] as any;
-    runAsync(...mergerParams);
-  };
-
-  const reload = () => {
-    reloading.value = true;
-    cancel();
-    dataList.value = [] as any;
-    const [, ...restParams] = params.value;
-    const mergerParams = [undefined, ...restParams] as any;
-    run(...mergerParams);
-  };
+  const refresh = () => run();
+  const refreshAsync = () => runAsync();
 
   const cancel = () => {
+    count.value += 1;
     _cancel();
     loadingMore.value = false;
-    refreshing.value = false;
+  };
+
+  const mutate: Mutate<R> = x => {
+    const mutateData = isFunction(x) ? x(data.value) : x;
+    const _mutateData = isObject(mutateData)
+      ? Object.assign({}, mutateData)
+      : mutateData;
+
+    data.value = _mutateData;
   };
 
   return {
     data,
     dataList,
-    params,
-    noMore,
     loadingMore,
-    refreshing,
-    reloading,
-    runAsync,
-    reload,
-    loadMore,
-    refresh,
+    noMore,
     cancel,
-    run,
+    mutate,
+    refresh,
     refreshAsync,
-    ...omit(rest, ['refresh', 'refreshAsync']),
+    loadMore,
+    loadMoreAsync,
+    ...omit(rest, ['refresh', 'refreshAsync', 'mutate', 'params', 'data']),
   };
 }
 
