@@ -20,10 +20,6 @@ export type LoadMoreBaseOptions<R> = Pick<
   | 'manual'
   | 'refreshDeps'
   | 'refreshDepsAction'
-  | 'onBefore'
-  | 'onAfter'
-  | 'onSuccess'
-  | 'onError'
   | 'debounceInterval'
   | 'debounceOptions'
   | 'throttleInterval'
@@ -32,6 +28,10 @@ export type LoadMoreBaseOptions<R> = Pick<
   | 'errorRetryInterval'
 > & {
   isNoMore?: (data?: R) => boolean;
+  onBefore?: () => void;
+  onAfter?: () => void;
+  onSuccess?: (data: R) => void;
+  onError?: (error: Error) => void;
 };
 
 type LoadMoreQueryResult<R extends DataType> = Pick<
@@ -89,18 +89,24 @@ function useLoadMore<R extends DataType>(
           refresh();
         }
       },
-      onBefore: (...p) => {
+      onError: (error: Error) => {
+        restOptions?.onError?.(error);
+      },
+      onSuccess: (data: R) => {
+        restOptions?.onSuccess?.(data);
+      },
+      onBefore: () => {
         count.value += 1;
         if (isTriggerByLoadMore.value) {
           isTriggerByLoadMore.value = false;
           loadingMore.value = true;
         }
-        restOptions?.onBefore?.(...p);
+        restOptions?.onBefore?.();
       },
-      onAfter: (...p) => {
+      onAfter: () => {
         loadingMore.value = false;
         isTriggerByLoadMore.value = false;
-        restOptions?.onAfter?.(...p);
+        restOptions?.onAfter?.();
       },
     },
     [
