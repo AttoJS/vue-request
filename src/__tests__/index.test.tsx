@@ -193,6 +193,44 @@ describe('useRequest', () => {
     expect(wrapper.data).toBe('ok');
   });
 
+  test('mutate callback should work when data is shallowRef', async () => {
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const { data, mutate } = useRequest(
+            () =>
+              new Promise<any>(resolve => {
+                setTimeout(() => {
+                  resolve({
+                    list: [1, 2],
+                  });
+                }, 1000);
+              }),
+          );
+
+          return {
+            mutate,
+            data,
+          };
+        },
+      }),
+    );
+    await waitForAll();
+    expect(wrapper.data).toEqual({ list: [1, 2] });
+
+    wrapper.mutate((d: any) => {
+      d.list = [3, 4];
+      return d;
+    });
+    expect(wrapper.data).toEqual({ list: [3, 4] });
+
+    wrapper.mutate(() => {
+      return 'change';
+    });
+    expect(wrapper.data).toBe('change');
+  });
+
   test('refresh should work', async () => {
     const wrapper = mount(
       defineComponent({

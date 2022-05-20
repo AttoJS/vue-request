@@ -10,7 +10,7 @@ import type {
   Service,
   State,
 } from './types';
-import { isFunction, resolvedPromise } from './utils';
+import { isFunction, isObject, resolvedPromise } from './utils';
 import type { UnWrapRefObject } from './utils/types';
 
 const setStateBind = <R, P extends unknown[], T extends State<R, P>>(
@@ -141,11 +141,15 @@ const createQuery = <R, P extends unknown[]>(
 
   context.mutate = x => {
     const mutateData = isFunction(x) ? x(data.value) : x;
+    const _mutateData = isObject(mutateData)
+      ? Object.assign({}, mutateData)
+      : mutateData;
+
     setState({
-      data: mutateData,
+      data: _mutateData,
     });
 
-    emit('onMutate', mutateData);
+    emit('onMutate', _mutateData);
   };
 
   return {
