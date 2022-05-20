@@ -40,7 +40,7 @@
 
 ## 状态
 
-目前处于 Alpha 版本，详情请查看[更新日志](https://github.com/AttoJS/vue-request/issues/121)。
+目前处于 Beta 版本，详情请查看[更新日志](https://github.com/AttoJS/vue-request/issues/121)。
 
 ## 为什么选择 VueRequest
 

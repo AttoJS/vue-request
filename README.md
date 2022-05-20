@@ -40,7 +40,7 @@ English | [简体中文](README-zh_CN.md)
 
 ## Status
 
-Currently in Alpha version. For details, please see the [changelog](https://github.com/AttoJS/vue-request/issues/121).
+Currently in Beta version. For details, please see the [changelog](https://github.com/AttoJS/vue-request/issues/121).
 
 ## Why VueRequest
 
