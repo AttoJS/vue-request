@@ -870,6 +870,43 @@ describe('useRequest', () => {
     expect(wrapper.data).toBe('action');
   });
 
+  test('refreshDepsAction should work when manual = true', async () => {
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const refreshRef = ref(0);
+          const { loading, data, run } = useRequest(request, {
+            manual: true,
+            refreshDeps: [refreshRef],
+            refreshDepsAction: () => {
+              run('action');
+            },
+          });
+
+          const handleUpdateRef = () => {
+            refreshRef.value++;
+          };
+
+          return {
+            data,
+            loading,
+            handleUpdateRef,
+          };
+        },
+      }),
+    );
+    expect(wrapper.loading).toBe(false);
+
+    wrapper.handleUpdateRef();
+    await waitForTime(1);
+
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+    expect(wrapper.data).toBe('action');
+  });
+
   test('loadingDelay should work', async () => {
     const wrapper = mount(
       defineComponent({
