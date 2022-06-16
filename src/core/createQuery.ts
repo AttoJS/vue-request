@@ -132,11 +132,11 @@ const createQuery = <R, P extends unknown[]>(
   };
 
   context.refresh = () => {
-    context.run(...params.value);
+    context.run(...(params.value || []));
   };
 
   context.refreshAsync = () => {
-    return context.runAsync(...params.value);
+    return context.runAsync(...(params.value || []));
   };
 
   context.mutate = x => {

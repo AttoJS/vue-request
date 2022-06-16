@@ -536,4 +536,27 @@ describe('usePagination', () => {
     expect(onBefore).toHaveBeenCalledTimes(2);
     expect(onAfter).toHaveBeenCalledTimes(2);
   });
+
+  test('refresh should work when manual=true', async () => {
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const { refresh, params } = usePagination<NormalMockDataType>(
+            normalApi,
+            {
+              manual: true,
+            },
+          );
+          return {
+            refresh,
+            params,
+          };
+        },
+      }),
+    );
+
+    wrapper.refresh();
+    expect(wrapper.params.length).toBe(0);
+  });
 });

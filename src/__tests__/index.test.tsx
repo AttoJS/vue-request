@@ -273,6 +273,34 @@ describe('useRequest', () => {
     expect(wrapper.loading).toBe(false);
   });
 
+  test('refresh should work when manual=true', async () => {
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const { refreshAsync, refresh, loading } = useRequest(request, {
+            manual: true,
+          });
+
+          return {
+            refreshAsync,
+            refresh,
+            loading,
+          };
+        },
+      }),
+    );
+    wrapper.refreshAsync();
+    expect(wrapper.loading).toBe(true);
+    await waitForAll();
+    expect(wrapper.loading).toBe(false);
+
+    wrapper.refresh();
+    expect(wrapper.loading).toBe(true);
+    await waitForAll();
+    expect(wrapper.loading).toBe(false);
+  });
+
   test('run should work', async () => {
     const wrapper = mount(
       defineComponent({
