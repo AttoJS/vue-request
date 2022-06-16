@@ -126,7 +126,7 @@ describe('utils', () => {
     delete window.document;
     // @ts-ignore
     window.document = undefined;
-    expect(isDocumentVisibility()).toBeFalsy();
+    expect(isDocumentVisibility()).toBeTruthy();
 
     window.document = tempDocument;
   });

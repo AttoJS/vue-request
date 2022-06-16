@@ -23,8 +23,10 @@ export const isNil = (val: unknown) => val === null || val === undefined;
 
 export const isServer = typeof window === 'undefined';
 
-export const isDocumentVisibility = () =>
-  !isServer && window.document?.visibilityState === 'visible';
+export const isDocumentVisibility = () => {
+  if (isServer || isNil(window.document?.visibilityState)) return true;
+  return window.document.visibilityState === 'visible';
+};
 
 export const isOnline = () => (!isServer && window.navigator?.onLine) ?? true;
 
