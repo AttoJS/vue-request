@@ -2871,6 +2871,186 @@ describe('useRequest', () => {
     expect(wrapper.data).toBe('100');
   });
 
+  test('dynamic cacheKey should work', async () => {
+    const mockFn = jest.fn();
+    const commonRequest = (key: '1' | '2' | 'default' = 'default') => {
+      mockFn();
+      return new Promise(resolve => {
+        setTimeout(() => {
+          resolve(`case-${key}`);
+        }, 1000);
+      });
+    };
+    const TestComponentA = defineComponent({
+      template: '<div/>',
+      setup() {
+        const { data, loading, run, mutate } = useRequest(commonRequest, {
+          cacheKey: params => {
+            if (params?.[0]) {
+              return `cacheKey-${params[0]}`;
+            }
+            return '';
+          },
+          cacheTime: 10000,
+        });
+        return {
+          run,
+          mutate,
+          loading,
+          data,
+        };
+      },
+    });
+
+    const TestComponentB = defineComponent({
+      template: '<div/>',
+      setup() {
+        const { data, loading, run, mutate } = useRequest(commonRequest, {
+          cacheKey: params => {
+            if (params?.[0]) {
+              return `cacheKey-${params[0]}`;
+            }
+            return '';
+          },
+          cacheTime: 10000,
+        });
+        return {
+          run,
+          mutate,
+          loading,
+          data,
+        };
+      },
+    });
+
+    const wrapperA = mount(TestComponentA);
+    const wrapperB = mount(TestComponentB);
+    expect(wrapperA.data).toBeUndefined();
+    expect(wrapperB.data).toBeUndefined();
+    await waitForTime(1000);
+    expect(wrapperA.data).toBe('case-default');
+    expect(wrapperB.data).toBe('case-default');
+
+    expect(mockFn).toHaveBeenCalledTimes(1);
+
+    wrapperA.run('1');
+    expect(wrapperA.loading).toBe(true);
+    expect(wrapperB.loading).toBe(false);
+    await waitForTime(500);
+    wrapperB.run('1');
+    expect(wrapperA.loading).toBe(true);
+    expect(wrapperB.loading).toBe(true);
+    await waitForTime(500);
+    expect(wrapperA.data).toBe('case-1');
+    expect(wrapperB.data).toBe('case-1');
+    expect(wrapperA.loading).toBe(false);
+    expect(wrapperB.loading).toBe(false);
+
+    wrapperB.run('2');
+    expect(wrapperB.loading).toBe(true);
+    expect(wrapperA.loading).toBe(false);
+    await waitForTime(500);
+    wrapperA.run('2');
+    expect(wrapperB.loading).toBe(true);
+    expect(wrapperA.loading).toBe(true);
+    await waitForTime(500);
+    expect(wrapperA.data).toBe('case-2');
+    expect(wrapperB.data).toBe('case-2');
+    expect(wrapperB.loading).toBe(false);
+    expect(wrapperA.loading).toBe(false);
+
+    expect(mockFn).toHaveBeenCalledTimes(3);
+
+    wrapperA.run('1');
+    expect(wrapperA.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapperA.data).toBe('case-1');
+    expect(wrapperB.data).toBe('case-2');
+
+    wrapperB.run('1');
+    expect(wrapperB.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapperA.data).toBe('case-1');
+    expect(wrapperB.data).toBe('case-1');
+
+    wrapperB.mutate('mutate-1');
+    expect(wrapperA.data).toBe('mutate-1');
+    expect(wrapperB.data).toBe('mutate-1');
+  });
+
+  test('dynamic cacheKey should supports custom cache', async () => {
+    const store = {};
+    const prefixKey = 'cacheKey-';
+    const commonRequest = (key: '1' | '2' | 'default' = 'default') => {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          resolve(`case-${key}`);
+        }, 1000);
+      });
+    };
+    const TestComponent = defineComponent({
+      template: '<div/>',
+      setup() {
+        const { data, loading, run } = useRequest(commonRequest, {
+          cacheKey: params => {
+            if (params?.[0]) {
+              return `cacheKey-${params[0]}`;
+            }
+            return '';
+          },
+          setCache: (key, data) => {
+            store[key] = data;
+          },
+          getCache: key => store[key],
+          staleTime: 10000,
+        });
+        return {
+          run,
+          data,
+          loading,
+        };
+      },
+    });
+
+    let wrapper = mount(TestComponent);
+    expect(wrapper.data).toBeUndefined();
+    expect(Object.keys(store).length).toBe(0);
+    await waitForTime(1000);
+    expect(wrapper.data).toBe('case-default');
+    expect(Object.keys(store).length).toBe(0);
+
+    wrapper.run('1');
+    expect(wrapper.loading).toBeTruthy();
+    await waitForTime(1000);
+    expect(wrapper.loading).toBeFalsy();
+    expect(wrapper.data).toBe('case-1');
+    expect(store[prefixKey + '1'].data).toBe('case-1');
+    expect(store[prefixKey + '1'].params).toMatchObject(['1']);
+    wrapper.unmount();
+
+    // remount component
+    wrapper = mount(TestComponent);
+    expect(wrapper.data).toBeUndefined();
+    expect(Object.keys(store).length).toBe(1);
+    await waitForTime(1000);
+    expect(wrapper.data).toBe('case-default');
+
+    wrapper.run('1');
+    expect(wrapper.loading).toBeFalsy();
+    expect(store[prefixKey + '1'].data).toBe('case-1');
+    await waitForTime(1000);
+    expect(wrapper.loading).toBeFalsy();
+    expect(store[prefixKey + '1'].data).toBe('case-1');
+
+    wrapper.run('2');
+    expect(wrapper.loading).toBeTruthy();
+    await waitForTime(1000);
+    expect(wrapper.loading).toBeFalsy();
+    expect(wrapper.data).toBe('case-2');
+    expect(store[prefixKey + '2'].data).toBe('case-2');
+    expect(store[prefixKey + '2'].params).toMatchObject(['2']);
+  });
+
   test('when the request fails, data will not be cleared', async () => {
     let flag = true;
     const mixinRequest = () => {

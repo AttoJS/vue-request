@@ -1,6 +1,7 @@
 import { onUnmounted, ref } from 'vue-demi';
 
 import { definePlugin } from '../definePlugin';
+import { isFunction } from '../utils';
 import type { CacheData } from '../utils/cache';
 import { getCache, setCache } from '../utils/cache';
 import { getCacheQuery, setCacheQuery } from '../utils/cacheQuery';
@@ -10,16 +11,18 @@ export default definePlugin(
   (
     queryInstance,
     {
-      cacheKey,
+      cacheKey: customCacheKey,
       cacheTime = 600000,
       staleTime = 0,
       getCache: customGetCache,
       setCache: customSetCache,
     },
   ) => {
-    if (!cacheKey) return {};
-
-    const unSubscribe = ref();
+    if (!customCacheKey) return {};
+    const cacheKey = isFunction(customCacheKey)
+      ? customCacheKey
+      : () => customCacheKey;
+    const unSubscribe = ref(() => {});
     let currentQuery: Promise<any>;
 
     const _getCache = (key: string) => {
@@ -47,27 +50,33 @@ export default definePlugin(
     const hasProp = <T>(object: Partial<Record<keyof T, any>>, prop: keyof T) =>
       Object.prototype.hasOwnProperty.call(object, prop);
 
-    const subscribeCache = () =>
-      subscribe(cacheKey, data => {
+    const subscribeCache = (params?: any) => {
+      const _cacheKey = cacheKey(params);
+      return subscribe(_cacheKey, data => {
         queryInstance.data.value = data;
       });
-
+    };
     // When initializing, restore if there is a cache
-    const cache = _getCache(cacheKey);
+    const _cacheKey = cacheKey();
+    const cache = _getCache(_cacheKey);
     if (cache && hasProp(cache, 'data')) {
       queryInstance.data.value = cache.data;
       queryInstance.params.value = cache.params;
     }
 
-    unSubscribe.value = subscribeCache();
+    if (_cacheKey) {
+      unSubscribe.value = subscribeCache();
+    }
 
     onUnmounted(() => {
       unSubscribe.value();
     });
 
     return {
-      onBefore() {
-        const cache = _getCache(cacheKey);
+      onBefore(params) {
+        const _cacheKey = cacheKey(params);
+        const cache = _getCache(_cacheKey);
+
         if (!cache || !hasProp(cache, 'data')) {
           return {};
         }
@@ -85,7 +94,8 @@ export default definePlugin(
         }
       },
       onQuery(service, params) {
-        let servicePromise = getCacheQuery(cacheKey);
+        const _cacheKey = cacheKey(params);
+        let servicePromise = getCacheQuery(_cacheKey);
 
         if (servicePromise && servicePromise !== currentQuery) {
           return { servicePromise };
@@ -93,30 +103,36 @@ export default definePlugin(
 
         servicePromise = service(...params);
         currentQuery = servicePromise;
-        setCacheQuery(cacheKey, servicePromise);
+        setCacheQuery(_cacheKey, servicePromise);
         return { servicePromise };
       },
       onSuccess(data, params) {
-        unSubscribe.value();
+        const _cacheKey = cacheKey(params);
+        if (_cacheKey) {
+          unSubscribe.value();
 
-        _setCache(cacheKey, cacheTime, {
-          data,
-          params,
-          time: new Date().getTime(),
-        });
+          _setCache(_cacheKey, cacheTime, {
+            data,
+            params,
+            time: new Date().getTime(),
+          });
 
-        unSubscribe.value = subscribeCache();
+          unSubscribe.value = subscribeCache(params);
+        }
       },
       onMutate(data) {
-        unSubscribe.value();
+        const _cacheKey = cacheKey(queryInstance.params.value);
+        if (_cacheKey) {
+          unSubscribe.value();
 
-        _setCache(cacheKey, cacheTime, {
-          data,
-          params: queryInstance.params.value,
-          time: new Date().getTime(),
-        });
+          _setCache(_cacheKey, cacheTime, {
+            data,
+            params: queryInstance.params.value,
+            time: new Date().getTime(),
+          });
 
-        unSubscribe.value = subscribeCache();
+          unSubscribe.value = subscribeCache(queryInstance.params.value);
+        }
       },
     };
   },
