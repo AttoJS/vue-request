@@ -40,7 +40,7 @@
 
 ## 项目状态
 
-v2 版本正在测试阶段，详情可以查看 [next](https://github.com/AttoJS/vue-request/tree/next) 分支。
+**v1 版本后续不会添加新的功能，只会对出现的 BUG 进行维护。想体验最新的功能，请切换到 v2 版本。v2 版本正在 RC 阶段，详情可以查看 [next](https://github.com/AttoJS/vue-request/blob/next/README-zh_CN.md) 分支。文档将随着正式版本发布。**
 
 ## 为什么选择 VueRequest
 

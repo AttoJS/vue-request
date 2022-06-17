@@ -40,7 +40,7 @@ English | [简体中文](README-zh_CN.md)
 
 ## Status
 
-v2 version is in the Alpha version, please check the [next](https://github.com/AttoJS/vue-request/tree/next) branch for details.
+**The v1 version will not add new functions in the future, and will only maintain the bugs that appear. To experience the latest features, please switch to the v2 version. The v2 version is in the RC stage. For details, you can check the [next](https://github.com/AttoJS/vue-request/blob/next/README.md) branch. Documentation will be released with the official release.**
 
 ## Why VueRequest
 
