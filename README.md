@@ -1,7 +1,7 @@
 English | [简体中文](README-zh_CN.md)
 
 <p align="center">
-  <a href="https://www.attojs.org">
+  <a href="https://next.attojs.org">
     <img
       width="150"
       src="https://raw.githubusercontent.com/AttoJS/art/master/vue-request-logo.png"
@@ -64,8 +64,8 @@ VueRequest aims to provide developers with a convenient and fast way to manage t
 
 ## Documentation
 
-- [English](https://www.attojs.org/)
-- [中文文档](https://www.attojs.com/)
+- [English](https://next.attojs.org/)
+- [中文文档](https://next.attojs.com/)
 
 ## Install
 
@@ -77,6 +77,8 @@ You can install VueRequest with [NPM](https://www.npmjs.com/), [YARN](https://ya
 npm install vue-request@next
 # or
 yarn add vue-request@next
+# or
+pnpm install vue-request@next
 ```
 
 ### CDN
@@ -84,7 +86,7 @@ yarn add vue-request@next
 > For production, we recommend linking to a specific version number and build to avoid unexpected breakage from newer versions.
 
 ```html
-<script src="https://unpkg.com/vue-request/dist/vue-request.min.js"></script>
+<script src="https://unpkg.com/vue-request@next/dist/vue-request.min.js"></script>
 ```
 
 Once you've added this you will have access to the `window.VueRequest` object and its exports.
@@ -116,7 +118,7 @@ export default defineComponent({
 </script>
 ```
 
-In this example, `useRequest` accepts a `service` function. `service` is a asynchronous function. In other words, you can use **axios** to fetch data and return a **Promise**. More specific instructions can be viewed in [document](https://www.attojs.org/guide/documentation/dataFetching.html).
+In this example, `useRequest` accepts a `service` function. `service` is a asynchronous function. In other words, you can use **axios** to fetch data and return a **Promise**. More specific instructions can be viewed in [document](https://next.attojs.org/guide/documentation/dataFetching.html).
 
 `useRequest` also return 3 values: `data`, `loading` and `error`. When the request is not yet finished, data will be `undefined` and `loading` will be `true`. And when we get a response, it sets data and error based on the result of service and rerenders the component. This is because `data` and `error` are [Reactivity(Refs)](https://v3.vuejs.org/guide/reactivity-fundamentals.html), and their values will be set by the service response.
 
@@ -126,7 +128,7 @@ VueRequest has many features, such as error retry, cache, pagination, throttle, 
 
 ### 1.Refresh On Focus
 
-Sometimes, you need to ensure data consistency between multiple browser windows; or when the user's computer is reactivated in the dormant state, the page data needs to be synchronized to the latest state. `refreshOnWindowFocus` may save you a lot of code. [Click here to go to the document](https://www.attojs.org/guide/documentation/refreshOnWindowFocus.html)
+Sometimes, you need to ensure data consistency between multiple browser windows; or when the user's computer is reactivated in the dormant state, the page data needs to be synchronized to the latest state. `refreshOnWindowFocus` may save you a lot of code. [Click here to go to the document](https://next.attojs.org/guide/documentation/refreshOnWindowFocus.html)
 
 ```ts
 const { data, error, run } = useRequest(getUserInfo, {
@@ -139,7 +141,7 @@ const { data, error, run } = useRequest(getUserInfo, {
 
 ### 2.Polling Data
 
-Sometimes, you want to ensure that data is synchronized and updated between multiple devices. At this time, we can use the `pollingInterval` provided by us to periodically re-request the request API, so that the data consistency between multiple devices can be guaranteed. When the user modifies the data, the two windows will be updated simultaneously in real time. [Click here to go to the document](https://www.attojs.org/guide/documentation/polling.htm)
+Sometimes, you want to ensure that data is synchronized and updated between multiple devices. At this time, we can use the `pollingInterval` provided by us to periodically re-request the request API, so that the data consistency between multiple devices can be guaranteed. When the user modifies the data, the two windows will be updated simultaneously in real time. [Click here to go to the document](https://next.attojs.org/guide/documentation/polling.html)
 
 ```ts
 const { data, error, run } = useRequest(getUserInfo, {

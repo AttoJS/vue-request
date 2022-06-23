@@ -65,8 +65,8 @@ VueRequest 旨在为开发者提供便捷、快速的方式来管理接口的状
 
 ## 文档
 
-- [English](https://www.attojs.org/)
-- [中文文档](https://www.attojs.com/)
+- [English](https://next.attojs.org/)
+- [中文文档](https://next.attojs.com/)
 
 ## 安装
 
@@ -78,6 +78,8 @@ VueRequest 旨在为开发者提供便捷、快速的方式来管理接口的状
 npm install vue-request@next
 # or
 yarn add vue-request@next
+# or
+pnpm install vue-request@next
 ```
 
 ### CDN
@@ -85,7 +87,7 @@ yarn add vue-request@next
 > 对于生产环境，我们推荐链接到一个明确的版本号和构建文件，以避免新版本造成的不可预期的破坏。
 
 ```html
-<script src="https://unpkg.com/vue-request/dist/vue-request.min.js"></script>
+<script src="https://unpkg.com/vue-request@next/dist/vue-request.min.js"></script>
 ```
 
 一旦你在页面中添加了它，你就可以在 `window.VueRequest` 中访问我们导出的方法。
@@ -117,7 +119,7 @@ export default defineComponent({
 </script>
 ```
 
-在这个例子中，`useRequest` 接收了一个 `service` 函数。`service`是一个异步的请求函数，换句话说，你可以使用 **axios** 来获取数据，然后返回一个 **Promise**。更具体的说明可以在[文档](https://www.attojs.com/guide/documentation/dataFetching.html)中查看。
+在这个例子中，`useRequest` 接收了一个 `service` 函数。`service`是一个异步的请求函数，换句话说，你可以使用 **axios** 来获取数据，然后返回一个 **Promise**。更具体的说明可以在[文档](https://next.attojs.com/guide/documentation/dataFetching.html)中查看。
 
 `useRequest` 还返回了三个值， `data`、`loading` 和 `error`。当请求还没完成时, `data` 将会为 `undefined` 同时，`loading` 将被设置为 `true`。当请求完成后，则将会根据请求结果来设定 `data` 和 `error`，并对页面进行渲染。这是因为 `data`、 `loading` 和 `error` 是 Vue 的 [响应式引用(Refs)](https://v3.cn.vuejs.org/guide/reactivity-fundamentals.html)，它们的值将根据请求状态及请求结果来修改。
 
@@ -127,7 +129,7 @@ VueRequest 有非常多的特性，如 错误重试、缓存、分页、节流�
 
 ### 1.聚焦页面时自动重新请求
 
-有些时候，你要确保多个浏览器窗口之间数据的一致性；又或者是当用户电脑在休眠状态重新激活后，页面的数据需要同步到最新状态时。`refreshOnWindowFocus` 可能会为你节省很多逻辑代码。[点击这里直达文档](https://www.attojs.com/guide/documentation/refreshOnWindowFocus.html)
+有些时候，你要确保多个浏览器窗口之间数据的一致性；又或者是当用户电脑在休眠状态重新激活后，页面的数据需要同步到最新状态时。`refreshOnWindowFocus` 可能会为你节省很多逻辑代码。[点击这里直达文档](https://next.attojs.com/guide/documentation/refreshOnWindowFocus.html)
 
 ```ts
 const { data, error, run } = useRequest(getUserInfo, {
@@ -140,7 +142,7 @@ const { data, error, run } = useRequest(getUserInfo, {
 
 ### 2.轮询数据
 
-有些时候，你要确保多个设备间数据的同步更新。这时候可以用我们提供的 `pollingInterval` 来定期重新请求接口，这样就可以保证多设备间的数据一致性。当用户进行修改数据时，两个窗口将会实时同步更新。[点击这里直达文档](https://www.attojs.com/guide/documentation/polling.htm)
+有些时候，你要确保多个设备间数据的同步更新。这时候可以用我们提供的 `pollingInterval` 来定期重新请求接口，这样就可以保证多设备间的数据一致性。当用户进行修改数据时，两个窗口将会实时同步更新。[点击这里直达文档](https://next.attojs.com/guide/documentation/polling.html)
 
 ```ts
 const { data, error, run } = useRequest(getUserInfo, {
