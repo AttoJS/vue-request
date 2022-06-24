@@ -25,6 +25,16 @@ const setStateBind = <R, P extends unknown[], T extends State<R, P>>(
   };
 };
 
+const composeMiddleware = (middleArray: any[], hook: any) => {
+  return () => {
+    let next = hook;
+    for (let i = middleArray.length; i-- > 0; ) {
+      next = middleArray[i]!(next);
+    }
+    return next();
+  };
+};
+
 const createQuery = <R, P extends unknown[]>(
   service: Service<R, P>,
   config: Options<R, P>,
@@ -54,9 +64,14 @@ const createQuery = <R, P extends unknown[]>(
     event: keyof PluginType<R, P>,
     ...args: any[]
   ): EmitResults<R, P> => {
-    // @ts-ignore
-    const res = plugins.value.map(i => i[event]?.(...args));
-    return Object.assign({}, ...res);
+    if (event === 'onQuery') {
+      const queryFn = plugins.value.map(i => i.onQuery).filter(Boolean);
+      return { servicePromise: composeMiddleware(queryFn, args[0])() };
+    } else {
+      // @ts-ignore
+      const res = plugins.value.map(i => i[event]?.(...args));
+      return Object.assign({}, ...res);
+    }
   };
 
   const count = ref(0);
@@ -76,9 +91,14 @@ const createQuery = <R, P extends unknown[]>(
     onBefore?.(args);
 
     try {
-      let { servicePromise } = emit('onQuery', service, params.value);
+      const serviceWrapper = () =>
+        new Promise<R>(resolve => resolve(service(...params.value)));
+
+      let { servicePromise } = emit('onQuery', serviceWrapper);
+
+      /* istanbul ignore next */
       if (!servicePromise) {
-        servicePromise = service(...params.value);
+        servicePromise = serviceWrapper();
       }
 
       const res = await servicePromise;

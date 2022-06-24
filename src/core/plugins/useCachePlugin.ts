@@ -93,18 +93,18 @@ export default definePlugin(
           queryInstance.data.value = cache.data;
         }
       },
-      onQuery(service, params) {
+      onQuery(service) {
+        const params = queryInstance.params.value;
         const _cacheKey = cacheKey(params);
-        let servicePromise = getCacheQuery(_cacheKey);
+        let servicePromise = getCacheQuery(_cacheKey)!;
 
         if (servicePromise && servicePromise !== currentQuery) {
-          return { servicePromise };
+          return () => servicePromise;
         }
-
-        servicePromise = service(...params);
+        servicePromise = service();
         currentQuery = servicePromise;
         setCacheQuery(_cacheKey, servicePromise);
-        return { servicePromise };
+        return () => servicePromise;
       },
       onSuccess(data, params) {
         const _cacheKey = cacheKey(params);
