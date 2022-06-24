@@ -4058,4 +4058,110 @@ describe('useRequest', () => {
     expect(onBefore).toHaveBeenCalledTimes(1);
     expect(onAfter).toHaveBeenCalledTimes(1);
   });
+
+  test('loadingKeep should work', async () => {
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const { loading } = useRequest(request, {
+            loadingKeep: 2000,
+          });
+
+          return {
+            loading,
+          };
+        },
+      }),
+    );
+
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+  });
+
+  test('loadingKeep should work when request fail', async () => {
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const { loading } = useRequest(failedRequest, {
+            loadingKeep: 2000,
+          });
+
+          return {
+            loading,
+          };
+        },
+      }),
+    );
+
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+  });
+
+  test('loadingKeep should be reactive', async () => {
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const loadingKeep = ref(2000);
+          const { loading, run } = useRequest(request, {
+            loadingKeep,
+            manual: true,
+          });
+
+          const changeLoadingDelay = () => {
+            loadingKeep.value = 0;
+          };
+          return {
+            run,
+            loading,
+            changeLoadingDelay,
+          };
+        },
+      }),
+    );
+    wrapper.run();
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+
+    wrapper.changeLoadingDelay();
+    wrapper.run();
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+  });
+
+  test('cancel loadingKeep should work', async () => {
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const { loading, cancel } = useRequest(request, {
+            loadingKeep: 2000,
+          });
+
+          return {
+            loading,
+            cancel,
+          };
+        },
+      }),
+    );
+
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(true);
+    wrapper.cancel();
+    expect(wrapper.loading).toBe(false);
+  });
 });

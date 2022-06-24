@@ -48,6 +48,7 @@ export type GlobalOptions = BaseOptions & PaginationExtendsOption;
 
 export type BaseOptions = {
   loadingDelay?: number | Ref<number>;
+  loadingKeep?: number | Ref<number>;
   pollingInterval?: number | Ref<number>;
   pollingWhenHidden?: boolean;
   pollingWhenOffline?: boolean;
