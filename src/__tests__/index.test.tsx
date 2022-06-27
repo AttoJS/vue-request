@@ -4164,4 +4164,34 @@ describe('useRequest', () => {
     wrapper.cancel();
     expect(wrapper.loading).toBe(false);
   });
+
+  test('loadingDelay should work with staleTime', async () => {
+    const TestComponent = defineComponent({
+      template: '<div/>',
+      setup() {
+        const { loading } = useRequest(request, {
+          cacheKey: 'cacheKey',
+          staleTime: 5000,
+          loadingDelay: 500,
+        });
+        return {
+          loading,
+        };
+      },
+    });
+    let wrapper = mount(TestComponent);
+    expect(wrapper.loading).toBe(false);
+    await waitForTime(500);
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(500);
+    expect(wrapper.loading).toBe(false);
+    wrapper.unmount();
+
+    wrapper = mount(TestComponent);
+    expect(wrapper.loading).toBe(false);
+    await waitForTime(500);
+    expect(wrapper.loading).toBe(false);
+    await waitForTime(500);
+    expect(wrapper.loading).toBe(false);
+  });
 });

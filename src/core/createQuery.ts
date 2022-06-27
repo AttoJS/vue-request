@@ -12,12 +12,12 @@ import type {
 } from './types';
 import { isFunction, isObject, resolvedPromise } from './utils';
 import type { UnWrapRefObject } from './utils/types';
-
-const setStateBind = <R, P extends unknown[], T extends State<R, P>>(
+type StateBindParams = State<any, any> & { status: Query<any, any>['status'] };
+const setStateBind = <T extends StateBindParams>(
   oldState: T,
   publicCb: Array<(state: T) => void>,
 ) => {
-  return (newState: Partial<UnWrapRefObject<State<R, P>>>) => {
+  return (newState: Partial<UnWrapRefObject<StateBindParams>>) => {
     Object.keys(newState).forEach(key => {
       oldState[key].value = newState[key];
     });
@@ -47,11 +47,13 @@ const createQuery = <R, P extends unknown[]>(
   const error = shallowRef(initialState?.error);
   const params = ref(initialState?.params) as Ref<P>;
   const plugins = ref([]) as Query<R, P>['plugins'];
+  const status = shallowRef('pending') as Query<R, P>['status'];
 
   const context = {} as FunctionContext<R, P>;
 
   const setState = setStateBind(
     {
+      status,
       loading,
       data,
       error,
@@ -80,13 +82,17 @@ const createQuery = <R, P extends unknown[]>(
     setState({
       loading: true,
       params: args,
+      status: 'pending',
     });
 
     count.value += 1;
     const currentCount = count.value;
 
     const { isBreak, breakResult = resolvedPromise() } = emit('onBefore', args);
-    if (isBreak) return breakResult;
+    if (isBreak) {
+      setState({ status: 'settled' });
+      return breakResult;
+    }
 
     onBefore?.(args);
 
@@ -109,6 +115,7 @@ const createQuery = <R, P extends unknown[]>(
         data: res,
         loading: false,
         error: undefined,
+        status: 'settled',
       });
 
       emit('onSuccess', res, args);
@@ -124,6 +131,7 @@ const createQuery = <R, P extends unknown[]>(
       setState({
         loading: false,
         error: error,
+        status: 'settled',
       });
 
       emit('onError', error, args);
@@ -173,6 +181,7 @@ const createQuery = <R, P extends unknown[]>(
   };
 
   return {
+    status,
     loading,
     data,
     error,

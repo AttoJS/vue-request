@@ -20,6 +20,7 @@ export type State<R, P> = {
 };
 
 export interface Query<R, P extends unknown[]> extends State<R, P> {
+  status: Ref<'pending' | 'settled'>;
   context: FunctionContext<R, P>;
   plugins: Ref<Partial<PluginType<R, P>>[]>;
 }

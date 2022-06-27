@@ -13,7 +13,9 @@ export default definePlugin((queryInstance, { loadingDelay = 0 }) => {
 
     if (loadingDelayRef.value) {
       timerId = setTimeout(() => {
-        queryInstance.loading.value = true;
+        if (queryInstance.status.value === 'pending') {
+          queryInstance.loading.value = true;
+        }
       }, loadingDelayRef.value);
     }
 
