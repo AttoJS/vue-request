@@ -4194,4 +4194,116 @@ describe('useRequest', () => {
     await waitForTime(500);
     expect(wrapper.loading).toBe(false);
   });
+
+  test('loadingKeep with loadingDelay, case: 1', async () => {
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const { loading } = useRequest(request, {
+            loadingKeep: 1000,
+            loadingDelay: 500,
+          });
+
+          return {
+            loading,
+          };
+        },
+      }),
+    );
+
+    expect(wrapper.loading).toBe(false);
+    await waitForTime(500);
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(500);
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(500);
+    expect(wrapper.loading).toBe(false);
+  });
+
+  test('loadingKeep with loadingDelay, case: 2', async () => {
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const { loading } = useRequest(request, {
+            loadingKeep: 1000,
+            loadingDelay: 1500,
+          });
+
+          return {
+            loading,
+          };
+        },
+      }),
+    );
+
+    expect(wrapper.loading).toBe(false);
+    await waitForTime(500);
+    expect(wrapper.loading).toBe(false);
+    await waitForTime(500);
+    expect(wrapper.loading).toBe(false);
+    await waitForTime(500);
+    expect(wrapper.loading).toBe(false);
+    await waitForTime(500);
+    expect(wrapper.loading).toBe(false);
+    await waitForTime(500);
+    expect(wrapper.loading).toBe(false);
+  });
+
+  test('loadingKeep with loadingDelay, case: 3', async () => {
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const { loading } = useRequest(failedRequest, {
+            loadingKeep: 1000,
+            loadingDelay: 500,
+          });
+
+          return {
+            loading,
+          };
+        },
+      }),
+    );
+
+    expect(wrapper.loading).toBe(false);
+    await waitForTime(500);
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(500);
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(500);
+    expect(wrapper.loading).toBe(false);
+  });
+
+  test('loadingKeep with loadingDelay, case: 4', async () => {
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const { loading } = useRequest(failedRequest, {
+            loadingKeep: 1000,
+            loadingDelay: 1500,
+          });
+
+          return {
+            loading,
+          };
+        },
+      }),
+    );
+
+    expect(wrapper.loading).toBe(false);
+    await waitForTime(500);
+    expect(wrapper.loading).toBe(false);
+    await waitForTime(500);
+    expect(wrapper.loading).toBe(false);
+    await waitForTime(500);
+    expect(wrapper.loading).toBe(false);
+    await waitForTime(500);
+    expect(wrapper.loading).toBe(false);
+    await waitForTime(500);
+    expect(wrapper.loading).toBe(false);
+  });
 });

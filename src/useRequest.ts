@@ -2,7 +2,6 @@ import useCachePlugin from './core/plugins/useCachePlugin';
 import useDebouncePlugin from './core/plugins/useDebouncePlugin';
 import useErrorRetryPlugin from './core/plugins/useErrorRetryPlugin';
 import useLoadingDelayPlugin from './core/plugins/useLoadingDelayPlugin';
-import useLoadingKeepPlugin from './core/plugins/useLoadingKeepPlugin';
 import usePollingPlugin from './core/plugins/usePollingPlugin';
 import useReadyPlugin from './core/plugins/useReadyPlugin';
 import useRefreshDepsPlugin from './core/plugins/useRefreshDepsPlugin';
@@ -17,7 +16,6 @@ function useRequest<R, P extends unknown[] = any>(
 ): QueryResult<R, P> {
   return useQuery<R, P>(service, options, [
     useLoadingDelayPlugin,
-    useLoadingKeepPlugin,
     useErrorRetryPlugin,
     useDebouncePlugin,
     usePollingPlugin,

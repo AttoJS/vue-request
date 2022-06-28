@@ -2,6 +2,12 @@ const presets = ['@babel/preset-env'];
 const plugins = [
   '@vue/babel-plugin-jsx',
   '@babel/plugin-proposal-nullish-coalescing-operator',
+  [
+    '@babel/plugin-proposal-class-properties',
+    {
+      loose: true,
+    },
+  ],
 ];
 
 const babelConfig = {
