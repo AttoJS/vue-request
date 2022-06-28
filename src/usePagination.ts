@@ -108,7 +108,7 @@ function usePagination<R, P extends unknown[] = any>(
   const current = computed({
     get: () =>
       // @ts-ignore
-      params.value?.[0][currentKey] ??
+      params.value?.[0]?.[currentKey] ??
       finallyOptions.defaultParams[0][currentKey],
     set: (val: number) => {
       changeCurrent(val);
@@ -117,7 +117,7 @@ function usePagination<R, P extends unknown[] = any>(
   const pageSize = computed<number>({
     get: () =>
       // @ts-ignore
-      params.value?.[0][pageSizeKey] ??
+      params.value?.[0]?.[pageSizeKey] ??
       finallyOptions.defaultParams[0][pageSizeKey],
     set: (val: number) => {
       changePageSize(val);

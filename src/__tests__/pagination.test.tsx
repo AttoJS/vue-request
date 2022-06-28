@@ -542,15 +542,23 @@ describe('usePagination', () => {
       defineComponent({
         template: '<div/>',
         setup() {
-          const { refresh, params } = usePagination<NormalMockDataType>(
-            normalApi,
-            {
-              manual: true,
-            },
-          );
+          const {
+            refresh,
+            params,
+            current,
+            total,
+            totalPage,
+            pageSize,
+          } = usePagination<NormalMockDataType>(normalApi, {
+            manual: true,
+          });
           return {
             refresh,
             params,
+            current,
+            totalPage,
+            total,
+            pageSize,
           };
         },
       }),
@@ -558,5 +566,9 @@ describe('usePagination', () => {
 
     wrapper.refresh();
     expect(wrapper.params.length).toBe(0);
+    expect(wrapper.current).toBe(1);
+    expect(wrapper.pageSize).toBe(10);
+    expect(wrapper.total).toBe(0);
+    expect(wrapper.totalPage).toBe(0);
   });
 });
