@@ -173,6 +173,33 @@ describe('useRequest', () => {
     expect(wrapper.data).toBe('ok');
   });
 
+  test('mutate array data should work', async () => {
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const { data, mutate } = useRequest(
+            () =>
+              new Promise<any>(resolve => {
+                setTimeout(() => {
+                  resolve([1, 2]);
+                }, 1000);
+              }),
+          );
+
+          return {
+            mutate,
+            data,
+          };
+        },
+      }),
+    );
+    await waitForAll();
+    expect(wrapper.data).toEqual([1, 2]);
+    wrapper.mutate([]);
+    expect(wrapper.data).toEqual([]);
+  });
+
   test('mutate callback should work', async () => {
     const wrapper = mount(
       defineComponent({

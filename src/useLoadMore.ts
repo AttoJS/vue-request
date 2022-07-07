@@ -8,7 +8,7 @@ import useRefreshDepsPlugin from './core/plugins/useRefreshDepsPlugin';
 import useThrottlePlugin from './core/plugins/useThrottlePlugin';
 import type { Mutate, Options, QueryResult } from './core/types';
 import useQuery from './core/useQuery';
-import { isFunction, isObject, omit, warning } from './core/utils';
+import { isFunction, omit, shallowCopy, warning } from './core/utils';
 
 export type DataType = { list: any[]; [key: string]: any };
 
@@ -148,9 +148,7 @@ function useLoadMore<R extends DataType>(
 
   const mutate: Mutate<R> = x => {
     const mutateData = isFunction(x) ? x(data.value) : x;
-    const _mutateData = isObject(mutateData)
-      ? Object.assign({}, mutateData)
-      : mutateData;
+    const _mutateData = shallowCopy(mutateData);
 
     data.value = _mutateData;
   };

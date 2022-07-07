@@ -10,7 +10,7 @@ import type {
   Service,
   State,
 } from './types';
-import { isFunction, isObject, resolvedPromise } from './utils';
+import { isFunction, resolvedPromise, shallowCopy } from './utils';
 import type { UnWrapRefObject } from './utils/types';
 type StateBindParams = State<any, any> & { status: Query<any, any>['status'] };
 const setStateBind = <T extends StateBindParams>(
@@ -169,9 +169,7 @@ const createQuery = <R, P extends unknown[]>(
 
   context.mutate = x => {
     const mutateData = isFunction(x) ? x(data.value) : x;
-    const _mutateData = isObject(mutateData)
-      ? Object.assign({}, mutateData)
-      : mutateData;
+    const _mutateData = shallowCopy(mutateData);
 
     setState({
       data: _mutateData,

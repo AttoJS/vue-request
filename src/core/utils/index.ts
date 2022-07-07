@@ -72,3 +72,11 @@ export const warning = (message: string, throwError = false) => {
 export const refToRaw = <T>(value: Ref<T> | T) => {
   return isRef(value) ? value.value : value;
 };
+
+export const shallowCopy = <T>(value: T): T => {
+  if (isObject(value)) {
+    return Object.assign(isArray(value) ? [] : {}, value);
+  } else {
+    return value;
+  }
+};

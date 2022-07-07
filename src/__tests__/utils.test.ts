@@ -12,6 +12,7 @@ import {
   isString,
   omit,
   refToRaw,
+  shallowCopy,
   warning,
 } from '../core/utils';
 import limitTrigger from '../core/utils/limitTrigger';
@@ -208,5 +209,21 @@ describe('utils', () => {
     const data = 'data';
     expect(refToRaw(refData)).toBe('data');
     expect(refToRaw(data)).toBe('data');
+  });
+
+  test('shallowCopy should word', () => {
+    // primitive data types
+    expect(shallowCopy(1)).toBe(1);
+    expect(shallowCopy('1')).toBe('1');
+    expect(shallowCopy(true)).toBe(true);
+
+    // Object
+    const testObject = { a: 1 };
+    const testArray = [1, 2];
+    expect(shallowCopy(testObject)).not.toBe(testObject);
+    expect(shallowCopy(testObject)).toEqual(testObject);
+
+    expect(shallowCopy(testArray)).not.toBe(testArray);
+    expect(shallowCopy(testArray)).toEqual(testArray);
   });
 });
