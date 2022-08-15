@@ -144,7 +144,7 @@ const createQuery = <R, P extends unknown[]>(
     }
   };
 
-  context.run = async (...args: P) => {
+  context.run = (...args: P) => {
     context.runAsync(...args).catch(error => {
       if (!onError) {
         console.error(error);
