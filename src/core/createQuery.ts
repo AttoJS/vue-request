@@ -140,7 +140,7 @@ const createQuery = <R, P extends unknown[]>(
     // so replace 0 with 2, the coefficient range will become 1 - 2
     const coefficient = Math.floor(
       Math.random() * 2 ** Math.min(retriedCount.value, maxCoefficient) +
-        minCoefficient,
+      minCoefficient,
     );
     return baseTime * coefficient;
   });
@@ -204,7 +204,8 @@ const createQuery = <R, P extends unknown[]>(
 
           console.error(error);
         }
-        return resolvedPromise;
+        // return resolvedPromise;
+        return Promise.reject(error);
       })
       .finally(() => {
         if (currentCount === count.value) {
