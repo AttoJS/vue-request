@@ -40,7 +40,7 @@ const createQuery = <R, P extends unknown[]>(
   config: Options<R, P>,
   initialState?: UnWrapRefObject<State<R, P>>,
 ): Query<R, P> => {
-  const { initialData, onSuccess, onError, onBefore, onAfter } = config;
+  const { initialData, onSuccess, onError, onBefore, onAfter, formatResult } = config;
 
   const loading = ref(initialState?.loading ?? false);
   const data = shallowRef(initialState?.data ?? initialData) as Ref<R>;
@@ -107,9 +107,13 @@ const createQuery = <R, P extends unknown[]>(
         servicePromise = serviceWrapper();
       }
 
-      const res = await servicePromise;
+      let res = await servicePromise;
 
       if (currentCount !== count.value) return resolvedPromise();
+
+      if (formatResult) {
+        res = formatResult(res)
+      }
 
       setState({
         data: res,

@@ -78,6 +78,7 @@ export type Options<R, P extends unknown[]> = BaseOptions & {
   refreshDeps?: WatchSource<any>[];
   cacheKey?: string | ((params?: P) => string);
   refreshDepsAction?: () => void;
+  formatResult?:(params: R) => any
   onSuccess?: (data: R, params: P) => void;
   onError?: (error: Error, params: P) => void;
   onBefore?: (params: P) => void;
