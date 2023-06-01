@@ -1245,6 +1245,78 @@ describe('useRequest', () => {
     expect(wrapper.data).toBe('5');
   });
 
+  test('polling can be canceled in onSuccess', async () => {
+    let count = 0;
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const { loading, cancel } = useRequest(request, {
+            pollingInterval: 500,
+            onBefore() {
+              count += 1;
+            },
+            onSuccess: () => {
+              if (count === 2) {
+                cancel();
+              }
+            },
+          });
+
+          return {
+            loading,
+          };
+        },
+      }),
+    );
+
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+    await waitForTime(500);
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+    waitForTime(600);
+    expect(wrapper.loading).toBe(false);
+  });
+
+  test('polling can be canceled in onError', async () => {
+    let count = 0;
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const { loading, cancel } = useRequest(failedRequest, {
+            pollingInterval: 500,
+            onBefore() {
+              count += 1;
+            },
+            onError: () => {
+              if (count === 2) {
+                cancel();
+              }
+            },
+          });
+
+          return {
+            loading,
+          };
+        },
+      }),
+    );
+
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+    await waitForTime(500);
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+    waitForTime(600);
+    expect(wrapper.loading).toBe(false);
+  });
+
   test('refreshOnWindowFocus should work', async () => {
     const wrapper = mount(
       defineComponent({

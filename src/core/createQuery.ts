@@ -120,8 +120,9 @@ const createQuery = <R, P extends unknown[]>(
 
       emit('onSuccess', res, args);
       onSuccess?.(res, args);
-
-      emit('onAfter', args, res, undefined);
+      if (currentCount === count.value) {
+        emit('onAfter', args, res, undefined);
+      }
       onAfter?.(args);
 
       return res;
@@ -137,7 +138,9 @@ const createQuery = <R, P extends unknown[]>(
       emit('onError', error, args);
       onError?.(error, args);
 
-      emit('onAfter', args, undefined, error);
+      if (currentCount === count.value) {
+        emit('onAfter', args, undefined, error);
+      }
       onAfter?.(args);
 
       throw error;
