@@ -8,7 +8,6 @@ export default defineConfig({
   resolve: {
     alias: {
       'vue-request': path.resolve(__dirname, '../src/index.ts'),
-      vue: 'vue3',
     },
   },
   plugins: [vue(), vueJsx()],

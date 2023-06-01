@@ -34,20 +34,20 @@
     "build": "yarn switch:3 && yarn clean && yarn build:code && yarn build:types",
     "build:code": "rollup --config ./build/rollup.config.js",
     "build:types": "rollup --config ./build/rollup.config.types.js",
+    "changelog": "standard-version && standard-version -i CHANGELOG.zh-CN.md -o CHANGELOG.zh-CN.md",
+    "clean": "rimraf dist/*",
     "dev": "yarn switch:3 && vite --config ./build/vite.config.ts ./examples/vue3",
     "dev:2": "yarn switch:2 && vite --config ./build/vite-vue2.config.ts ./examples/vue2",
-    "test": "yarn test:3 && yarn test:2",
-    "test:3": "yarn switch:3 && jest --coverage",
-    "test:2": "yarn switch:2 && jest --coverage",
-    "switch:3": "vue-demi-switch 3 vue3",
-    "switch:2": "vue-demi-switch 2 vue2",
-    "clean": "rimraf dist/*",
-    "publishing": "np",
-    "changelog": "standard-version && standard-version -i CHANGELOG.zh-CN.md -o CHANGELOG.zh-CN.md",
-    "release": "yarn build && yarn publishing",
-    "lint": "eslint -c ./.eslintrc.js './{src,scripts,build}/**/*.{js,ts,tsx}'",
     "format": "prettier -w '**/*.ts?(x)'",
-    "patch-package": "patch-package"
+    "lint": "eslint -c ./.eslintrc.js './{src,scripts,build}/**/*.{js,ts,tsx}'",
+    "patch-package": "patch-package",
+    "publishing": "np",
+    "release": "yarn build && yarn publishing",
+    "switch:2": "vue-demi-switch 2.7 vue2",
+    "switch:3": "vue-demi-switch 3",
+    "test": "yarn test:3 && yarn test:2",
+    "test:2": "yarn switch:2 && jest --coverage",
+    "test:3": "yarn switch:3 && jest --coverage"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -109,9 +109,9 @@
     "typescript": "^4.0.5",
     "vite": "^2.1.5",
     "vite-plugin-vue2": "^1.9.2",
+    "vue": "^3.3.4",
     "vue-template-compiler": "^2.6.14",
-    "vue2": "npm:vue@2",
-    "vue3": "npm:vue@3"
+    "vue2": "npm:vue@2"
   },
   "peerDependencies": {
     "@vue/composition-api": "^1.0.0-rc.1",
