@@ -75,7 +75,7 @@ export type Options<R, P extends unknown[]> = BaseOptions & {
   defaultParams?: P;
   ready?: Ref<boolean>;
   initialData?: R;
-  refreshDeps?: WatchSource<any>[];
+  refreshDeps?: WatchSource | WatchSource[];
   cacheKey?: string | ((params?: P) => string);
   refreshDepsAction?: () => void;
   onSuccess?: (data: R, params: P) => void;
@@ -91,9 +91,7 @@ export type PluginImplementType<R, P extends any[]> = {
 };
 
 export type PluginType<R, P extends unknown[]> = {
-  onBefore: (
-    params: P,
-  ) => {
+  onBefore: (params: P) => {
     isBreak?: Boolean;
     breakResult?: any;
   } | void;

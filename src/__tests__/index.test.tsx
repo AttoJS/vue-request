@@ -774,7 +774,7 @@ describe('useRequest', () => {
     expect(wrapper.data).toBe('3');
   });
 
-  test('refreshDeps should work', async () => {
+  test('refreshDeps should work: case 1', async () => {
     const wrapper = mount(
       defineComponent({
         template: '<div/>',
@@ -817,6 +817,76 @@ describe('useRequest', () => {
 
     for (let index = 0; index < 100; index++) {
       wrapper.handleUpdateReactive();
+      await waitForTime(1);
+      expect(wrapper.loading).toBe(true);
+      await waitForTime(1000);
+      expect(wrapper.loading).toBe(false);
+    }
+  });
+
+  test('refreshDeps should work: case 2', async () => {
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const refreshReactive = reactive({
+            count: 0,
+          });
+          const { loading } = useRequest(request, {
+            refreshDeps: () => refreshReactive.count,
+          });
+
+          const handleUpdateReactive = () => {
+            refreshReactive.count++;
+          };
+
+          return {
+            loading,
+            handleUpdateReactive,
+          };
+        },
+      }),
+    );
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+
+    for (let index = 0; index < 100; index++) {
+      wrapper.handleUpdateReactive();
+      await waitForTime(1);
+      expect(wrapper.loading).toBe(true);
+      await waitForTime(1000);
+      expect(wrapper.loading).toBe(false);
+    }
+  });
+
+  test('refreshDeps should work: case 3', async () => {
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const refreshRef = ref(0);
+          const { loading } = useRequest(request, {
+            refreshDeps: refreshRef,
+          });
+
+          const handleUpdateRef = () => {
+            refreshRef.value++;
+          };
+
+          return {
+            loading,
+            handleUpdateRef,
+          };
+        },
+      }),
+    );
+    expect(wrapper.loading).toBe(true);
+    await waitForTime(1000);
+    expect(wrapper.loading).toBe(false);
+
+    for (let index = 0; index < 100; index++) {
+      wrapper.handleUpdateRef();
       await waitForTime(1);
       expect(wrapper.loading).toBe(true);
       await waitForTime(1000);
