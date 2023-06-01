@@ -73,7 +73,7 @@ export type BaseOptions = {
 
 export type Options<R, P extends unknown[]> = BaseOptions & {
   defaultParams?: P;
-  ready?: Ref<boolean>;
+  ready?: Ref<boolean> | (() => boolean);
   initialData?: R;
   refreshDeps?: WatchSource | WatchSource[];
   cacheKey?: string | ((params?: P) => string);

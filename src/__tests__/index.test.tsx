@@ -510,6 +510,42 @@ describe('useRequest', () => {
     expect(wrapper.data).toBe('run');
   });
 
+  test('ready should work when ready is a function', async () => {
+    const count = 0;
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const count = ref(0);
+          const { loading } = useRequest(request, {
+            ready: () => count.value >= 2,
+          });
+
+          const handleUpdateCount = () => {
+            count.value += 1;
+          };
+
+          return {
+            loading,
+            handleUpdateCount,
+          };
+        },
+      }),
+    );
+    await waitForAll();
+    wrapper.handleUpdateCount();
+    expect(wrapper.loading).toBe(false);
+    await waitForAll();
+
+    wrapper.handleUpdateCount();
+    expect(wrapper.loading).toBe(true);
+    await waitForAll();
+
+    wrapper.handleUpdateCount();
+    expect(wrapper.loading).toBe(false);
+    await waitForAll();
+  });
+
   test('track ready when ready initial value is true', async () => {
     const wrapper = mount(
       defineComponent({
