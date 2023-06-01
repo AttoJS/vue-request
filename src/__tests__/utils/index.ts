@@ -23,11 +23,10 @@ type VM<V> = InstanceType<V> & { unmount(): void; [key: string]: any };
 
 export function mount<V>(Comp: V) {
   const el = document.createElement('div');
-  const app = createApp(Comp);
+  const app = createApp(Comp as any);
 
-  // @ts-ignore
-  const unmount = () => app.unmount(el);
-  const comp = (app.mount(el) as any) as VM<V>;
+  const unmount = () => app.unmount();
+  const comp = app.mount(el) as any as VM<V>;
   comp.unmount = unmount;
   return comp;
 }
