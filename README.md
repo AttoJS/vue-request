@@ -12,35 +12,31 @@ English | [简体中文](README-zh_CN.md)
 <h1 align="center">VueRequest</h1>
 <div align="center">
   <p align="center">⚡️ Vue composition API for data fetching, supports SWR, polling, error retry, cache request, pagination, etc.</p>
-   <a href="https://codecov.io/github/attojs/vue-request?branch=master">
+   <a href="https://codecov.io/github/attojs/vue-request?branch=next">
     <img
       src="https://img.shields.io/codecov/c/github/attojs/vue-request?token=NW2XVQWGPP"
       alt="Coverage Status"
     />
   </a>
-  <a href="https://www.npmjs.com/package/vue-request/v/next">
-    <img src="https://img.shields.io/bundlephobia/minzip/vue-request/next" alt="Size" />
+  <a href="https://www.npmjs.com/package/vue-request">
+    <img src="https://img.shields.io/bundlephobia/minzip/vue-request" alt="Size" />
   </a>
-  <a href="https://www.npmjs.com/package/vue-request/v/next">
-    <img src="https://img.shields.io/npm/v/vue-request/next" alt="Version" />
+  <a href="https://www.npmjs.com/package/vue-request">
+    <img src="https://img.shields.io/npm/v/vue-request" alt="Version" />
   </a>
-  <a href="https://www.npmjs.com/package/vue-request/v/next">
+  <a href="https://www.npmjs.com/package/vue-request">
     <img src="https://img.shields.io/github/languages/top/attojs/vue-request" alt="Languages" />
   </a>
-  <a href="https://www.npmjs.com/package/vue-request/v/next">
+  <a href="https://www.npmjs.com/package/vue-request">
     <img src="https://img.shields.io/npm/l/vue-request" alt="License" />
   </a>
   <a href="https://github.com/AttoJS/vue-request/stargazers">
     <img src="https://img.shields.io/github/stars/attojs/vue-request" alt="Star" />
   </a>
-  <a href="https://www.npmjs.com/package/vue-request/v/next">
+  <a href="https://www.npmjs.com/package/vue-request">
     <img src="https://img.shields.io/npm/dm/vue-request" alt="Download" />
   </a>
 </div>
-
-## Status
-
-Currently in RC version. For details, please see the [changelog](https://github.com/AttoJS/vue-request/issues/121).
 
 ## Why VueRequest
 
@@ -74,11 +70,11 @@ You can install VueRequest with [NPM](https://www.npmjs.com/), [YARN](https://ya
 ### NPM
 
 ```sh
-npm install vue-request@next
+npm install vue-request
 # or
-yarn add vue-request@next
+yarn add vue-request
 # or
-pnpm install vue-request@next
+pnpm install vue-request
 ```
 
 ### CDN
@@ -86,7 +82,7 @@ pnpm install vue-request@next
 > For production, we recommend linking to a specific version number and build to avoid unexpected breakage from newer versions.
 
 ```html
-<script src="https://unpkg.com/vue-request@next/dist/vue-request.min.js"></script>
+<script src="https://unpkg.com/vue-request/dist/vue-request.min.js"></script>
 ```
 
 Once you've added this you will have access to the `window.VueRequest` object and its exports.
