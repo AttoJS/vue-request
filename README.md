@@ -12,35 +12,35 @@ English | [简体中文](README-zh_CN.md)
 <h1 align="center">VueRequest</h1>
 <div align="center">
   <p align="center">⚡️ Vue 3 composition API for data fetching, supports SWR, polling, error retry, cache request, pagination, etc.</p>
-  <a href="https://codecov.io/github/attojs/vue-request?branch=master">
+  <a href="https://codecov.io/github/attojs/vue-request?branch=v1">
     <img
       src="https://img.shields.io/codecov/c/github/attojs/vue-request?token=NW2XVQWGPP"
       alt="Coverage Status"
     />
   </a>
-  <a href="https://www.npmjs.com/package/vue-request">
-    <img src="https://img.shields.io/bundlephobia/minzip/vue-request/latest" alt="Size" />
+  <a href="https://www.npmjs.com/package/vue-request/v/v1">
+    <img src="https://img.shields.io/bundlephobia/minzip/vue-request/v1" alt="Size" />
   </a>
-  <a href="https://www.npmjs.com/package/vue-request">
-    <img src="https://img.shields.io/npm/v/vue-request" alt="Version" />
+  <a href="https://www.npmjs.com/package/vue-request/v/v1">
+    <img src="https://img.shields.io/npm/v/vue-request/v1" alt="Version" />
   </a>
-  <a href="https://www.npmjs.com/package/vue-request">
+  <a href="https://www.npmjs.com/package/vue-request/v/v1">
     <img src="https://img.shields.io/github/languages/top/attojs/vue-request" alt="Languages" />
   </a>
-  <a href="https://www.npmjs.com/package/vue-request">
+  <a href="https://www.npmjs.com/package/vue-request/v/v1">
     <img src="https://img.shields.io/npm/l/vue-request" alt="License" />
   </a>
   <a href="https://github.com/AttoJS/vue-request/stargazers">
     <img src="https://img.shields.io/github/stars/attojs/vue-request" alt="Star" />
   </a>
-  <a href="https://www.npmjs.com/package/vue-request">
+  <a href="https://www.npmjs.com/package/vue-request/v/v1">
     <img src="https://img.shields.io/npm/dm/vue-request" alt="Download" />
   </a>
 </div>
 
 ## Status
 
-**The v1 version will not add new functions in the future, and will only maintain the bugs that appear. To experience the latest features, please switch to the v2 version. The v2 version is in the RC stage. For details, you can check the [next](https://github.com/AttoJS/vue-request/blob/next/README.md) branch. Documentation will be released with the official release.**
+**The v1 version will not add new functions in the future, and will only maintain the bugs that appear. To experience the latest features, please switch to the v2 version.**
 
 ## Why VueRequest
 
@@ -73,9 +73,9 @@ You can install VueRequest with [NPM](https://www.npmjs.com/), [YARN](https://ya
 ### NPM
 
 ```sh
-npm install vue-request
+npm install vue-request@v1
 # or
-yarn add vue-request
+yarn add vue-request@v1
 ```
 
 ### CDN
@@ -83,7 +83,7 @@ yarn add vue-request
 > For production, we recommend linking to a specific version number and build to avoid unexpected breakage from newer versions.
 
 ```html
-<script src="https://unpkg.com/vue-request/dist/vue-request.min.js"></script>
+<script src="https://unpkg.com/vue-request@v1/dist/vue-request.min.js"></script>
 ```
 
 Once you've added this you will have access to the `window.VueRequest` object and its exports.
@@ -152,7 +152,7 @@ const { data, error, run } = useRequest(getUserInfo, {
 
 If you have any cool features, please submit an issue for discussion
 
-- [x] Support Vue 2. see [next](https://github.com/AttoJS/vue-request/tree/next) branch
+- [x] Support Vue 2. see [master](https://github.com/AttoJS/vue-request/tree/master) branch
 - [x] Documentation
 - [x] Pagination
 - [x] Load More

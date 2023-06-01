@@ -12,35 +12,35 @@
 <h1 align="center">VueRequest</h1>
 <div align="center">
   <p align="center">⚡️ 一个能轻松帮你管理请求状态（支持SWR，轮询，错误重试，缓存，分页等）的 Vue 3 composition API 请求库</p>
-  <a href="https://codecov.io/github/attojs/vue-request?branch=master">
+  <a href="https://codecov.io/github/attojs/vue-request?branch=v1">
     <img
       src="https://img.shields.io/codecov/c/github/attojs/vue-request?token=NW2XVQWGPP"
       alt="Coverage Status"
     />
   </a>
-  <a href="https://www.npmjs.com/package/vue-request">
-    <img src="https://img.shields.io/bundlephobia/minzip/vue-request/latest" alt="Size" />
+  <a href="https://www.npmjs.com/package/vue-request/v/v1">
+    <img src="https://img.shields.io/bundlephobia/minzip/vue-request/v1" alt="Size" />
   </a>
-  <a href="https://www.npmjs.com/package/vue-request">
-    <img src="https://img.shields.io/npm/v/vue-request" alt="Version" />
+  <a href="https://www.npmjs.com/package/vue-request/v/v1">
+    <img src="https://img.shields.io/npm/v/vue-request/v1" alt="Version" />
   </a>
-  <a href="https://www.npmjs.com/package/vue-request">
+  <a href="https://www.npmjs.com/package/vue-request/v/v1">
     <img src="https://img.shields.io/github/languages/top/attojs/vue-request" alt="Languages" />
   </a>
-  <a href="https://www.npmjs.com/package/vue-request">
+  <a href="https://www.npmjs.com/package/vue-request/v/v1">
     <img src="https://img.shields.io/npm/l/vue-request" alt="License" />
   </a>
   <a href="https://github.com/AttoJS/vue-request/stargazers">
     <img src="https://img.shields.io/github/stars/attojs/vue-request" alt="Star" />
   </a>
-  <a href="https://www.npmjs.com/package/vue-request">
+  <a href="https://www.npmjs.com/package/vue-request/v/v1">
     <img src="https://img.shields.io/npm/dm/vue-request" alt="Download" />
   </a>
 </div>
 
 ## 项目状态
 
-**v1 版本后续不会添加新的功能，只会对出现的 BUG 进行维护。想体验最新的功能，请切换到 v2 版本。v2 版本正在 RC 阶段，详情可以查看 [next](https://github.com/AttoJS/vue-request/blob/next/README-zh_CN.md) 分支。文档将随着正式版本发布。**
+**v1 版本后续不会添加新的功能，只会对出现的 BUG 进行维护。想体验最新的功能，请切换到 v2 版本。**
 
 ## 为什么选择 VueRequest
 
@@ -74,9 +74,9 @@ VueRequest 旨在为开发者提供便捷、快速的方式来管理接口的状
 ### NPM
 
 ```sh
-npm install vue-request
+npm install vue-request@v1
 # or
-yarn add vue-request
+yarn add vue-request@v1
 ```
 
 ### CDN
@@ -84,7 +84,7 @@ yarn add vue-request
 > 对于生产环境，我们推荐链接到一个明确的版本号和构建文件，以避免新版本造成的不可预期的破坏。
 
 ```html
-<script src="https://unpkg.com/vue-request/dist/vue-request.min.js"></script>
+<script src="https://unpkg.com/vue-request@v1/dist/vue-request.min.js"></script>
 ```
 
 一旦你在页面中添加了它，你就可以在 `window.VueRequest` 中访问我们导出的方法。
@@ -153,7 +153,7 @@ const { data, error, run } = useRequest(getUserInfo, {
 
 如果你有很酷的想法，欢迎提交 issue 以便我们讨论
 
-- [x] 支持 Vue 2。详情请参阅 [next](https://github.com/AttoJS/vue-request/tree/next) 分支
+- [x] 支持 Vue 2。详情请参阅 [master](https://github.com/AttoJS/vue-request/tree/master) 分支
 - [x] 文档
 - [x] 分页
 - [x] 加载更多
