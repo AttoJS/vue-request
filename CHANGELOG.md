@@ -2,6 +2,144 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.2](https://github.com/attojs/vue-request/compare/v2.0.1...v2.0.2) (2023-06-02)
+
+### Refactor
+
+- Convert optional chaining syntax [#199](https://github.com/attojs/vue-request/issues/199) ([f1c79fb](https://github.com/AttoJS/vue-request/commit/f1c79fbafa103c3fe0048b4756123d431bb92809))
+
+### [2.0.1](https://github.com/attojs/vue-request/compare/v1.2.4...v2.0.1) (2023-06-01)
+
+## Changelog
+
+- Use `vue-demi` to be compatible with Vue 2 #38
+- Added custom cache `getCache`, `setCache`, and `clearCache`.
+- When caching is enabled, requests with the same `cacheKey` will be cached and reused.
+- Added `runAsync` and `refreshAsync`, which return a `Promise`.
+- Added `definePlugin` to extend the functionality of useRequest through plugins.
+- In throttle/debounce mode, `runAsync` can be used to return a normal `Promise`.
+- Added `useRequestProvider` hooks to inject options configuration.
+- Added `refreshDepsAction` option to customize the behavior after `refreshDeps` is triggered.
+- `refreshDepsAction` will also be triggered by changes in `refreshDeps` when `manual=true`.
+- Added `loadingKeep`.
+- **Removed the integrated request library and `service` no longer supports strings or objects.** [Migration Guide](#1)
+- **Removed `formatResult`.** [Migration Guide](#2)
+- **Removed `queryKey`, i.e., parallel mode is removed** [Migration Guide](#3)
+- **`run` no longer returns a `Promise`** [Migration Guide](#5)
+- **When a request fails, `data` is no longer cleared** #82
+- **Modified the logic of `ready`** [Migration Guide](#4)
+- **`ready` now supports passing a function that returns a Boolean value** #166
+- **`data` and `error` changed to `shallowRef`**
+- **`usePagination` removed `reload` method and `reloading`. If needed, they can be implemented separately.**
+- **Removed `RequestConfig` component** [Migration Guide](#6)
+- **Refactored `useLoadMore`, see details for specific API** [API Description](#useloadmore-api)
+- **`cacheKey` can now be passed a function: `cacheKey: (params?: P) => string`**
+  ```ts
+  useRequest(getUser, {
+    cacheKey: (params?: P): string => {
+      // When initialized, `params` will be undefined, so we need to manually check and return an empty string
+      if (params) {
+        return `user-key-${params[0].name}`;
+      }
+      return '';
+    },
+  });
+  ```
+- Some `options` support reactivity, as shown below:
+
+  ```ts
+  type ReactivityOptions = {
+    loadingDelay: number | Ref<number>;
+    loadingKeep: number | Ref<number>;
+    pollingInterval: number | Ref<number>;
+    debounceInterval: number | Ref<number>;
+    debounceOptions: DebounceOptions | Reactive<DebounceOptions>;
+    throttleInterval: number | Ref<number>;
+    throttleOptions: ThrottleOptions | Reactive<ThrottleOptions>;
+    refreshOnWindowFocus: boolean | Ref<boolean>;
+    refocusTimespan: number | Ref<number>;
+    errorRetryCount: number | Ref<number>;
+    errorRetryInterval: number | Ref<number>;
+  };
+  ```
+
+- **`refreshDeps` now supports passing a function that returns a value, a ref, a reactive object, or an array of any of these types.** #166
+
+## Migration Guide
+
+1. `service` no longer supports strings or objects. Users are expected to wrap their requests using other third-party libraries (such as `axios`) and provide a `Promise` as the `service` function. <a name="1"></a>
+
+   ```js
+   const getUser = userName => {
+     return axios.get('api/user', {
+       params: {
+         name: userName,
+       },
+     });
+   };
+   useRequest(getUser, options);
+   ```
+
+2. `formatResult` has been removed. Users are expected to format the final data in their `service` function. <a name="2"></a>
+
+   ```js
+   const getUser = async () => {
+     const results = await axios.get('api/user');
+     // Format the final data here
+     return results.data;
+   };
+   ```
+
+3. `queryKey` has been removed, which means parallel mode is no longer supported. Users are expected to encapsulate each request action and UI into a component instead of putting all requests in the parent component. <a name="3"></a>
+
+4. Changes to the `ready` logic <a name="4"></a>
+
+   - When `manual=false`, every time `ready` changes from `false` to `true`, a request will be automatically triggered with the `options.defaultParams` parameter.
+   - When `manual=true`, a request cannot be made as long as `ready` is `false`.
+
+5. `run` no longer returns a `Promise`. Use `runAsync` instead of the original `run` function. <a name="5"></a>
+
+6. Users can wrap `useRequest` with `useRequestProvider` themselves. <a name="6"></a>
+
+## useLoadMore API
+
+### Options
+
+| Name | Description | Type |
+| --- | --- | --- |
+| manual | When set to `true`, you need to manually trigger `loadMore` or `loadMoreAsync` to make a request. The default value is `false`. | `boolean` |
+| ready | When `manual=false`, every time `ready` changes from `false` to `true`, `refresh` will be automatically triggered. When `manual=true`, a request cannot be made as long as `ready` is `false`. | `Ref<boolean> \| () => boolean` |
+| refreshDeps | Automatically trigger `refresh` when changed. If `refreshDepsAction` is set, `refreshDepsAction` will be triggered. | `WatchSource<any> \| WatchSource<any>[]` |
+| refreshDepsAction | Triggered when `refreshDeps` changes. | `() => void` |
+| debounceInterval | Process the request with a debounce strategy. | `number \| Ref<number>` |
+| debounceOptions | Debounce parameters. | `{leading: false, maxWait: undefined, trailing: true}` |
+| throttleInterval | Process the request with a throttle strategy. | `number \| Ref<number>` |
+| throttleOptions | Throttle parameters. | `{leading: false, trailing: true}` |
+| errorRetryCount | The number of error retries when an error occurs. | `number \| Ref<number>` |
+| errorRetryInterval | The interval between error retries when an error occurs. | `number \| Ref<number>` |
+| isNoMore | Determines whether there is more data. | `(data?: R) => boolean` |
+| onBefore | Triggered before `service` is executed. | `() => void` |
+| onAfter | Triggered when `service` is completed. | `() => void` |
+| onSuccess | Triggered when `service` is resolved. | `(data: R) => void` |
+| onError | Triggered when `service` is rejected. | `(error: Error) => void` |
+
+### Result
+
+| Name | Description | Type |
+| --- | --- | --- |
+| data | The data returned by `service`, which must include an array `list`, of type `{ list: any[], ...other }`. | `Ref<R>` |
+| dataList | The `list` array of `data`. | `Ref<R['list']>` |
+| loading | Whether a request is in progress. | `Ref<boolean>` |
+| loadingMore | Whether more data is being loaded. | `Ref<boolean>` |
+| noMore | Whether there is more data, which needs to be used with `options.isNoMore`. | `Ref<boolean>` |
+| error | The error returned by `service`. | `Error` |
+| loadMore | Load more data, automatically capture exceptions, and handle them through `options.onError`. | `() => void` |
+| loadMoreAsync | Load more data, return `Promise`, and handle errors on your own. | `() => Promise<R>` |
+| refresh | Refresh and load the first page of data, automatically capture exceptions, and handle them through `options.onError`. | `() => void` |
+| refreshAsync | Refresh and load the first page of data, return `Promise`, and handle errors on your own. | `() => Promise<R>` |
+| mutate | Directly modify the result of `data`. | `(arg: (oldData: R) => R) => void \| (newData: R) => void` |
+| cancel | Cancel the request. | `() => void` |
+
 ### [1.2.4](https://github.com/attojs/vue-request/compare/v1.2.3...v1.2.4) (2022-01-21)
 
 ### Refactor

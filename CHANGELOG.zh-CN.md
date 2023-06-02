@@ -2,6 +2,143 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.2](https://github.com/attojs/vue-request/compare/v2.0.1...v2.0.2) (2023-06-02)
+
+### Refactor
+
+- 添加 可选链语法 的转换 [#199](https://github.com/attojs/vue-request/issues/199) ([f1c79fb](https://github.com/AttoJS/vue-request/commit/f1c79fbafa103c3fe0048b4756123d431bb92809))
+
+### [2.0.1](https://github.com/attojs/vue-request/compare/v1.2.4...v2.0.1) (2023-06-01)
+
+## 变更列表
+
+- 使用 `vue-demi` 兼容 vue2 #38
+- 新增自定义缓存 `getCache` 、`setCache` 和 `clearCache`。
+- 开启缓存的情况下，设置了相同 `cacheKey` 的请求将会被缓存和复用。
+- 新增 `runAsync` 和 `refreshAsync`，将返回 `Promise`。
+- 新增 `definePlugin`，可以通过插件来扩展 useRequest 的功能。
+- 节流/防抖模式下可以使用 `runAsync` 返回正常的 `Promise`。
+- 新增 `useRequestProvider` hooks，用于注入 options 配置。
+- 新增 `refreshDepsAction` 选项，用于自定义 `refreshDeps` 触发后的行为。
+- `refreshDepsAction` 在 `manual=true` 时，也会被 `refreshDeps` 的改变而触发。
+- 新增 `loadingKeep`。
+- **移除 内部集成请求库，`service` 不再支持字符或对象。** [迁移帮助](#1)
+- **移除 `formatResult`。** [迁移帮助](#2)
+- **移除 `queryKey`，即移除了并行模式** [迁移帮助](#3)
+- **`run` 不再返回 `Promise`** [迁移帮助](#5)
+- **请求出错时，`data` 不再会被清空**#82
+- **修改 `ready` 的逻辑** [迁移帮助](#4)
+- **`ready` 支持传入一个返回布尔值的函数** #166
+- **`data` 和 `error` 改为 `shallowRef`**
+- **`usePagination` 移除了 `reload` 方法和 `reloading`。如需要对应的需求，可自行实现。**
+- **移除了 `RequestConfig` 组件** [迁移帮助](#6)
+- **重构了`useLoadMore`，具体 API 可查看详情** [API 说明](#useloadmore-api)
+- **`cacheKey` 支持传入函数: `cacheKey: (params?: P) => string`**
+  ```ts
+  useRequest(getUser,{
+    cacheKey: (params?:P):string => {
+      <!-- 初始化时，params 会为 undefined，需要手动判断并返回一个空字符串 -->
+      if(params){
+        return `user-key-${params[0].name}`
+      }
+      return ''
+    }
+  })
+  ```
+- 部分`options` 支持响应式，如下所示
+
+  ```ts
+  type ReactivityOptions = {
+    loadingDelay: number | Ref<number>;
+    loadingKeep: number | Ref<number>;
+    pollingInterval: number | Ref<number>;
+    debounceInterval: number | Ref<number>;
+    debounceOptions: DebounceOptions | Reactive<DebounceOptions>;
+    throttleInterval: number | Ref<number>;
+    throttleOptions: ThrottleOptions | Reactive<ThrottleOptions>;
+    refreshOnWindowFocus: boolean | Ref<boolean>;
+    refocusTimespan: number | Ref<number>;
+    errorRetryCount: number | Ref<number>;
+    errorRetryInterval: number | Ref<number>;
+  };
+  ```
+
+- **`refreshDeps`支持传入 一个函数，返回一个值 、是一个 ref 、一个响应式对象 或是由以上类型的值组成的数组** #166
+
+## 迁移帮助
+
+1. `service` 不再支持字符或对象。期望用户可以根据其他第三方请求库进行封装（如 `axios`），只要提供 `Promise` 即可 <a name="1"></a>
+
+```js
+const getUser = userName => {
+  return axios.get('api/user', {
+    params: {
+      name: userName,
+    },
+  });
+};
+useRequest(getUser, options);
+```
+
+2. 移除 `formatResult`。期望用户自行在 `service` 中返回最终格式的数据。 <a name="2"></a>
+
+```js
+const getUser = async () => {
+  const results = await axios.get('api/user');
+  // 在此处处理最终的数据
+  return results.data;
+};
+```
+
+3. 移除 `queryKey`，即移除了并行模式。期望将每个请求动作和 UI 封装为一个组件，而不是把所有请求都放到父级。 <a name="3"></a>
+
+4. 修改 `ready` 的逻辑 <a name="4" /></a>
+
+   - 当 `manual=false` 时，每次 `ready` 从 `false` 变为 `true` 时，都会自动发起请求，会带上参数 `options.defaultParams`。
+   - 当 `manual=true` 时，只要 `ready`为 `false`，则无法发起请求。
+
+5. `run` 不再返回 `Promise`。直接用 `runAsync` 替代原本的 `run`。 <a name="5" /></a>
+6. 可自行通过 `useRequestProvider` 封装 。<a name="6" /></a>
+
+## useLoadMore API
+
+### Options
+
+| 参数 | 说明 | 类型 |
+| --- | --- | --- |
+| manual | 当设置为 `true` 时，你需要手动触发 `loadMore` 或者 `loadMoreAsync` 才会发起请求。默认为 `false` | `boolean` |
+| ready | 当 `manual=false` 时，每次 `ready` 从 `false` 变为 `true` 时，都会自动触发 `refresh`。当 `manual=true` 时，只要 `ready` 为 `false`，则无法发起请求。 | `Ref<boolean> \| () => boolean` |
+| refreshDeps | 改变后自动触发 `refresh`，如果设置了 `refreshDepsAction` 则触发 `refreshDepsAction` | `WatchSource<any> \| WatchSource<any>[]` |
+| refreshDepsAction | `refreshDeps`改变后触发 | `() => void` |
+| debounceInterval | 以防抖策略处理请求 | `number \| Ref<number>` |
+| debounceOptions | 防抖参数 | `{leading: false, maxWait: undefined, trailing: true}` |
+| throttleInterval | 以节流策略处理请求 | `number \| Ref<number>` |
+| throttleOptions | 节流参数 | `{leading: false, trailing: true}` |
+| errorRetryCount | 发生错误时的错误重试次数 | `number \| Ref<number>` |
+| errorRetryInterval | 发生错误时的错误重试间隔时间 | `number \| Ref<number>` |
+| isNoMore | 判断是否还有更多数据 | `(data?: R) => boolean` |
+| onBefore | service 执行前触发 | `() => void` |
+| onAfter | service 执行完成时触发 | `() => void` |
+| onSuccess | service resolve 时触发 | `(data: R) => void` |
+| onError | service reject 时触发 | `(error: Error) => void` |
+
+### Result
+
+| 参数 | 说明 | 类型 |
+| --- | --- | --- |
+| data | service 返回的数据，必须包含 `list` 数组，类型为 `{ list: any[], ...other }` | `Ref<R>` |
+| dataList | `data` 的 `list` 数组 | `Ref<R['list']>` |
+| loading | 是否正在进行请求 | `Ref<boolean>` |
+| loadingMore | 是否正在加载更多 | `Ref<boolean>` |
+| noMore | 是否有更多数据，需要配合 `options.isNoMore` 使用 | `Ref<boolean>` |
+| error | service 返回的错误 | `Error` |
+| loadMore | 加载更多数据，会自动捕获异常，通过 `options.onError` 处理 | `() => void` |
+| loadMoreAsync | 加载更多数据，返回 `Promise`，需要自行处理错误 | `() => Promise<R>` |
+| refresh | 刷新加载第一页数据，会自动捕获异常，通过 `options.onError` 处理 | `() => void` |
+| refreshAsync | 刷新加载第一页数据，返回 `Promise`，需要自行处理错误 | `() => Promise<R>` |
+| mutate | 直接修改 `data` 的结果 | `(arg: (oldData: R) => R) => void \| (newData: R) => void` |
+| cancel | 取消请求 | `() => void` |
+
 ### [1.2.4](https://github.com/attojs/vue-request/compare/v1.2.3...v1.2.4) (2022-01-21)
 
 ### Refactor
