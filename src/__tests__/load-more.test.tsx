@@ -835,7 +835,7 @@ describe('useLoadMore', () => {
     expect(wrapper.dataList.length).toBe(100);
     expect(wrapper.loadingMore).toBe(false);
     try {
-      wrapper.loadMoreAsync();
+      await wrapper.loadMoreAsync();
     } catch (error) {
       expect(error.message.includes('No more data')).toBe(true);
     }
