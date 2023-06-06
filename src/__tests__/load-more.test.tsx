@@ -94,15 +94,10 @@ describe('useLoadMore', () => {
       defineComponent({
         template: '<div/>',
         setup() {
-          const {
-            dataList,
-            loadingMore,
-            loading,
-            noMore,
-            loadMore,
-          } = useLoadMore(normalRequest, {
-            isNoMore: d => (d ? d?.current >= d?.total : false),
-          });
+          const { dataList, loadingMore, loading, noMore, loadMore } =
+            useLoadMore(normalRequest, {
+              isNoMore: d => (d ? d?.current >= d?.total : false),
+            });
           return {
             dataList,
             loadingMore,
@@ -151,13 +146,8 @@ describe('useLoadMore', () => {
       defineComponent({
         template: '<div/>',
         setup() {
-          const {
-            dataList,
-            loadingMore,
-            loading,
-            loadMore,
-            refresh,
-          } = useLoadMore(normalRequest);
+          const { dataList, loadingMore, loading, loadMore, refresh } =
+            useLoadMore(normalRequest);
           return {
             dataList,
             loadingMore,
@@ -193,9 +183,8 @@ describe('useLoadMore', () => {
       defineComponent({
         template: '<div/>',
         setup() {
-          const { dataList, loadingMore, loading, refresh } = useLoadMore(
-            normalRequest,
-          );
+          const { dataList, loadingMore, loading, refresh } =
+            useLoadMore(normalRequest);
           return {
             dataList,
             loadingMore,
@@ -220,14 +209,8 @@ describe('useLoadMore', () => {
       defineComponent({
         template: '<div/>',
         setup() {
-          const {
-            dataList,
-            loadingMore,
-            loading,
-            loadMore,
-            refresh,
-            cancel,
-          } = useLoadMore(normalRequest);
+          const { dataList, loadingMore, loading, loadMore, refresh, cancel } =
+            useLoadMore(normalRequest);
           return {
             dataList,
             loadingMore,
@@ -275,9 +258,8 @@ describe('useLoadMore', () => {
       defineComponent({
         template: '<div/>',
         setup() {
-          const { dataList, loadingMore, loading, cancel } = useLoadMore(
-            normalRequest,
-          );
+          const { dataList, loadingMore, loading, cancel } =
+            useLoadMore(normalRequest);
           return {
             dataList,
             loadingMore,
@@ -373,19 +355,15 @@ describe('useLoadMore', () => {
       defineComponent({
         template: '<div/>',
         setup() {
-          const {
-            error,
-            loading,
-            loadingMore,
-            loadMore,
-          } = useLoadMore<NormalAPIReturnType>(
-            d => failRequest(d || undefined, 1, 10),
-            {
-              manual: true,
-              errorRetryCount: 2,
-              errorRetryInterval: 1000,
-            },
-          );
+          const { error, loading, loadingMore, loadMore } =
+            useLoadMore<NormalAPIReturnType>(
+              d => failRequest(d || undefined, 1, 10),
+              {
+                manual: true,
+                errorRetryCount: 2,
+                errorRetryInterval: 1000,
+              },
+            );
           return {
             error,
             loading,
@@ -530,9 +508,8 @@ describe('useLoadMore', () => {
       defineComponent({
         template: '<div/>',
         setup() {
-          const { dataList, data, loadMore, mutate } = useLoadMore(
-            normalRequest,
-          );
+          const { dataList, data, loadMore, mutate } =
+            useLoadMore(normalRequest);
 
           return {
             data,
@@ -796,13 +773,8 @@ describe('useLoadMore', () => {
       defineComponent({
         template: '<div/>',
         setup() {
-          const {
-            loadingMore,
-            dataList,
-            loading,
-            refreshAsync,
-            loadMore,
-          } = useLoadMore(normalRequest);
+          const { loadingMore, dataList, loading, refreshAsync, loadMore } =
+            useLoadMore(normalRequest);
 
           return {
             loading,

@@ -105,14 +105,8 @@ describe('usePagination', () => {
       defineComponent({
         template: '<div/>',
         setup() {
-          const {
-            data,
-            total,
-            params,
-            current,
-            pageSize,
-            totalPage,
-          } = usePagination<NormalMockDataType>(normalApi);
+          const { data, total, params, current, pageSize, totalPage } =
+            usePagination<NormalMockDataType>(normalApi);
           return {
             data,
             total,
@@ -152,15 +146,10 @@ describe('usePagination', () => {
       defineComponent({
         template: '<div/>',
         setup() {
-          const {
-            total,
-            params,
-            current,
-            pageSize,
-            run,
-          } = usePagination<NormalMockDataType>(normalApi, {
-            manual: true,
-          });
+          const { total, params, current, pageSize, run } =
+            usePagination<NormalMockDataType>(normalApi, {
+              manual: true,
+            });
           return {
             run,
             total,
@@ -194,14 +183,8 @@ describe('usePagination', () => {
       defineComponent({
         template: '<div/>',
         setup() {
-          const {
-            total,
-            params,
-            current,
-            pageSize,
-            totalPage,
-            changeCurrent,
-          } = usePagination(normalApi);
+          const { total, params, current, pageSize, totalPage, changeCurrent } =
+            usePagination(normalApi);
           return {
             total,
             params,
@@ -310,9 +293,8 @@ describe('usePagination', () => {
       defineComponent({
         template: '<div/>',
         setup() {
-          const { loading, current, pageSize, params } = usePagination(
-            normalApi,
-          );
+          const { loading, current, pageSize, params } =
+            usePagination(normalApi);
           return {
             loading,
             current,
@@ -356,16 +338,10 @@ describe('usePagination', () => {
       defineComponent({
         template: '<div/>',
         setup() {
-          const {
-            total,
-            params,
-            current,
-            pageSize,
-            totalPage,
-            changeCurrent,
-          } = usePagination(normalApi, {
-            manual: true,
-          });
+          const { total, params, current, pageSize, totalPage, changeCurrent } =
+            usePagination(normalApi, {
+              manual: true,
+            });
           return {
             total,
             params,
@@ -455,22 +431,16 @@ describe('usePagination', () => {
       defineComponent({
         template: '<div/>',
         setup() {
-          const {
-            total,
-            params,
-            current,
-            pageSize,
-            totalPage,
-            changeCurrent,
-          } = usePagination(normalApi, {
-            manual: true,
-            defaultParams: [
-              {
-                pageSize: 20,
-                current: 2,
-              },
-            ],
-          });
+          const { total, params, current, pageSize, totalPage, changeCurrent } =
+            usePagination(normalApi, {
+              manual: true,
+              defaultParams: [
+                {
+                  pageSize: 20,
+                  current: 2,
+                },
+              ],
+            });
           return {
             total,
             params,
@@ -542,16 +512,10 @@ describe('usePagination', () => {
       defineComponent({
         template: '<div/>',
         setup() {
-          const {
-            refresh,
-            params,
-            current,
-            total,
-            totalPage,
-            pageSize,
-          } = usePagination<NormalMockDataType>(normalApi, {
-            manual: true,
-          });
+          const { refresh, params, current, total, totalPage, pageSize } =
+            usePagination<NormalMockDataType>(normalApi, {
+              manual: true,
+            });
           return {
             refresh,
             params,

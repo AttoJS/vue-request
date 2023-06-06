@@ -63,7 +63,12 @@ function useLoadMore<R extends DataType>(
   const isTriggerByLoadMore = ref(false);
   const count = ref(0);
 
-  const { runAsync, run, cancel: _cancel, ...rest } = useQuery(
+  const {
+    runAsync,
+    run,
+    cancel: _cancel,
+    ...rest
+  } = useQuery(
     async (lastData?: R) => {
       const currentCount = count.value;
       const currentData = await service(lastData);
