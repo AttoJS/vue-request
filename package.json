@@ -41,7 +41,7 @@
     "format": "prettier -w '**/*.ts?(x)'",
     "lint": "eslint -c ./.eslintrc.js './{src,scripts,build}/**/*.{js,ts,tsx}'",
     "patch-package": "patch-package",
-    "publishing": "np",
+    "publishing": "np --tag=latest --branch=master ",
     "release": "yarn build && yarn publishing",
     "switch:2": "vue-demi-switch 2.7 vue2",
     "switch:3": "vue-demi-switch 3",
