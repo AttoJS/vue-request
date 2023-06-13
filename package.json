@@ -1,7 +1,7 @@
 {
   "name": "vue-request",
   "version": "2.0.2",
-  "description": "Vue composition API for data fetching, supports SWR, polling, error retry, cache request, pagination and other cool features.",
+  "description": "This is a library that can easily help you manage request states, supporting common features such as SWR, polling, error retry, caching, and pagination, etc.",
   "keywords": [
     "vue",
     "vue3",
@@ -20,7 +20,7 @@
   "bugs": "https://github.com/attojs/vue-request/issues",
   "repository": {
     "type": "git",
-    "url": "https://github.com/attojs/vue-request/tree/next"
+    "url": "https://github.com/attojs/vue-request"
   },
   "license": "MIT",
   "main": "dist/index.cjs.js",
