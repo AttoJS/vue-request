@@ -1,4 +1,5 @@
 export { setGlobalOptions } from './core/config';
+export { definePlugin } from './core/definePlugin';
 export type { Options, Service } from './core/types';
 export { clearCache } from './core/utils/cache';
 export type {
