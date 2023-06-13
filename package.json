@@ -1,6 +1,6 @@
 {
   "name": "vue-request",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "This is a library that can easily help you manage request states, supporting common features such as SWR, polling, error retry, caching, and pagination, etc.",
   "keywords": [
     "vue",
