@@ -34,7 +34,7 @@ export type LoadMoreBaseOptions<R> = Pick<
   onError?: (error: Error) => void;
 };
 
-type LoadMoreQueryResult<R extends DataType> = Pick<
+export type LoadMoreQueryResult<R extends DataType> = Pick<
   QueryResult<R, any>,
   | 'data'
   | 'loading'

@@ -26,7 +26,7 @@ export interface PaginationOptions<R, P extends unknown[]>
   extends Options<R, P>,
     PaginationExtendsOption {}
 
-interface PaginationQueryResult<R, P extends unknown[]>
+export interface PaginationQueryResult<R, P extends unknown[]>
   extends QueryResult<R, P> {
   current: WritableComputedRef<number>;
   pageSize: WritableComputedRef<number>;
