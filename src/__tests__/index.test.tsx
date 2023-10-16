@@ -10,7 +10,7 @@ import {
   RECONNECT_LISTENER,
   VISIBLE_LISTENER,
 } from '../core/utils/listener';
-import { useRequest } from '../index';
+import { definePlugin, useRequest } from '../index';
 import { mount, waitForAll, waitForTime } from './utils';
 import { failedRequest, request } from './utils/request';
 declare let jsdom: any;
@@ -4510,5 +4510,123 @@ describe('useRequest', () => {
     expect(wrapper.loading).toBe(false);
     await waitForTime(500);
     expect(wrapper.loading).toBe(false);
+  });
+
+  test('plugins should be use', async () => {
+    enum PluginStatus {
+      default = -1,
+      onBefore,
+      onQuery,
+      onSuccess,
+      onError,
+      onAfter,
+      onCancel,
+      onMutate,
+    }
+
+    let pluginStatus = PluginStatus.default;
+
+    let cancelStatus = false;
+    let mutateStatus = false;
+    let errorStatus = false;
+    let isError = false;
+
+    const testNormalPlugin = definePlugin(() => {
+      return {
+        onBefore(params) {
+          if (!isError) {
+            expect(params[0]).toBe('testData');
+          }
+          expect(pluginStatus).toBe(PluginStatus.default);
+          pluginStatus = PluginStatus.onBefore;
+        },
+        onQuery(service) {
+          expect(pluginStatus).toBe(PluginStatus.onBefore);
+          pluginStatus = PluginStatus.onQuery;
+          return () => service();
+        },
+        onSuccess(data, params) {
+          expect(params[0]).toBe('testData');
+          expect(data).toBe('testData');
+          expect(pluginStatus).toBe(PluginStatus.onQuery);
+          pluginStatus = PluginStatus.onSuccess;
+        },
+        onAfter(params, data, error) {
+          if (!isError) {
+            expect(params[0]).toBe('testData');
+            expect(data).toBe('testData');
+            expect(pluginStatus).toBe(PluginStatus.onSuccess);
+          } else {
+            expect(data).toBe(undefined);
+            expect(error.message).toBe('fail');
+          }
+          pluginStatus = PluginStatus.default;
+        },
+        onCancel() {
+          expect(cancelStatus).toBe(false);
+          cancelStatus = true;
+          pluginStatus = PluginStatus.default;
+        },
+        onMutate(data) {
+          expect(mutateStatus).toBe(false);
+          expect(data).toBe('mutateData');
+          mutateStatus = true;
+          pluginStatus = PluginStatus.default;
+        },
+        onError(error, params) {
+          expect(params[0]).toBe('error');
+          expect(error.message).toBe('fail');
+          expect(errorStatus).toBe(false);
+          errorStatus = true;
+          pluginStatus = PluginStatus.default;
+        },
+      };
+    });
+    const wrapper = mount(
+      defineComponent({
+        template: '<div/>',
+        setup() {
+          const { data, runAsync, cancel, mutate } = useRequest(
+            params => (isError ? failedRequest() : request(params)),
+            {
+              defaultParams: ['testData'],
+              errorRetryCount: 0,
+            },
+            [testNormalPlugin],
+          );
+          return {
+            data,
+            runAsync,
+            cancel,
+            mutate,
+          };
+        },
+      }),
+    );
+    expect(wrapper.data).toBeUndefined();
+    await waitForAll();
+    expect(wrapper.data).toBe('testData');
+
+    // test onCancel hooks
+    wrapper.runAsync('testData');
+    await waitForTime(500);
+    expect(cancelStatus).toBe(false);
+    wrapper.cancel();
+    expect(cancelStatus).toBe(true);
+
+    // test onMutate
+    expect(mutateStatus).toBe(false);
+    wrapper.mutate('mutateData');
+    expect(mutateStatus).toBe(true);
+
+    // test onError hooks
+    isError = true;
+    expect(errorStatus).toBe(false);
+    wrapper.runAsync('error').catch(() => {
+      return;
+    });
+    await waitForAll();
+    expect(errorStatus).toBe(true);
+    isError = false;
   });
 });
