@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.4](https://github.com/attojs/vue-request/compare/v2.0.3...v2.0.4) (2023-10-16)
+
+### Refactor
+
+- `useRequest` 支持传入自定义插件 [#204](https://github.com/attojs/vue-request/issues/204) ([3280f44](https://github.com/attojs/vue-request/commit/3280f4402728252e0154e22140c5a3913d407823))
+- 导出部分缺失的类型 [#215](https://github.com/attojs/vue-request/issues/215) [#217](https://github.com/attojs/vue-request/issues/217) ([35b07a4](https://github.com/attojs/vue-request/commit/35b07a4ffa22aca2cac3d1c46a0f4b99e4d1f206))
+
 ### [2.0.3](https://github.com/attojs/vue-request/compare/v2.0.2...v2.0.3) (2023-06-13)
 
 ### Refactor
