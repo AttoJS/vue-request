@@ -57,8 +57,8 @@ function usePagination<R, P extends unknown[] = any>(
 
   const { currentKey, pageSizeKey, totalKey, totalPageKey } = merge(
     defaultPaginationOptions,
-    getGlobalOptions().pagination || {},
-    injectedGlobalOptions.pagination || {},
+    getGlobalOptions()?.pagination || {},
+    injectedGlobalOptions?.pagination || {},
     pagination || {},
   ) as PaginationType;
 
