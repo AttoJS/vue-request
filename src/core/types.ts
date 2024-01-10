@@ -4,7 +4,7 @@ import type { Ref, WatchSource } from 'vue-demi';
 
 import type { PaginationExtendsOption } from '../usePagination';
 import type { CacheData } from './utils/cache';
-import type { EmitVoid } from './utils/types';
+import type { EmitVoid, UnWrapRefObject } from './utils/types';
 
 type MutateData<R> = (newData: R) => void;
 type MutateFunction<R> = (arg: (oldData: R) => R) => void;
@@ -91,10 +91,12 @@ export type PluginImplementType<R, P extends any[]> = {
 };
 
 export type PluginType<R, P extends unknown[]> = {
-  onBefore: (params: P) => {
-    isBreak?: Boolean;
-    breakResult?: any;
-  } | void;
+  onBefore: (params: P) =>
+    | ({
+        isBreak?: Boolean;
+        isReturn?: Boolean;
+      } & Partial<UnWrapRefObject<State<R, P>>>)
+    | void;
 
   onQuery: (service: () => Promise<R>) => () => Promise<R>;
 

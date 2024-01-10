@@ -49,10 +49,12 @@ export default definePlugin(
     };
     return {
       onBefore() {
-        queryInstance.loading.value = !loadingDelayRef.value;
         delayLoadingTimer.value();
         delayLoadingTimer.value = delayLoading();
         startTime = getCurrentTime();
+        return {
+          loading: !loadingDelayRef.value,
+        };
       },
       onQuery(service) {
         if (!loadingKeepRef.value) return () => service();

@@ -21,7 +21,6 @@ export default definePlugin(
       onBefore() {
         const readyFlag = isFunction(ready) ? ready() : ready.value;
         if (!readyFlag) {
-          queryInstance.loading.value = false;
           return {
             isBreak: true,
           };

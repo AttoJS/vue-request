@@ -19,7 +19,9 @@ const setStateBind = <T extends StateBindParams>(
 ) => {
   return (newState: Partial<UnWrapRefObject<StateBindParams>>) => {
     Object.keys(newState).forEach(key => {
-      oldState[key].value = newState[key];
+      if (oldState[key]) {
+        oldState[key].value = newState[key];
+      }
     });
     publicCb.forEach(fun => fun(oldState));
   };
@@ -80,18 +82,31 @@ const createQuery = <R, P extends unknown[]>(
 
   context.runAsync = async (...args: P): Promise<R> => {
     setState({
-      loading: true,
-      params: args,
       status: 'pending',
     });
 
     count.value += 1;
     const currentCount = count.value;
 
-    const { isBreak, breakResult = resolvedPromise() } = emit('onBefore', args);
+    const {
+      isBreak = false,
+      isReturn = false,
+      ...rest
+    } = emit('onBefore', args);
     if (isBreak) {
       setState({ status: 'settled' });
-      return breakResult;
+      return resolvedPromise();
+    }
+
+    setState({
+      loading: true,
+      params: args,
+      ...rest,
+    });
+
+    if (isReturn) {
+      setState({ status: 'settled', loading: false });
+      return rest.data!;
     }
 
     onBefore?.(args);

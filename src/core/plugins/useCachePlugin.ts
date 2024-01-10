@@ -82,15 +82,16 @@ export default definePlugin(
         }
         // If it's fresh, stop the request
         if (isFresh(cache.time)) {
-          queryInstance.data.value = cache.data;
-          queryInstance.loading.value = false;
           return {
-            isBreak: true,
-            breakResult: cache.data,
+            isReturn: true,
+            loading: false,
+            data: cache.data,
           };
         } else {
           // If it is not fresh, set data and request
-          queryInstance.data.value = cache.data;
+          return {
+            data: cache.data,
+          };
         }
       },
       onQuery(service) {
