@@ -89,8 +89,13 @@ const createQuery = <R, P extends unknown[]>(
     const currentCount = count.value;
 
     const { isBreak, breakResult = resolvedPromise() } = emit('onBefore', args);
+
     if (isBreak) {
-      setState({ status: 'settled' });
+      setState({
+        status: 'settled',
+        loading: false,
+        data: breakResult,
+      });
       return breakResult;
     }
 
