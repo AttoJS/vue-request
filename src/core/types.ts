@@ -71,13 +71,19 @@ export type BaseOptions = {
   setCache?: (cacheKey: string, cacheData: CacheData) => void;
 };
 
+export type RefreshDepsActionParams<R, P extends unknown[]> = {
+  value: any[];
+  oldValue: any[];
+  context: FunctionContext<R, P>;
+};
+
 export type Options<R, P extends unknown[]> = BaseOptions & {
   defaultParams?: P;
   ready?: Ref<boolean> | (() => boolean);
   initialData?: R;
   refreshDeps?: WatchSource | WatchSource[];
   cacheKey?: string | ((params?: P) => string);
-  refreshDepsAction?: () => void;
+  refreshDepsAction?: (params: RefreshDepsActionParams<R, P>) => void;
   onSuccess?: (data: R, params: P) => void;
   onError?: (error: Error, params: P) => void;
   onBefore?: (params: P) => void;

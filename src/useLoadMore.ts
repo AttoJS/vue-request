@@ -87,9 +87,9 @@ function useLoadMore<R extends DataType>(
     {
       ...restOptions,
       defaultParams: [],
-      refreshDepsAction: () => {
+      refreshDepsAction: params => {
         if (restOptions?.refreshDepsAction) {
-          restOptions.refreshDepsAction();
+          restOptions.refreshDepsAction(params);
         } else {
           refresh();
         }
