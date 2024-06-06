@@ -72,8 +72,8 @@ export type BaseOptions = {
 };
 
 export type RefreshDepsActionParams<R, P extends unknown[]> = {
-  value: any[];
-  oldValue: any[];
+  values: any[];
+  oldValues: any[];
   context: FunctionContext<R, P>;
 };
 
