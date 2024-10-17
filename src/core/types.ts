@@ -70,7 +70,8 @@ export type BaseOptions = {
   getCache?: (cacheKey: string) => CacheData;
   setCache?: (cacheKey: string, cacheData: CacheData) => void;
 };
-
+// @ts-ignore @typescript-eslint/no-empty-interface
+export declare interface PluginOptions {}
 export type Options<R, P extends unknown[]> = BaseOptions & {
   defaultParams?: P;
   ready?: Ref<boolean> | (() => boolean);
@@ -82,7 +83,7 @@ export type Options<R, P extends unknown[]> = BaseOptions & {
   onError?: (error: Error, params: P) => void;
   onBefore?: (params: P) => void;
   onAfter?: (params: P) => void;
-};
+} & PluginOptions;
 
 export type PluginImplementType<R, P extends any[]> = {
   (queryInstance: Query<R, P>, config: Options<R, P>): Partial<
