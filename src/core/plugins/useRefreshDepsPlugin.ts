@@ -13,9 +13,13 @@ export default definePlugin(
     const deps = isArray(refreshDeps) ? refreshDeps : [refreshDeps];
 
     // watch refreshDeps
-    watch(deps, () => {
+    watch(deps, (values, oldValues) => {
       if (refreshDepsAction) {
-        refreshDepsAction();
+        refreshDepsAction({
+          values,
+          oldValues,
+          context: queryInstance.context,
+        });
       } else {
         !manual && queryInstance.context.refresh();
       }
