@@ -1,7 +1,13 @@
-import { computed, onUnmounted, ref, watch } from 'vue-demi';
+import { computed, ref, watch } from 'vue-demi';
 
 import { definePlugin } from '../definePlugin';
-import { isDocumentVisibility, isNil, isOnline, refToRaw } from '../utils';
+import {
+  isDocumentVisibility,
+  isNil,
+  isOnline,
+  onScopeDisposeCompatible,
+  refToRaw,
+} from '../utils';
 import subscriber from '../utils/listener';
 import type { Timeout } from '../utils/types';
 
@@ -76,7 +82,7 @@ export default definePlugin(
       addUnsubscribeList(subscriber('RECONNECT_LISTENER', rePolling));
     }
 
-    onUnmounted(() => {
+    onScopeDisposeCompatible(() => {
       unsubscribeList.forEach(unsubscribe => unsubscribe());
     });
 

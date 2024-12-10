@@ -1,7 +1,7 @@
-import { computed, onUnmounted, watchEffect } from 'vue-demi';
+import { computed, watchEffect } from 'vue-demi';
 
 import { definePlugin } from '../definePlugin';
-import { refToRaw } from '../utils';
+import { onScopeDisposeCompatible, refToRaw } from '../utils';
 import limitTrigger from '../utils/limitTrigger';
 import subscriber from '../utils/listener';
 
@@ -32,7 +32,7 @@ export default definePlugin(
       }
     });
 
-    onUnmounted(() => {
+    onScopeDisposeCompatible(() => {
       unsubscribe();
     });
 

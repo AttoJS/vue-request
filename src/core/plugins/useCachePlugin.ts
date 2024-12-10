@@ -1,7 +1,7 @@
-import { onUnmounted, ref } from 'vue-demi';
+import { ref } from 'vue-demi';
 
 import { definePlugin } from '../definePlugin';
-import { isFunction } from '../utils';
+import { isFunction, onScopeDisposeCompatible } from '../utils';
 import type { CacheData } from '../utils/cache';
 import { getCache, setCache } from '../utils/cache';
 import { getCacheQuery, setCacheQuery } from '../utils/cacheQuery';
@@ -68,7 +68,7 @@ export default definePlugin(
       unSubscribe.value = subscribeCache();
     }
 
-    onUnmounted(() => {
+    onScopeDisposeCompatible(() => {
       unSubscribe.value();
     });
 

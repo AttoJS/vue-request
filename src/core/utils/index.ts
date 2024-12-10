@@ -1,4 +1,5 @@
 import type { Ref } from 'vue-demi';
+import { onScopeDispose, version } from 'vue-demi';
 import { isRef } from 'vue-demi';
 
 export const objectToString = Object.prototype.toString;
@@ -78,5 +79,14 @@ export const shallowCopy = <T>(value: T): T => {
     return Object.assign(isArray(value) ? [] : {}, value);
   } else {
     return value;
+  }
+};
+
+export const onScopeDisposeCompatible = (fn: () => void) => {
+  if (version.startsWith('3.5')) {
+    // @ts-ignore
+    onScopeDispose(fn, true);
+  } else {
+    onScopeDispose(fn);
   }
 };

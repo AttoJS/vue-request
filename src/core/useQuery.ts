@@ -1,4 +1,4 @@
-import { inject, onUnmounted } from 'vue-demi';
+import { getCurrentInstance, inject } from 'vue-demi';
 
 import { getGlobalOptions, GLOBAL_OPTIONS_PROVIDE_KEY } from './config';
 import createQuery from './createQuery';
@@ -9,16 +9,20 @@ import type {
   QueryResult,
   Service,
 } from './types';
+import { onScopeDisposeCompatible } from './utils';
 
 function useQuery<R, P extends unknown[]>(
   service: Service<R, P>,
   options: Options<R, P> = {},
   plugins: PluginImplementType<R, P>[],
 ): QueryResult<R, P> {
-  const injectedGlobalOptions = inject<GlobalOptions>(
-    GLOBAL_OPTIONS_PROVIDE_KEY,
-    {},
-  );
+  let injectedGlobalOptions = {};
+  if (getCurrentInstance()) {
+    injectedGlobalOptions = inject<GlobalOptions>(
+      GLOBAL_OPTIONS_PROVIDE_KEY,
+      {},
+    );
+  }
 
   const config = {
     ...getGlobalOptions(),
@@ -38,7 +42,7 @@ function useQuery<R, P extends unknown[]>(
     queryInstance.context.run(...params);
   }
 
-  onUnmounted(() => {
+  onScopeDisposeCompatible(() => {
     queryInstance.context.cancel();
   });
 
