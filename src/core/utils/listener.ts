@@ -27,7 +27,9 @@ const subscriber = (listenerType: ListenerType, event: EventFunc) => {
   }
 
   if (listeners.has(event)) return;
-  listeners.add(event);
+  if (!isServer) {
+    listeners.add(event);
+  }
   return () => {
     listeners.delete(event);
   };
