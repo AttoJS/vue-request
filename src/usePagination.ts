@@ -5,6 +5,7 @@ import { getGlobalOptions, GLOBAL_OPTIONS_PROVIDE_KEY } from './core/config';
 import type {
   GlobalOptions,
   Options,
+  PluginImplementType,
   QueryResult,
   Service,
 } from './core/types';
@@ -40,6 +41,7 @@ export interface PaginationQueryResult<R, P extends unknown[]>
 function usePagination<R, P extends unknown[] = any>(
   service: Service<R, P>,
   options: PaginationOptions<R, P> = {},
+  plugins?: PluginImplementType<R, P>[],
 ): PaginationQueryResult<R, P> {
   const defaultPaginationOptions = {
     currentKey: 'current',
@@ -77,6 +79,7 @@ function usePagination<R, P extends unknown[] = any>(
   const { data, params, run, ...rest } = useRequest<R, P>(
     service,
     finallyOptions,
+    plugins,
   );
 
   const paging = (paginationParams: Record<string, number>) => {
