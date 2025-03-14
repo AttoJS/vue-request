@@ -61,7 +61,7 @@ VueRequest 的目的是为开发人员提供一种方便、快速的方式来管
 
 ## 文档
 
-- [English](https://www.attojs.org/)
+- [English](https://en.attojs.com/)
 - [中文文档](https://www.attojs.com/)
 
 ## 安装
